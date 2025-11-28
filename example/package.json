@@ -6,20 +6,23 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "lint": "expo lint"
+    "lint": "biome check .",
+    "format": "biome format --write ."
   },
   "dependencies": {
-    "expo": "~54.0.25",
-    "expo-router": "~4.0.0",
-    "expo-status-bar": "~2.2.0",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
+    "expo": "53.0.24",
+    "expo-router": "~5.1.0",
+    "expo-status-bar": "~2.2.3",
+    "expo-linking": "~7.1.5",
+    "react": "19.0.0",
+    "react-native": "0.79.6",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.27.1",
-    "@types/react": "~19.1.0",
+    "@biomejs/biome": "^2.3.8",
+    "@types/react": "~19.0.10",
     "eslint": "^9.27.0",
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.9.2"
@@ -28,6 +31,9 @@
     "autolinking": {
       "nativeModulesDir": ".."
     }
+  },
+  "overrides": {
+    "@expo/metro-runtime": "~5.0.4"
   },
   "private": true
 }
