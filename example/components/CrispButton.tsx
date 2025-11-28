@@ -14,9 +14,12 @@ export default function CrispButton({ onPress }: CrispButtonProps) {
 
 const styles = StyleSheet.create({
   button: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    position: "absolute",
+    bottom: 40,
+    right: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     overflow: "hidden",
     elevation: 5,
     shadowColor: "#000",
