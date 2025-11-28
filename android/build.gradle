@@ -41,3 +41,7 @@ android {
     abortOnError false
   }
 }
+
+dependencies {
+  implementation "im.crisp:crisp-sdk:2.0.15"
+}
