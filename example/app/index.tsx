@@ -1,11 +1,12 @@
-import { StyleSheet, Text, View } from "react-native"
+import { StyleSheet } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
+import CrispButton from "../components/CrispButton"
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Expo Crisp SDK</Text>
-      <Text style={styles.subtitle}>Example App</Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <CrispButton onPress={() => {}} />
+    </SafeAreaView>
   )
 }
 
@@ -13,16 +14,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    paddingRight: 30,
+    paddingBottom: 10,
   },
 })
