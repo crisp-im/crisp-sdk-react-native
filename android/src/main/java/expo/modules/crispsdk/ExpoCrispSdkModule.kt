@@ -7,20 +7,6 @@ class ExpoCrispSdkModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("ExpoCrispSdk")
 
-    Constant("PI") {
-      Math.PI
-    }
-
-    Events("onChange")
-
-    Function("hello") {
-      "Hello world! 👋"
-    }
-
-    AsyncFunction("setValueAsync") { value: String ->
-      sendEvent("onChange", mapOf(
-        "value" to value
-      ))
-    }
+    // TODO: Implement Crisp SDK methods
   }
 }

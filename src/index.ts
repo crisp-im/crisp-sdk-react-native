@@ -1,2 +1,2 @@
-export { default } from './ExpoCrispSdkModule';
-export * from './ExpoCrispSdk.types';
+export { default } from "./ExpoCrispSdkModule"
+export * from "./ExpoCrispSdk.types"

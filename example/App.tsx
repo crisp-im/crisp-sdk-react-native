@@ -1,66 +1,28 @@
-import { useEvent } from 'expo';
-import ExpoCrispSdk from 'expo-crisp-sdk';
-import { Button, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text } from "react-native"
 
 export default function App() {
-  const onChangePayload = useEvent(ExpoCrispSdk, 'onChange');
-
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.container}>
-        <Text style={styles.header}>Module API Example</Text>
-        <Group name="Constants">
-          <Text>{ExpoCrispSdk.PI}</Text>
-        </Group>
-        <Group name="Functions">
-          <Text>{ExpoCrispSdk.hello()}</Text>
-        </Group>
-        <Group name="Async functions">
-          <Button
-            title="Set value"
-            onPress={async () => {
-              await ExpoCrispSdk.setValueAsync('Hello from JS!');
-            }}
-          />
-        </Group>
-        <Group name="Events">
-          <Text>{onChangePayload?.value}</Text>
-        </Group>
-      </ScrollView>
+      <Text style={styles.title}>Expo Crisp SDK</Text>
+      <Text style={styles.subtitle}>Example App</Text>
     </SafeAreaView>
-  );
+  )
 }
 
-function Group(props: { name: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.group}>
-      <Text style={styles.groupHeader}>{props.name}</Text>
-      {props.children}
-    </View>
-  );
-}
-
-const styles = {
-  header: {
-    fontSize: 30,
-    margin: 20,
-  },
-  groupHeader: {
-    fontSize: 20,
-    marginBottom: 20,
-  },
-  group: {
-    margin: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-  },
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#eee',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  view: {
-    flex: 1,
-    height: 200,
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 8,
   },
-};
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+  },
+})
