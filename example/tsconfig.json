@@ -6,5 +6,6 @@
       "expo-crisp-sdk": ["../src/index"],
       "expo-crisp-sdk/*": ["../src/*"]
     }
-  }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

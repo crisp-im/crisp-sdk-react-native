@@ -1,12 +1,9 @@
-import { NativeModule, requireNativeModule } from 'expo';
+import { NativeModule, requireNativeModule } from "expo"
 
-import { ExpoCrispSdkModuleEvents } from './ExpoCrispSdk.types';
+type ExpoCrispSdkEvents = Record<string, never>
 
-declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkModuleEvents> {
-  PI: number;
-  hello(): string;
-  setValueAsync(value: string): Promise<void>;
+declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
+  // TODO: Declare Crisp SDK methods
 }
 
-// This call loads the native module object from the JSI.
-export default requireNativeModule<ExpoCrispSdkModule>('ExpoCrispSdk');
+export default requireNativeModule<ExpoCrispSdkModule>("ExpoCrispSdk")
