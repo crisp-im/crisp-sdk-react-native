@@ -13,7 +13,12 @@
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
     "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android"
+    "open:android": "open -a \"Android Studio\" example/android",
+    "format": "biome check --write .",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "version": "changeset version",
+    "release": "yarn build && changeset publish"
   },
   "keywords": [
     "react-native",
@@ -28,16 +33,28 @@
   "author": "Armand Petit <armand_petit@outlook.fr> (https://github.com/VirtuozTM)",
   "license": "MIT",
   "homepage": "https://github.com/VirtuozTM/expo-crisp-sdk#readme",
-  "dependencies": {},
   "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@changesets/cli": "^2.29.8",
     "@types/react": "~19.1.0",
+    "eslint": "^8.57.0",
+    "expo": "*",
     "expo-module-scripts": "^5.0.7",
-    "expo": "^54.0.24",
-    "react-native": "0.81.5"
+    "react-native": "*"
   },
   "peerDependencies": {
     "expo": "*",
     "react": "*",
     "react-native": "*"
-  }
+  },
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "ios",
+    "android",
+    "expo-module.config.json"
+  ],
+  "packageManager": "yarn@4.7.0"
 }
