@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoCrispSdkModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.crispsdk.ExpoCrispSdkModule"]
+  }
+}

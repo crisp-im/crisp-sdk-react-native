@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "expo-crisp-sdk": ["../src/index"],
+      "expo-crisp-sdk/*": ["../src/*"]
+    }
+  }
+}
