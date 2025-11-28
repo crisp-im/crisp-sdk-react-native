@@ -9,12 +9,16 @@
     "clean": "expo-module clean",
     "lint": "expo-module lint",
     "test": "expo-module test",
-    "format": "biome check --write .",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
     "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android"
+    "open:android": "open -a \"Android Studio\" example/android",
+    "format": "biome check --write .",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "version": "changeset version",
+    "release": "yarn build && changeset publish"
   },
   "keywords": [
     "react-native",
@@ -31,6 +35,7 @@
   "homepage": "https://github.com/VirtuozTM/expo-crisp-sdk#readme",
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
+    "@changesets/cli": "^2.29.8",
     "@types/react": "~19.1.0",
     "eslint": "^8.57.0",
     "expo": "*",
@@ -42,5 +47,14 @@
     "react": "*",
     "react-native": "*"
   },
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "ios",
+    "android",
+    "expo-module.config.json"
+  ],
   "packageManager": "yarn@4.7.0"
 }
