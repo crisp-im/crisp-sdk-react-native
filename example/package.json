@@ -32,8 +32,5 @@
       "nativeModulesDir": ".."
     }
   },
-  "overrides": {
-    "@expo/metro-runtime": "~5.0.4"
-  },
   "private": true
 }
