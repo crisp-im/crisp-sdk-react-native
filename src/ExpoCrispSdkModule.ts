@@ -9,41 +9,209 @@ import type {
 type ExpoCrispSdkEvents = Record<string, never>;
 
 declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
+  // ============================================================================
   // Configuration
+  // ============================================================================
+
+  /**
+   * Initialize the Crisp SDK with your website ID.
+   * Must be called once at app startup before using any other methods.
+   *
+   * @param websiteId - Your Website ID from the Crisp Dashboard
+   * @see https://docs.crisp.chat/guides/chatbox-sdks/ios-sdk/#configure-crisp
+   */
   configure(websiteId: string): void;
+
+  /**
+   * Set a token for session persistence across app reinstalls and devices.
+   * Use this to maintain chat history when a user logs in.
+   *
+   * @param tokenId - Unique identifier (e.g., user ID), or `null` to clear
+   * @example
+   * // On login
+   * ExpoCrispSdk.setTokenId(user.id);
+   * // On logout
+   * ExpoCrispSdk.setTokenId(null);
+   */
   setTokenId(tokenId: string | null): void;
 
+  // ============================================================================
   // User Information
+  // ============================================================================
+
+  /**
+   * Set the user's email address for identification in the chat.
+   *
+   * @param email - User's email address
+   * @param signature - Optional HMAC-SHA256 signature for email verification
+   * @see https://docs.crisp.chat/guides/chatbox-sdks/ios-sdk/#set-user-email
+   */
   setUserEmail(email: string, signature?: string | null): void;
+
+  /**
+   * Set the user's display name shown in the chat.
+   *
+   * @param name - User's nickname or display name
+   */
   setUserNickname(name: string): void;
+
+  /**
+   * Set the user's phone number.
+   *
+   * @param phone - Phone number (E.164 format recommended, e.g., "+1234567890")
+   */
   setUserPhone(phone: string): void;
+
+  /**
+   * Set the user's company information.
+   *
+   * @param company - Company details including name, URL, employment, and location
+   * @example
+   * ExpoCrispSdk.setUserCompany({
+   *   name: "Acme Inc",
+   *   url: "https://acme.com",
+   *   employment: { title: "Engineer", role: "Development" },
+   *   geolocation: { country: "France", city: "Paris" }
+   * });
+   */
   setUserCompany(company: Company): void;
+
+  /**
+   * Set the user's avatar image.
+   *
+   * @param url - URL to the user's avatar image
+   */
   setUserAvatar(url: string): void;
 
+  // ============================================================================
   // Session Data
+  // ============================================================================
+
+  /**
+   * Store a custom string value in the session data.
+   * Visible to operators in the Crisp dashboard.
+   *
+   * @param key - Data key
+   * @param value - String value to store
+   */
   setSessionString(key: string, value: string): void;
+
+  /**
+   * Store a custom boolean value in the session data.
+   * Visible to operators in the Crisp dashboard.
+   *
+   * @param key - Data key
+   * @param value - Boolean value to store
+   */
   setSessionBool(key: string, value: boolean): void;
+
+  /**
+   * Store a custom integer value in the session data.
+   * Visible to operators in the Crisp dashboard.
+   *
+   * @param key - Data key
+   * @param value - Integer value to store
+   */
   setSessionInt(key: string, value: number): void;
+
+  /**
+   * Set a single segment to categorize the user.
+   * Segments help organize users in the Crisp dashboard.
+   *
+   * @param segment - Segment name (e.g., "premium", "trial")
+   */
   setSessionSegment(segment: string): void;
+
+  /**
+   * Set multiple segments to categorize the user.
+   *
+   * @param segments - Array of segment names
+   * @param overwrite - If true, replaces existing segments; if false, appends
+   */
   setSessionSegments(segments: string[], overwrite?: boolean): void;
+
+  /**
+   * Get the current session identifier.
+   *
+   * @returns Promise resolving to the session ID, or null if not available
+   */
   getSessionIdentifier(): Promise<string | null>;
 
+  // ============================================================================
   // Events
+  // ============================================================================
+
+  /**
+   * Track a single event in the user's chat timeline.
+   * Events are visible to operators and help understand user actions.
+   *
+   * @param name - Event name (e.g., "Purchase completed")
+   * @param color - Event color for visual categorization
+   * @example
+   * ExpoCrispSdk.pushSessionEvent("Checkout", CrispSessionEventColors.GREEN);
+   */
   pushSessionEvent(name: string, color: CrispSessionEventColors): void;
+
+  /**
+   * Track multiple events in the user's chat timeline.
+   *
+   * @param events - Array of events with name and color
+   * @example
+   * ExpoCrispSdk.pushSessionEvents([
+   *   { name: "Added to cart", color: CrispSessionEventColors.BLUE },
+   *   { name: "Checkout started", color: CrispSessionEventColors.ORANGE }
+   * ]);
+   */
   pushSessionEvents(events: SessionEvent[]): void;
 
+  // ============================================================================
   // Session Management
+  // ============================================================================
+
+  /**
+   * Reset the current chat session.
+   * Clears all session data and starts a fresh conversation.
+   * Typically called on user logout.
+   */
   resetSession(): void;
 
+  // ============================================================================
   // UI
+  // ============================================================================
+
+  /**
+   * Open the Crisp chat widget.
+   * Presents the chat interface as a modal.
+   */
   show(): void;
+
+  /**
+   * Open the helpdesk search interface.
+   * Allows users to search through your knowledge base articles.
+   */
   searchHelpdesk(): void;
+
+  /**
+   * Open a specific helpdesk article.
+   *
+   * @param id - Article slug or identifier
+   * @param locale - Article locale (e.g., "en", "fr")
+   * @param title - Optional article title for display
+   * @param category - Optional category name for display
+   */
   openHelpdeskArticle(
     id: string,
     locale: string,
     title?: string | null,
     category?: string | null
   ): void;
+
+  /**
+   * Trigger an automated bot scenario.
+   * Starts a predefined conversation flow configured in the Crisp dashboard.
+   *
+   * @param scenarioId - The scenario identifier from the Crisp dashboard
+   */
   runBotScenario(scenarioId: string): void;
 }
 
