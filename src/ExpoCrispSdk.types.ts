@@ -183,3 +183,66 @@ export interface SessionEvent {
    */
   color: CrispSessionEventColors;
 }
+
+// ============================================================================
+// Event Callback Types
+// ============================================================================
+
+/**
+ * Represents a message in the Crisp chat.
+ * Used in message-related event callbacks (onMessageSent, onMessageReceived).
+ *
+ * @example
+ * ```typescript
+ * import { useCrispEvents } from "expo-crisp-sdk";
+ *
+ * useCrispEvents({
+ *   onMessageReceived: (message) => {
+ *     console.log("New message:", message.content);
+ *     console.log("From operator:", message.fromOperator);
+ *   }
+ * });
+ * ```
+ */
+export interface CrispMessage {
+  /**
+   * The message content/text.
+   */
+  content: string;
+
+  /**
+   * Unix timestamp (in milliseconds) when the message was created.
+   */
+  timestamp: number;
+
+  /**
+   * Whether the message is from an operator (true) or visitor (false).
+   */
+  fromOperator: boolean;
+}
+
+/**
+ * Event payload for the onSessionLoaded callback.
+ * Emitted when the Crisp session has fully loaded.
+ */
+export interface SessionLoadedPayload {
+  /**
+   * The unique session identifier.
+   */
+  sessionId: string;
+}
+
+/**
+ * Event payload for message events (onMessageSent, onMessageReceived).
+ */
+export interface MessagePayload {
+  /**
+   * The message details.
+   */
+  message: CrispMessage;
+}
+
+/**
+ * Empty payload type for events without data (onChatOpened, onChatClosed).
+ */
+export type EmptyPayload = Record<string, never>;

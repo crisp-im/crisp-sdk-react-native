@@ -1,0 +1,134 @@
+import { useEffect, useRef } from "react";
+
+import type { CrispMessage } from "./ExpoCrispSdk.types";
+import ExpoCrispSdk from "./ExpoCrispSdkModule";
+
+/**
+ * Callback options for subscribing to Crisp SDK events.
+ * All callbacks are optional - only provide the ones you need.
+ *
+ * @example
+ * ```typescript
+ * import { useCrispEvents } from "expo-crisp-sdk";
+ *
+ * function ChatScreen() {
+ *   useCrispEvents({
+ *     onSessionLoaded: (sessionId) => {
+ *       console.log("Session loaded:", sessionId);
+ *     },
+ *     onChatOpened: () => {
+ *       analytics.track("chat_opened");
+ *     },
+ *     onMessageReceived: (message) => {
+ *       if (!message.fromOperator) return;
+ *       showNotification("New message from support");
+ *     },
+ *   });
+ *
+ *   return <YourComponent />;
+ * }
+ * ```
+ */
+export interface CrispEventCallbacks {
+  /**
+   * Called when the Crisp session has fully loaded.
+   * @param sessionId - The unique session identifier
+   */
+  onSessionLoaded?: (sessionId: string) => void;
+
+  /**
+   * Called when the chat widget is opened by the user.
+   */
+  onChatOpened?: () => void;
+
+  /**
+   * Called when the chat widget is closed by the user.
+   */
+  onChatClosed?: () => void;
+
+  /**
+   * Called when the visitor sends a message.
+   * @param message - The message details
+   */
+  onMessageSent?: (message: CrispMessage) => void;
+
+  /**
+   * Called when a message is received from an operator.
+   * @param message - The message details
+   */
+  onMessageReceived?: (message: CrispMessage) => void;
+}
+
+/**
+ * React hook for subscribing to Crisp SDK events.
+ *
+ * Event listeners are automatically added on mount and removed on unmount,
+ * ensuring proper cleanup and preventing memory leaks.
+ *
+ * @param callbacks - Object containing event callback functions
+ *
+ * @example
+ * ```typescript
+ * import { useCrispEvents } from "expo-crisp-sdk";
+ *
+ * function App() {
+ *   const [unreadCount, setUnreadCount] = useState(0);
+ *
+ *   useCrispEvents({
+ *     onSessionLoaded: (sessionId) => {
+ *       console.log("Crisp session ready:", sessionId);
+ *     },
+ *     onChatOpened: () => {
+ *       setUnreadCount(0); // Reset unread count when chat opens
+ *     },
+ *     onMessageReceived: (message) => {
+ *       setUnreadCount((count) => count + 1);
+ *     },
+ *   });
+ *
+ *   return <YourApp unreadCount={unreadCount} />;
+ * }
+ * ```
+ */
+export function useCrispEvents(callbacks: CrispEventCallbacks = {}): void {
+  const callbacksRef = useRef<CrispEventCallbacks>(callbacks);
+  callbacksRef.current = callbacks;
+
+  useEffect(() => {
+    const subscriptions: { remove: () => void }[] = [];
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onSessionLoaded", ({ sessionId }) => {
+        callbacksRef.current.onSessionLoaded?.(sessionId);
+      })
+    );
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onChatOpened", () => {
+        callbacksRef.current.onChatOpened?.();
+      })
+    );
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onChatClosed", () => {
+        callbacksRef.current.onChatClosed?.();
+      })
+    );
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onMessageSent", ({ message }) => {
+        callbacksRef.current.onMessageSent?.(message);
+      })
+    );
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onMessageReceived", ({ message }) => {
+        callbacksRef.current.onMessageReceived?.(message);
+      })
+    );
+
+    return () => {
+      subscriptions.forEach((subscription) => subscription.remove());
+    };
+  }, []);
+}
