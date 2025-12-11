@@ -1,0 +1,64 @@
+# Release Workflow
+#
+# Purpose: Automates versioning and NPM publishing using Changesets.
+#
+# How it works (two-phase process):
+#
+#   Phase 1 - When changesets exist (.changeset/*.md files):
+#     → Creates a "Version Packages" PR that:
+#       - Bumps version in package.json
+#       - Updates CHANGELOG.md
+#       - Removes consumed changeset files
+#
+#   Phase 2 - When "Version Packages" PR is merged:
+#     → Runs `yarn release` which:
+#       - Builds the SDK
+#       - Publishes to NPM
+#       - Creates a Git tag (e.g., v0.2.0)
+#
+# Trigger: Every push to the master branch
+#
+# Required secrets:
+#   - GITHUB_TOKEN: Auto-provided by GitHub (for creating PRs)
+#   - NPM_TOKEN: Must be configured manually (for publishing to NPM)
+#
+# Setup NPM_TOKEN:
+#   1. Create token at https://www.npmjs.com/settings/[username]/tokens
+#   2. Add to repo: Settings → Secrets → Actions → New repository secret
+
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Yarn 4.x (Berry)
+        run: corepack enable && corepack prepare yarn@4.7.0 --activate
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
