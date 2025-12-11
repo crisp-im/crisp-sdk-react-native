@@ -2,8 +2,28 @@ import Crisp
 import ExpoModulesCore
 
 public class ExpoCrispSdkModule: Module {
+  private let onSessionLoaded = "onSessionLoaded"
+  private let onChatOpened = "onChatOpened"
+  private let onChatClosed = "onChatClosed"
+  private let onMessageSent = "onMessageSent"
+  private let onMessageReceived = "onMessageReceived"
+
+  private var callbackTokens: [CallbackToken] = []
+
   public func definition() -> ModuleDefinition {
     Name("ExpoCrispSdk")
+
+    Events(
+      onSessionLoaded,
+      onChatOpened,
+      onChatClosed,
+      onMessageSent,
+      onMessageReceived
+    )
+
+    OnCreate {
+      self.setupCallbacks()
+    }
 
     // MARK: - Configuration
 
@@ -144,5 +164,42 @@ public class ExpoCrispSdkModule: Module {
     } else {
       return UIApplication.shared.windows.first?.rootViewController
     }
+  }
+
+  private func setupCallbacks() {
+    callbackTokens.append(
+      CrispSDK.addCallback(.sessionLoaded { [weak self] sessionId in
+        guard let self = self else { return }
+        self.sendEvent(self.onSessionLoaded, ["sessionId": sessionId])
+      })
+    )
+
+    callbackTokens.append(
+      CrispSDK.addCallback(.chatOpened { [weak self] in
+        guard let self = self else { return }
+        self.sendEvent(self.onChatOpened, [:])
+      })
+    )
+
+    callbackTokens.append(
+      CrispSDK.addCallback(.chatClosed { [weak self] in
+        guard let self = self else { return }
+        self.sendEvent(self.onChatClosed, [:])
+      })
+    )
+
+    callbackTokens.append(
+      CrispSDK.addCallback(.messageSent { [weak self] message in
+        guard let self = self else { return }
+        self.sendEvent(self.onMessageSent, ["message": MessageParser.toDictionary(message)])
+      })
+    )
+
+    callbackTokens.append(
+      CrispSDK.addCallback(.messageReceived { [weak self] message in
+        guard let self = self else { return }
+        self.sendEvent(self.onMessageReceived, ["message": MessageParser.toDictionary(message)])
+      })
+    )
   }
 }
