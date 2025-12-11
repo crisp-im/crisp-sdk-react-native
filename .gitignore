@@ -56,4 +56,7 @@ yarn-error.log
 # Expo
 .expo/*
 
+# Claude Code / AI context
 .claude
+.context
+google-services.json
