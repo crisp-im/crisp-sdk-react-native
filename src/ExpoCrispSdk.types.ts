@@ -242,6 +242,11 @@ export interface CrispUser {
  * });
  * ```
  */
+/**
+ * Origin of a message - indicates where the message came from.
+ */
+export type CrispMessageOrigin = "local" | "network" | "update";
+
 export interface CrispMessage {
   /**
    * The message content/text.
@@ -264,6 +269,20 @@ export interface CrispMessage {
    * Useful as a React key for rendering message lists.
    */
   fingerprint: string;
+
+  /**
+   * Whether the message was sent by the current user (visitor).
+   * Shortcut to check if fromOperator is false.
+   */
+  isMe: boolean;
+
+  /**
+   * Origin of the message.
+   * - "local": Message created locally (not yet sent to server)
+   * - "network": Message received from network/server
+   * - "update": Message was updated (edited)
+   */
+  origin: CrispMessageOrigin;
 
   /**
    * Information about the message sender.

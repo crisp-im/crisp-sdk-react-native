@@ -18,11 +18,23 @@ enum MessageParser {
       textContent = ""
     }
 
+    let originString: String
+    switch message.origin {
+    case .local:
+      originString = "local"
+    case .network:
+      originString = "network"
+    case .update:
+      originString = "update"
+    }
+
     var dict: [String: Any] = [
       "content": textContent,
       "timestamp": message.timestamp.timeIntervalSince1970 * 1000,
       "fromOperator": message.from == .operator,
-      "fingerprint": String(message.fingerprint)
+      "fingerprint": String(message.fingerprint),
+      "isMe": message.isMe,
+      "origin": originString
     ]
 
     // Add user info if available
