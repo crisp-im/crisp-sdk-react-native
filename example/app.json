@@ -28,6 +28,7 @@
       [
         "../app.plugin.js",
         {
+          "websiteId": "e93e073a-1f69-4cbc-8934-f9e1611e65bb",
           "notifications": {
             "enabled": true
           }

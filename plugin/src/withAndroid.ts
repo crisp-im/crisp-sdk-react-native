@@ -7,7 +7,10 @@ import {
 } from "expo/config-plugins";
 import { mergeContents } from "@expo/config-plugins/build/utils/generateCode";
 
-export const withAndroidNotifications: ConfigPlugin = (config) => {
+export const withAndroidNotifications: ConfigPlugin<string> = (
+  config,
+  websiteId
+) => {
   // Add CrispNotificationService to manifest
   config = withAndroidManifest(config, (config) => {
     const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(
@@ -44,8 +47,18 @@ export const withAndroidNotifications: ConfigPlugin = (config) => {
     return config;
   });
 
-  // Add firebase-messaging dependency
+  // Add Crisp SDK and firebase-messaging dependencies
   config = withAppBuildGradle(config, (config) => {
+    // Add Crisp SDK dependency
+    if (!config.modResults.contents.includes("im.crisp:crisp-sdk")) {
+      config.modResults.contents = config.modResults.contents.replace(
+        /dependencies\s*\{/,
+        `dependencies {
+    implementation 'im.crisp:crisp-sdk:2.0.15'`
+      );
+    }
+
+    // Add firebase-messaging dependency
     if (!config.modResults.contents.includes("firebase-messaging")) {
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies\s*\{/,
@@ -61,9 +74,15 @@ export const withAndroidNotifications: ConfigPlugin = (config) => {
     const { language, contents } = config.modResults;
 
     if (language === "kt") {
-      config.modResults.contents = addKotlinNotificationSupport(contents);
+      config.modResults.contents = addKotlinNotificationSupport(
+        contents,
+        websiteId
+      );
     } else if (language === "java") {
-      config.modResults.contents = addJavaNotificationSupport(contents);
+      config.modResults.contents = addJavaNotificationSupport(
+        contents,
+        websiteId
+      );
     }
 
     return config;
@@ -72,7 +91,7 @@ export const withAndroidNotifications: ConfigPlugin = (config) => {
   return config;
 };
 
-function addKotlinNotificationSupport(src: string): string {
+function addKotlinNotificationSupport(src: string, websiteId: string): string {
   // Add import
   if (!src.includes("import im.crisp.client.external.Crisp")) {
     src = src.replace(
@@ -81,12 +100,13 @@ function addKotlinNotificationSupport(src: string): string {
     );
   }
 
-  // Add enableNotifications
-  if (!src.includes("Crisp.enableNotifications")) {
+  // Add configure and enableNotifications
+  if (!src.includes("Crisp.configure")) {
     const result = mergeContents({
       tag: "expo-crisp-sdk-notifications",
       src,
-      newSrc: `    // Crisp: Enable push notifications
+      newSrc: `    // Crisp: Configure SDK and enable push notifications
+    Crisp.configure(applicationContext, "${websiteId}")
     Crisp.enableNotifications(applicationContext, true)`,
       anchor: /super\.onCreate\(\)/,
       offset: 1,
@@ -98,7 +118,7 @@ function addKotlinNotificationSupport(src: string): string {
   return src;
 }
 
-function addJavaNotificationSupport(src: string): string {
+function addJavaNotificationSupport(src: string, websiteId: string): string {
   // Add import
   if (!src.includes("import im.crisp.client.external.Crisp;")) {
     src = src.replace(
@@ -107,12 +127,13 @@ function addJavaNotificationSupport(src: string): string {
     );
   }
 
-  // Add enableNotifications
-  if (!src.includes("Crisp.enableNotifications")) {
+  // Add configure and enableNotifications
+  if (!src.includes("Crisp.configure")) {
     src = src.replace(
       /super\.onCreate\(\);/,
       `super.onCreate();
-    // Crisp: Enable push notifications
+    // Crisp: Configure SDK and enable push notifications
+    Crisp.configure(getApplicationContext(), "${websiteId}");
     Crisp.enableNotifications(getApplicationContext(), true);`
     );
   }
