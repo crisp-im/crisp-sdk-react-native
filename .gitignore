@@ -58,5 +58,6 @@ yarn-error.log
 
 # Claude Code / AI context
 .claude
+CLAUDE.MD
 .context
 google-services.json
