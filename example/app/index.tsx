@@ -1,29 +1,53 @@
-import { useEffect, useState } from "react"
-import { Pressable, StyleSheet, Text, View } from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
-import Crisp from "expo-crisp-sdk"
-import CrispButton from "../components/CrispButton"
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Crisp, { useCrispEvents } from "expo-crisp-sdk";
+import CrispButton from "../components/CrispButton";
 
 // 1. Get your Website ID from https://app.crisp.chat/settings/websites/
-const WEBSITE_ID = "YOUR_WEBSITE_ID"
+const WEBSITE_ID = "YOUR_WEBSITE_ID";
 
 export default function HomeScreen() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [chatStatus, setChatStatus] = useState<"closed" | "open">("closed");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Test Events Callbacks
+  useCrispEvents({
+    onSessionLoaded: (id) => {
+      console.log("[Crisp] Session loaded:", id);
+      setSessionId(id);
+    },
+    onChatOpened: () => {
+      console.log("[Crisp] Chat opened");
+      setChatStatus("open");
+    },
+    onChatClosed: () => {
+      console.log("[Crisp] Chat closed");
+      setChatStatus("closed");
+    },
+    onMessageSent: (message) => {
+      console.log("[Crisp] Message sent:", message);
+    },
+    onMessageReceived: (message) => {
+      console.log("[Crisp] Message received:", message);
+    },
+  });
 
   useEffect(() => {
     // 2. Configure Crisp with your Website ID (required before any other call)
-    Crisp.configure(WEBSITE_ID)
-  }, [])
+    Crisp.configure(WEBSITE_ID);
+  }, []);
 
   // 3. Optional: Set user information when they log in
   const handleLogin = () => {
     // Use a unique token to persist sessions across devices
-    Crisp.setTokenId("e041988c-fe41-4901-88b5-4953e1513b9e")
+    Crisp.setTokenId("e041988c-fe41-4901-88b5-4953e1513b9e");
 
     // Set user details
-    Crisp.setUserEmail("armand_petit@outlook.fr")
-    Crisp.setUserNickname("Armand PETIT")
-    Crisp.setUserPhone("+33783949275")
+    Crisp.setUserEmail("armand_petit@outlook.fr");
+    Crisp.setUserNickname("Armand PETIT");
+    Crisp.setUserPhone("+33783949275");
 
     // Add company information with full details
     Crisp.setUserCompany({
@@ -38,17 +62,17 @@ export default function HomeScreen() {
         city: "Nantes",
         country: "FR",
       },
-    })
+    });
 
-    setIsLoggedIn(true)
-  }
+    setIsLoggedIn(true);
+  };
 
   // 4. Clear session when user logs out
   const handleLogout = () => {
-    Crisp.setTokenId(null)
-    Crisp.resetSession()
-    setIsLoggedIn(false)
-  }
+    Crisp.setTokenId(null);
+    Crisp.resetSession();
+    setIsLoggedIn(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -65,7 +89,10 @@ export default function HomeScreen() {
             <Text style={styles.buttonText}>Login (Set User Info)</Text>
           </Pressable>
         ) : (
-          <Pressable style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+          <Pressable
+            style={[styles.button, styles.logoutButton]}
+            onPress={handleLogout}
+          >
             <Text style={styles.buttonText}>Logout (Reset Session)</Text>
           </Pressable>
         )}
@@ -75,12 +102,37 @@ export default function HomeScreen() {
             ? "User info set. Tap the chat button to talk with support."
             : "Login to set user information, then open the chat."}
         </Text>
+
+        <Text style={styles.sectionTitle}>Events Callbacks Test</Text>
+        <View style={styles.statusContainer}>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Chat Status:</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                chatStatus === "open" ? styles.statusOpen : styles.statusClosed,
+              ]}
+            >
+              <Text style={styles.statusBadgeText}>
+                {chatStatus.toUpperCase()}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Session ID: </Text>
+            <Text style={styles.statusValue}>{sessionId ?? "Not loaded"}</Text>
+          </View>
+        </View>
+        <Text style={styles.hint}>
+          Open/close the chat to see events fire. Check console for message
+          events.
+        </Text>
       </View>
 
       {/* 5. Floating chat button - tap to open Crisp chat */}
       <CrispButton onPress={() => Crisp.show()} />
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -135,4 +187,40 @@ const styles = StyleSheet.create({
     marginTop: 16,
     lineHeight: 20,
   },
-})
+  statusContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  statusLabel: {
+    fontSize: 14,
+    color: "#666",
+  },
+  statusValue: {
+    fontSize: 14,
+    color: "#1a1a1a",
+    fontFamily: "monospace",
+    flexShrink: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusOpen: {
+    backgroundColor: "#d4edda",
+  },
+  statusClosed: {
+    backgroundColor: "#f8d7da",
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+});
