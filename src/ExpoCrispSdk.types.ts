@@ -189,6 +189,40 @@ export interface SessionEvent {
 // ============================================================================
 
 /**
+ * User information for a message sender.
+ * Contains details about who sent the message (operator or visitor).
+ *
+ * @example
+ * ```typescript
+ * useCrispEvents({
+ *   onMessageReceived: (message) => {
+ *     if (message.user) {
+ *       console.log("From:", message.user.nickname);
+ *       console.log("Avatar:", message.user.avatar);
+ *     }
+ *   }
+ * });
+ * ```
+ */
+export interface CrispUser {
+  /**
+   * Display name of the user.
+   * For operators, this is their configured name in Crisp.
+   */
+  nickname?: string;
+
+  /**
+   * Unique user identifier.
+   */
+  userId?: string;
+
+  /**
+   * URL to the user's avatar image.
+   */
+  avatar?: string;
+}
+
+/**
  * Represents a message in the Crisp chat.
  * Used in message-related event callbacks (onMessageSent, onMessageReceived).
  *
@@ -200,6 +234,10 @@ export interface SessionEvent {
  *   onMessageReceived: (message) => {
  *     console.log("New message:", message.content);
  *     console.log("From operator:", message.fromOperator);
+ *     console.log("Message ID:", message.fingerprint);
+ *     if (message.user) {
+ *       console.log("Sender:", message.user.nickname);
+ *     }
  *   }
  * });
  * ```
@@ -207,6 +245,7 @@ export interface SessionEvent {
 export interface CrispMessage {
   /**
    * The message content/text.
+   * For non-text messages (audio, file, etc.), this may be empty.
    */
   content: string;
 
@@ -219,6 +258,18 @@ export interface CrispMessage {
    * Whether the message is from an operator (true) or visitor (false).
    */
   fromOperator: boolean;
+
+  /**
+   * Unique message identifier.
+   * Useful as a React key for rendering message lists.
+   */
+  fingerprint: string;
+
+  /**
+   * Information about the message sender.
+   * Contains nickname, userId, and avatar URL when available.
+   */
+  user?: CrispUser;
 }
 
 /**

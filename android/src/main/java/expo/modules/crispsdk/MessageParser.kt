@@ -11,10 +11,25 @@ object MessageParser {
         val content = message.content
         val textContent = if (content is TextContent) content.text else content?.toString() ?: ""
 
-        return mapOf(
+        val result = mutableMapOf<String, Any?>(
             "content" to textContent,
             "timestamp" to message.timestamp,
-            "fromOperator" to (message.from == Message.From.OPERATOR)
+            "fromOperator" to (message.from == Message.From.OPERATOR),
+            "fingerprint" to message.fingerprint.toString()
         )
+
+        // Add user info if available
+        val user = message.user
+        if (user != null) {
+            val userMap = mutableMapOf<String, Any?>()
+            user.nickname?.let { userMap["nickname"] = it }
+            user.userId?.let { userMap["userId"] = it }
+            user.avatar?.let { userMap["avatar"] = it }
+            if (userMap.isNotEmpty()) {
+                result["user"] = userMap
+            }
+        }
+
+        return result
     }
 }

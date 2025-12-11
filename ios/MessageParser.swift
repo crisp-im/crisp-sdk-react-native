@@ -18,10 +18,30 @@ enum MessageParser {
       textContent = ""
     }
 
-    return [
+    var dict: [String: Any] = [
       "content": textContent,
       "timestamp": message.timestamp.timeIntervalSince1970 * 1000,
-      "fromOperator": message.from == .operator
+      "fromOperator": message.from == .operator,
+      "fingerprint": String(message.fingerprint)
     ]
+
+    // Add user info if available
+    if let user = message.user {
+      var userDict: [String: Any] = [:]
+      if let nickname = user.nickname {
+        userDict["nickname"] = nickname
+      }
+      if let userId = user.userId {
+        userDict["userId"] = userId
+      }
+      if let avatar = user.avatar {
+        userDict["avatar"] = avatar.absoluteString
+      }
+      if !userDict.isEmpty {
+        dict["user"] = userDict
+      }
+    }
+
+    return dict
   }
 }
