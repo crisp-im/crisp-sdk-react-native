@@ -14,8 +14,32 @@ class ExpoCrispSdkModule : Module() {
   private val context
     get() = requireNotNull(appContext.reactContext)
 
+  private var eventsCallback: CrispEventsBridge? = null
+
+  private val onSessionLoaded = "onSessionLoaded"
+  private val onChatOpened = "onChatOpened"
+  private val onChatClosed = "onChatClosed"
+  private val onMessageSent = "onMessageSent"
+  private val onMessageReceived = "onMessageReceived"
+
   override fun definition() = ModuleDefinition {
     Name("ExpoCrispSdk")
+
+    Events(
+      onSessionLoaded,
+      onChatOpened,
+      onChatClosed,
+      onMessageSent,
+      onMessageReceived
+    )
+
+    OnCreate {
+      registerEventsCallback()
+    }
+
+    OnDestroy {
+      unregisterEventsCallback()
+    }
 
     // MARK: - Configuration
 
@@ -133,6 +157,21 @@ class ExpoCrispSdkModule : Module() {
       7 -> Color.BROWN
       8 -> Color.GREY
       else -> Color.BLACK
+    }
+  }
+
+  private fun registerEventsCallback() {
+    unregisterEventsCallback()
+    eventsCallback = CrispEventsBridge { eventName, data ->
+      this@ExpoCrispSdkModule.sendEvent(eventName, data)
+    }
+    eventsCallback?.let { Crisp.addCallback(it) }
+  }
+
+  private fun unregisterEventsCallback() {
+    eventsCallback?.let {
+      Crisp.removeCallback(it)
+      eventsCallback = null
     }
   }
 }

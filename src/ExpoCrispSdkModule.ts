@@ -4,9 +4,40 @@ import type {
   Company,
   CrispSessionEventColors,
   SessionEvent,
+  SessionLoadedPayload,
+  MessagePayload,
+  EmptyPayload,
 } from "./ExpoCrispSdk.types";
 
-type ExpoCrispSdkEvents = Record<string, never>;
+type ExpoCrispSdkEvents = {
+  /**
+   * Emitted when the Crisp session has fully loaded.
+   * @param params - Contains the session identifier
+   */
+  onSessionLoaded: (params: SessionLoadedPayload) => void;
+
+  /**
+   * Emitted when the chat widget is opened by the user.
+   */
+  onChatOpened: (params: EmptyPayload) => void;
+
+  /**
+   * Emitted when the chat widget is closed by the user.
+   */
+  onChatClosed: (params: EmptyPayload) => void;
+
+  /**
+   * Emitted when the visitor sends a message.
+   * @param params - Contains the message details
+   */
+  onMessageSent: (params: MessagePayload) => void;
+
+  /**
+   * Emitted when a message is received from an operator.
+   * @param params - Contains the message details
+   */
+  onMessageReceived: (params: MessagePayload) => void;
+};
 
 declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
   // ============================================================================

@@ -183,3 +183,136 @@ export interface SessionEvent {
    */
   color: CrispSessionEventColors;
 }
+
+// ============================================================================
+// Event Callback Types
+// ============================================================================
+
+/**
+ * User information for a message sender.
+ * Contains details about who sent the message (operator or visitor).
+ *
+ * @example
+ * ```typescript
+ * useCrispEvents({
+ *   onMessageReceived: (message) => {
+ *     if (message.user) {
+ *       console.log("From:", message.user.nickname);
+ *       console.log("Avatar:", message.user.avatar);
+ *     }
+ *   }
+ * });
+ * ```
+ */
+export interface CrispUser {
+  /**
+   * Display name of the user.
+   * For operators, this is their configured name in Crisp.
+   */
+  nickname?: string;
+
+  /**
+   * Unique user identifier.
+   */
+  userId?: string;
+
+  /**
+   * URL to the user's avatar image.
+   */
+  avatar?: string;
+}
+
+/**
+ * Represents a message in the Crisp chat.
+ * Used in message-related event callbacks (onMessageSent, onMessageReceived).
+ *
+ * @example
+ * ```typescript
+ * import { useCrispEvents } from "expo-crisp-sdk";
+ *
+ * useCrispEvents({
+ *   onMessageReceived: (message) => {
+ *     console.log("New message:", message.content);
+ *     console.log("From operator:", message.fromOperator);
+ *     console.log("Message ID:", message.fingerprint);
+ *     if (message.user) {
+ *       console.log("Sender:", message.user.nickname);
+ *     }
+ *   }
+ * });
+ * ```
+ */
+/**
+ * Origin of a message - indicates where the message came from.
+ */
+export type CrispMessageOrigin = "local" | "network" | "update";
+
+export interface CrispMessage {
+  /**
+   * The message content/text.
+   * For non-text messages (audio, file, etc.), this may be empty.
+   */
+  content: string;
+
+  /**
+   * Unix timestamp (in milliseconds) when the message was created.
+   */
+  timestamp: number;
+
+  /**
+   * Whether the message is from an operator (true) or visitor (false).
+   */
+  fromOperator: boolean;
+
+  /**
+   * Unique message identifier.
+   * Useful as a React key for rendering message lists.
+   */
+  fingerprint: string;
+
+  /**
+   * Whether the message was sent by the current user (visitor).
+   * Shortcut to check if fromOperator is false.
+   */
+  isMe: boolean;
+
+  /**
+   * Origin of the message.
+   * - "local": Message created locally (not yet sent to server)
+   * - "network": Message received from network/server
+   * - "update": Message was updated (edited)
+   */
+  origin: CrispMessageOrigin;
+
+  /**
+   * Information about the message sender.
+   * Contains nickname, userId, and avatar URL when available.
+   */
+  user?: CrispUser;
+}
+
+/**
+ * Event payload for the onSessionLoaded callback.
+ * Emitted when the Crisp session has fully loaded.
+ */
+export interface SessionLoadedPayload {
+  /**
+   * The unique session identifier.
+   */
+  sessionId: string;
+}
+
+/**
+ * Event payload for message events (onMessageSent, onMessageReceived).
+ */
+export interface MessagePayload {
+  /**
+   * The message details.
+   */
+  message: CrispMessage;
+}
+
+/**
+ * Empty payload type for events without data (onChatOpened, onChatClosed).
+ */
+export type EmptyPayload = Record<string, never>;
