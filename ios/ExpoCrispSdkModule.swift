@@ -134,6 +134,33 @@ public class ExpoCrispSdkModule: Module {
     Function("runBotScenario") { (scenarioId: String) in
       CrispSDK.session.runBotScenario(id: scenarioId)
     }
+
+    // MARK: - Messages
+
+    Function("showMessage") { (contentData: [String: Any]) in
+      do {
+        let content = try ContentParser.fromDictionary(contentData)
+        CrispSDK.showMessage(with: content)
+      } catch ContentParser.ContentParseError.unknownType(let type) {
+        throw NSError(
+          domain: "ExpoCrispSdk",
+          code: 1,
+          userInfo: [NSLocalizedDescriptionKey: "Unknown message content type: \(type)"]
+        )
+      } catch ContentParser.ContentParseError.missingRequiredField(let field) {
+        throw NSError(
+          domain: "ExpoCrispSdk",
+          code: 2,
+          userInfo: [NSLocalizedDescriptionKey: "Missing required field: \(field)"]
+        )
+      } catch {
+        throw NSError(
+          domain: "ExpoCrispSdk",
+          code: 3,
+          userInfo: [NSLocalizedDescriptionKey: "Failed to parse message content: \(error.localizedDescription)"]
+        )
+      }
+    }
   }
 
   // MARK: - Private Helpers
