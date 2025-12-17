@@ -9,10 +9,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "expo.modules.crispsdk.example",
+      "bundleIdentifier": "com.expo.crisp.sdk",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "FC5S5V6TYF"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,13 +21,28 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "expo.modules.crispsdk.example"
+      "package": "com.expo.crisp.sdk"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "../app.plugin.js",
+        {
+          "websiteId": "e93e073a-1f69-4cbc-8934-f9e1611e65bb",
+          "notifications": {
+            "enabled": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b4b2b778-1d00-4f5d-a873-68dc2f36b6fe"
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-export { default } from "./ExpoCrispSdkModule";
 export * from "./ExpoCrispSdk.types";
-export { useCrispEvents } from "./useCrispEvents";
+export { default } from "./ExpoCrispSdkModule";
 export type { CrispEventCallbacks } from "./useCrispEvents";
+export { useCrispEvents } from "./useCrispEvents";

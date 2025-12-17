@@ -1,7 +1,7 @@
+import Crisp, { useCrispEvents } from "expo-crisp-sdk";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Crisp, { useCrispEvents } from "expo-crisp-sdk";
 import CrispButton from "../components/CrispButton";
 
 // 1. Get your Website ID from https://app.crisp.chat/settings/websites/
@@ -89,10 +89,7 @@ export default function HomeScreen() {
             <Text style={styles.buttonText}>Login (Set User Info)</Text>
           </Pressable>
         ) : (
-          <Pressable
-            style={[styles.button, styles.logoutButton]}
-            onPress={handleLogout}
-          >
+          <Pressable style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
             <Text style={styles.buttonText}>Logout (Reset Session)</Text>
           </Pressable>
         )}
@@ -113,9 +110,7 @@ export default function HomeScreen() {
                 chatStatus === "open" ? styles.statusOpen : styles.statusClosed,
               ]}
             >
-              <Text style={styles.statusBadgeText}>
-                {chatStatus.toUpperCase()}
-              </Text>
+              <Text style={styles.statusBadgeText}>{chatStatus.toUpperCase()}</Text>
             </View>
           </View>
           <View style={styles.statusRow}>
@@ -124,8 +119,7 @@ export default function HomeScreen() {
           </View>
         </View>
         <Text style={styles.hint}>
-          Open/close the chat to see events fire. Check console for message
-          events.
+          Open/close the chat to see events fire. Check console for message events.
         </Text>
       </View>
 

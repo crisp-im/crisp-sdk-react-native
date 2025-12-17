@@ -3,10 +3,10 @@ import { NativeModule, requireNativeModule } from "expo";
 import type {
   Company,
   CrispSessionEventColors,
+  EmptyPayload,
+  MessagePayload,
   SessionEvent,
   SessionLoadedPayload,
-  MessagePayload,
-  EmptyPayload,
 } from "./ExpoCrispSdk.types";
 
 type ExpoCrispSdkEvents = {
@@ -234,7 +234,7 @@ declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
     id: string,
     locale: string,
     title?: string | null,
-    category?: string | null
+    category?: string | null,
   ): void;
 
   /**
