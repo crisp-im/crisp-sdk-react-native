@@ -143,6 +143,13 @@ class ExpoCrispSdkModule : Module() {
     Function("runBotScenario") { scenarioId: String ->
       Crisp.runBotScenario(scenarioId)
     }
+
+    // MARK: - Messages
+
+    Function("showMessage") { contentData: Map<String, Any?> ->
+      val content = ContentParser.fromMap(contentData)
+      Crisp.showMessage(content)
+    }
   }
 
   private fun convertIntToColor(colorInt: Int): Color {
