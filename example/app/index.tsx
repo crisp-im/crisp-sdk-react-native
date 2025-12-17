@@ -1,4 +1,4 @@
-import Crisp, { useCrispEvents } from "expo-crisp-sdk";
+import Crisp, { useCrispEvents, getSDKVersion } from "expo-crisp-sdk";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,6 +11,8 @@ export default function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [chatStatus, setChatStatus] = useState<"closed" | "open">("closed");
   const [sessionId, setSessionId] = useState<string | null>(null);
+
+  console.log("SDK Version:", getSDKVersion());
 
   // Test Events Callbacks
   useCrispEvents({
