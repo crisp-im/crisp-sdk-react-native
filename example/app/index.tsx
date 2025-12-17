@@ -89,7 +89,10 @@ export default function HomeScreen() {
             <Text style={styles.buttonText}>Login (Set User Info)</Text>
           </Pressable>
         ) : (
-          <Pressable style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+          <Pressable
+            style={[styles.button, styles.logoutButton]}
+            onPress={handleLogout}
+          >
             <Text style={styles.buttonText}>Logout (Reset Session)</Text>
           </Pressable>
         )}
@@ -110,7 +113,9 @@ export default function HomeScreen() {
                 chatStatus === "open" ? styles.statusOpen : styles.statusClosed,
               ]}
             >
-              <Text style={styles.statusBadgeText}>{chatStatus.toUpperCase()}</Text>
+              <Text style={styles.statusBadgeText}>
+                {chatStatus.toUpperCase()}
+              </Text>
             </View>
           </View>
           <View style={styles.statusRow}>
@@ -119,7 +124,68 @@ export default function HomeScreen() {
           </View>
         </View>
         <Text style={styles.hint}>
-          Open/close the chat to see events fire. Check console for message events.
+          Open/close the chat to see events fire. Check console for message
+          events.
+        </Text>
+
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
+          Show Message Test
+        </Text>
+        <View style={styles.messageButtons}>
+          <Pressable
+            style={[styles.button, styles.messageButton]}
+            onPress={() => {
+              Crisp.showMessage({
+                type: "text",
+                text: "Hello from Crisp Team !",
+              });
+              console.log("[Crisp] Showed text message");
+            }}
+          >
+            <Text style={styles.buttonText}>Text Message</Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.button, styles.messageButton]}
+            onPress={() => {
+              Crisp.showMessage({
+                type: "picker",
+                id: "rating",
+                text: "How would you rate our service?",
+                choices: [
+                  { value: "great", label: "Great!", selected: false },
+                  { value: "ok", label: "It's okay", selected: false },
+                  {
+                    value: "poor",
+                    label: "Could be better 😕",
+                    selected: false,
+                  },
+                ],
+              });
+              console.log("[Crisp] Showed picker message");
+            }}
+          >
+            <Text style={styles.buttonText}>Picker Message</Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.button, styles.messageButton]}
+            onPress={() => {
+              Crisp.showMessage({
+                type: "field",
+                id: "email",
+                text: "What's your email address?",
+                explain: "We'll send you a confirmation",
+                required: true,
+              });
+              console.log("[Crisp] Showed field message");
+            }}
+          >
+            <Text style={styles.buttonText}>Field Message</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.hint}>
+          Tap a button then open the chat to see the message appear.
         </Text>
       </View>
 
@@ -216,5 +282,11 @@ const styles = StyleSheet.create({
   statusBadgeText: {
     fontSize: 12,
     fontWeight: "600",
+  },
+  messageButtons: {
+    gap: 12,
+  },
+  messageButton: {
+    backgroundColor: "#6c757d",
   },
 });
