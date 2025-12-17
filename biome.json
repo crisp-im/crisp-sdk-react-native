@@ -5,13 +5,18 @@
     "includes": ["**/*.ts", "**/*.tsx"],
     "maxSize": 2000000
   },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
       "style": {
         "noNonNullAssertion": "off",
-        "noParameterAssign": "warn",
+        "noParameterAssign": "off",
         "useImportType": "error"
       },
       "complexity": {
@@ -54,7 +59,7 @@
       "bracketSpacing": true,
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
-      "semicolons": "asNeeded",
+      "semicolons": "always",
       "trailingCommas": "all"
     }
   },
