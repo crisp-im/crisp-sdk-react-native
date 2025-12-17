@@ -1,7 +1,7 @@
-import { Image, StyleSheet, TouchableOpacity } from "react-native"
+import { Image, StyleSheet, TouchableOpacity } from "react-native";
 
 interface CrispButtonProps {
-  onPress: () => void
+  onPress: () => void;
 }
 
 export default function CrispButton({ onPress }: CrispButtonProps) {
@@ -9,7 +9,7 @@ export default function CrispButton({ onPress }: CrispButtonProps) {
     <TouchableOpacity style={styles.button} onPress={onPress}>
       <Image source={require("../assets/logo_crisp.png")} style={styles.image} />
     </TouchableOpacity>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -31,4 +31,4 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-})
+});

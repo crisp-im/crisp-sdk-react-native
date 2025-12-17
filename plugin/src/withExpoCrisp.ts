@@ -1,4 +1,4 @@
-import { ConfigPlugin } from "expo/config-plugins";
+import type { ConfigPlugin } from "expo/config-plugins";
 import { withAndroidNotifications } from "./withAndroid";
 import { withIosNotifications } from "./withIos";
 
@@ -37,7 +37,7 @@ type ExpoCrispPluginProps = {
 
 const withExpoCrisp: ConfigPlugin<ExpoCrispPluginProps> = (
   config,
-  { websiteId, notifications = { enabled: false } } = {}
+  { websiteId, notifications = { enabled: false } } = {},
 ) => {
   if (!notifications.enabled) {
     return config;
@@ -46,7 +46,7 @@ const withExpoCrisp: ConfigPlugin<ExpoCrispPluginProps> = (
   if (!websiteId) {
     throw new Error(
       "[expo-crisp-sdk] websiteId is required when notifications are enabled. " +
-        "Add it to your app.json plugin configuration."
+        "Add it to your app.json plugin configuration.",
     );
   }
 

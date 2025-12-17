@@ -100,35 +100,37 @@ export function useCrispEvents(callbacks: CrispEventCallbacks = {}): void {
     subscriptions.push(
       ExpoCrispSdk.addListener("onSessionLoaded", ({ sessionId }) => {
         callbacksRef.current.onSessionLoaded?.(sessionId);
-      })
+      }),
     );
 
     subscriptions.push(
       ExpoCrispSdk.addListener("onChatOpened", () => {
         callbacksRef.current.onChatOpened?.();
-      })
+      }),
     );
 
     subscriptions.push(
       ExpoCrispSdk.addListener("onChatClosed", () => {
         callbacksRef.current.onChatClosed?.();
-      })
+      }),
     );
 
     subscriptions.push(
       ExpoCrispSdk.addListener("onMessageSent", ({ message }) => {
         callbacksRef.current.onMessageSent?.(message);
-      })
+      }),
     );
 
     subscriptions.push(
       ExpoCrispSdk.addListener("onMessageReceived", ({ message }) => {
         callbacksRef.current.onMessageReceived?.(message);
-      })
+      }),
     );
 
     return () => {
-      subscriptions.forEach((subscription) => subscription.remove());
+      for (const subscription of subscriptions) {
+        subscription.remove();
+      }
     };
   }, []);
 }

@@ -1,12 +1,12 @@
+import { mergeContents } from "@expo/config-plugins/build/utils/generateCode";
 import {
-  ConfigPlugin,
+  type ConfigPlugin,
   withAppDelegate,
   withEntitlementsPlist,
   withInfoPlist,
 } from "expo/config-plugins";
-import { mergeContents } from "@expo/config-plugins/build/utils/generateCode";
 
-export const withIosNotifications: ConfigPlugin = (config) => {
+export const withIosNotifications: ConfigPlugin<string> = (config, websiteId) => {
   // Add remote-notification to UIBackgroundModes
   config = withInfoPlist(config, (config) => {
     const modes = config.modResults.UIBackgroundModes ?? [];
@@ -28,14 +28,14 @@ export const withIosNotifications: ConfigPlugin = (config) => {
 
     if (language === "swift") {
       console.log(
-        "[expo-crisp-sdk] Detected Swift AppDelegate - injecting notification configuration"
+        "[expo-crisp-sdk] Detected Swift AppDelegate - injecting notification configuration",
       );
-      config.modResults.contents = addSwiftNotificationSupport(contents);
+      config.modResults.contents = addSwiftNotificationSupport(contents, websiteId);
     } else if (["objc", "objcpp"].includes(language)) {
       console.log(
-        "[expo-crisp-sdk] Detected Objective-C AppDelegate - injecting notification configuration"
+        "[expo-crisp-sdk] Detected Objective-C AppDelegate - injecting notification configuration",
       );
-      config.modResults.contents = addObjcNotificationSupport(contents);
+      config.modResults.contents = addObjcNotificationSupport(contents, websiteId);
     }
 
     return config;
@@ -44,7 +44,7 @@ export const withIosNotifications: ConfigPlugin = (config) => {
   return config;
 };
 
-function addSwiftNotificationSupport(src: string): string {
+function addSwiftNotificationSupport(src: string, websiteId: string): string {
   let modifiedSrc = src;
 
   // Add import
@@ -60,12 +60,13 @@ function addSwiftNotificationSupport(src: string): string {
     modifiedSrc = importResult.contents;
   }
 
-  // Add registerForRemoteNotifications - using the same anchor as react-native-crisp-chat-sdk
-  if (!modifiedSrc.includes("registerForRemoteNotifications()")) {
-    const registerResult = mergeContents({
-      tag: "expo-crisp-sdk-register",
+  // Add CrispSDK.configure and registerForRemoteNotifications
+  if (!modifiedSrc.includes("CrispSDK.configure")) {
+    const configureResult = mergeContents({
+      tag: "expo-crisp-sdk-configure",
       src: modifiedSrc,
-      newSrc: `    // Crisp: Register for push notifications
+      newSrc: `    // Crisp: Configure SDK and register for push notifications
+    CrispSDK.configure(websiteID: "${websiteId}")
     DispatchQueue.main.async {
       application.registerForRemoteNotifications()
     }`,
@@ -73,12 +74,12 @@ function addSwiftNotificationSupport(src: string): string {
       offset: 4,
       comment: "//",
     });
-    modifiedSrc = registerResult.contents;
+    modifiedSrc = configureResult.contents;
   }
 
   // Check if the device token method already exists
   const hasExistingMethod = modifiedSrc.includes(
-    "func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data)"
+    "func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data)",
   );
 
   if (hasExistingMethod) {
@@ -113,7 +114,7 @@ function addSwiftNotificationSupport(src: string): string {
   return modifiedSrc;
 }
 
-function addObjcNotificationSupport(src: string): string {
+function addObjcNotificationSupport(src: string, websiteId: string): string {
   let modifiedSrc = src;
 
   // Add import
@@ -129,24 +130,25 @@ function addObjcNotificationSupport(src: string): string {
     modifiedSrc = importResult.contents;
   }
 
-  // Add registerForRemoteNotifications
-  if (!modifiedSrc.includes("registerForRemoteNotifications")) {
-    const registerResult = mergeContents({
-      tag: "expo-crisp-sdk-register",
+  // Add CrispSDK configure and registerForRemoteNotifications
+  if (!modifiedSrc.includes("[CrispSDK configureWithWebsiteID")) {
+    const configureResult = mergeContents({
+      tag: "expo-crisp-sdk-configure",
       src: modifiedSrc,
-      newSrc: `  // Crisp: Register for push notifications
+      newSrc: `  // Crisp: Configure SDK and register for push notifications
+  [CrispSDK configureWithWebsiteID:@"${websiteId}"];
   [[UIApplication sharedApplication] registerForRemoteNotifications];`,
       anchor:
         /- \(BOOL\)application:\(UIApplication \*\)application didFinishLaunchingWithOptions:\(NSDictionary \*\)launchOptions/,
       offset: 2,
       comment: "//",
     });
-    modifiedSrc = registerResult.contents;
+    modifiedSrc = configureResult.contents;
   }
 
   // Check if the device token method already exists
   const hasExistingMethod = modifiedSrc.includes(
-    "- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken"
+    "- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken",
   );
 
   if (hasExistingMethod) {
