@@ -4,6 +4,7 @@ import type {
   Company,
   CrispSessionEventColors,
   EmptyPayload,
+  MessageContent,
   MessagePayload,
   SessionEvent,
   SessionLoadedPayload,
@@ -244,6 +245,35 @@ declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
    * @param scenarioId - The scenario identifier from the Crisp dashboard
    */
   runBotScenario(scenarioId: string): void;
+
+  // ============================================================================
+  // Messages
+  // ============================================================================
+
+  /**
+   * Display a message as operator in the local chatbox.
+   * The message appears as if sent by an operator but is only shown locally.
+   *
+   * @param content - The message content to display
+   *
+   * @example
+   * // Simple text message
+   * ExpoCrispSdk.showMessage({ type: "text", text: "Hello! How can I help?" });
+   *
+   * @example
+   * // Picker for user input
+   * ExpoCrispSdk.showMessage({
+   *   type: "picker",
+   *   id: "rating",
+   *   text: "How would you rate our service?",
+   *   choices: [
+   *     { value: "great", label: "Great!" },
+   *     { value: "ok", label: "Okay" },
+   *     { value: "poor", label: "Could be better" }
+   *   ]
+   * });
+   */
+  showMessage(content: MessageContent): void;
 }
 
 export default requireNativeModule<ExpoCrispSdkModule>("ExpoCrispSdk");

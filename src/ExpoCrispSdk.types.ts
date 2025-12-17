@@ -316,3 +316,224 @@ export interface MessagePayload {
  * Empty payload type for events without data (onChatOpened, onChatClosed).
  */
 export type EmptyPayload = Record<string, never>;
+
+// ============================================================================
+// Message Content Types (for showMessage)
+// ============================================================================
+
+/**
+ * Text message content - the simplest message type.
+ *
+ * @example
+ * ```typescript
+ * Crisp.showMessage({ type: "text", text: "Hello! How can I help you?" });
+ * ```
+ */
+export interface TextMessageContent {
+  type: "text";
+  /** The text message to display */
+  text: string;
+}
+
+/**
+ * File attachment content.
+ *
+ * @example
+ * ```typescript
+ * Crisp.showMessage({
+ *   type: "file",
+ *   url: "https://example.com/document.pdf",
+ *   name: "Document.pdf",
+ *   mimeType: "application/pdf"
+ * });
+ * ```
+ */
+export interface FileMessageContent {
+  type: "file";
+  /** URL to the file */
+  url: string;
+  /** Display name for the file */
+  name: string;
+  /** MIME type of the file (e.g., "application/pdf", "image/png") */
+  mimeType: string;
+}
+
+/**
+ * Animation (GIF) content.
+ *
+ * @example
+ * ```typescript
+ * Crisp.showMessage({
+ *   type: "animation",
+ *   url: "https://example.com/animation.gif",
+ *   mimeType: "image/gif"
+ * });
+ * ```
+ */
+export interface AnimationMessageContent {
+  type: "animation";
+  /** URL to the animation (typically GIF) */
+  url: string;
+  /** MIME type (e.g., "image/gif") */
+  mimeType: string;
+}
+
+/**
+ * Audio message content.
+ *
+ * @example
+ * ```typescript
+ * Crisp.showMessage({
+ *   type: "audio",
+ *   url: "https://example.com/audio.mp3",
+ *   mimeType: "audio/mpeg",
+ *   duration: 30
+ * });
+ * ```
+ */
+export interface AudioMessageContent {
+  type: "audio";
+  /** URL to the audio file */
+  url: string;
+  /** MIME type (e.g., "audio/mpeg", "audio/wav") */
+  mimeType: string;
+  /** Duration in seconds */
+  duration: number;
+}
+
+/**
+ * A single choice option for picker content.
+ */
+export interface PickerChoice {
+  /** Unique identifier for this choice */
+  value: string;
+  /** Display label for the choice */
+  label: string;
+  /** Whether this choice is pre-selected */
+  selected?: boolean;
+}
+
+/**
+ * Picker content - allows user to select from predefined choices.
+ *
+ * @example
+ * ```typescript
+ * Crisp.showMessage({
+ *   type: "picker",
+ *   id: "satisfaction",
+ *   text: "How satisfied are you?",
+ *   choices: [
+ *     { value: "happy", label: "Happy" },
+ *     { value: "neutral", label: "Neutral" },
+ *     { value: "sad", label: "Sad" }
+ *   ]
+ * });
+ * ```
+ */
+export interface PickerMessageContent {
+  type: "picker";
+  /** Unique identifier for this picker */
+  id: string;
+  /** Question or prompt text */
+  text: string;
+  /** Available choices for the user */
+  choices: PickerChoice[];
+}
+
+/**
+ * Field content - prompts user for text input.
+ *
+ * @example
+ * ```typescript
+ * Crisp.showMessage({
+ *   type: "field",
+ *   id: "email",
+ *   text: "What's your email?",
+ *   explain: "We'll send you updates",
+ *   required: true
+ * });
+ * ```
+ */
+export interface FieldMessageContent {
+  type: "field";
+  /** Unique identifier for this field */
+  id: string;
+  /** Question or label text */
+  text: string;
+  /** Placeholder or explanatory text */
+  explain?: string;
+  /** Whether this field is required */
+  required?: boolean;
+}
+
+/**
+ * A single target/item in a carousel.
+ */
+export interface CarouselTarget {
+  /** Title of the carousel item */
+  title: string;
+  /** Description text */
+  description?: string;
+  /** URL for the item image */
+  imageUrl?: string;
+  /** Action URL when item is tapped */
+  actionUrl?: string;
+}
+
+/**
+ * Carousel content - displays a horizontal scrollable list.
+ *
+ * @example
+ * ```typescript
+ * Crisp.showMessage({
+ *   type: "carousel",
+ *   text: "Check out our products",
+ *   targets: [
+ *     { title: "Product 1", description: "Great product", imageUrl: "..." },
+ *     { title: "Product 2", description: "Another great one", imageUrl: "..." }
+ *   ]
+ * });
+ * ```
+ */
+export interface CarouselMessageContent {
+  type: "carousel";
+  /** Intro text for the carousel */
+  text: string;
+  /** Items to display in the carousel */
+  targets: CarouselTarget[];
+}
+
+/**
+ * Union type for all message content types.
+ * Use discriminated union pattern with `type` field.
+ *
+ * @example
+ * ```typescript
+ * // Simple text message
+ * Crisp.showMessage({ type: "text", text: "Hello!" });
+ *
+ * // File attachment
+ * Crisp.showMessage({
+ *   type: "file",
+ *   url: "https://example.com/doc.pdf",
+ *   name: "doc.pdf",
+ *   mimeType: "application/pdf"
+ * });
+ *
+ * // Picker for user choice
+ * Crisp.showMessage({
+ *   type: "picker",
+ *   id: "rating",
+ *   text: "Rate us",
+ *   choices: [{ value: "5", label: "5 stars" }]
+ * });
+ * ```
+ */
+export type MessageContent =
+  | TextMessageContent
+  | FileMessageContent
+  | AnimationMessageContent
+  | AudioMessageContent
+  | PickerMessageContent
+  | FieldMessageContent
+  | CarouselMessageContent;
