@@ -164,7 +164,8 @@ To use the Crisp SDK, you need your Website ID from the Crisp Dashboard.
 
 <!-- TODO: Add screenshot of Crisp dashboard showing Website ID location -->
 <p align="center">
-  <em>[Screenshot placeholder: Crisp Dashboard - Website ID location]</em>
+  <em><img width="1575" height="870" alt="Configure_ID" src="https://github.com/user-attachments/assets/b4c37b71-a29f-4675-9831-fb0e5823cb70" /></em>
+
 </p>
 
 ### Initialize Crisp
