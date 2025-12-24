@@ -5,6 +5,7 @@
     "appDelegateSubscribers": ["CrispAppDelegateSubscriber"]
   },
   "android": {
-    "modules": ["expo.modules.crispsdk.ExpoCrispSdkModule"]
+    "modules": ["expo.modules.crispsdk.ExpoCrispSdkModule"],
+    "packages": ["expo.modules.crispsdk.CrispPackage"]
   }
 }
