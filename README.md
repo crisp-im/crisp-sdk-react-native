@@ -164,7 +164,6 @@ To use the Crisp SDK, you need your Website ID from the Crisp Dashboard.
 2. Go to **Settings** > **Website Settings** > **Setup instructions**
 3. Copy your Website ID
 
-<!-- TODO: Add screenshot of Crisp dashboard showing Website ID location -->
 <p align="center">
   <em><img width="1575" height="870" alt="Configure_ID" src="https://github.com/user-attachments/assets/b4c37b71-a29f-4675-9831-fb0e5823cb70" /></em>
 
@@ -175,11 +174,13 @@ To use the Crisp SDK, you need your Website ID from the Crisp Dashboard.
 Configure the SDK at app startup with your Website ID:
 
 ```typescript
+import { useEffect } from "react";
 import Crisp from "expo-crisp-sdk";
 
 export default function App() {
-  // Initialize Crisp as early as possible
-  Crisp.configure("YOUR_WEBSITE_ID");
+  useEffect(() => {
+    Crisp.configure("YOUR_WEBSITE_ID");
+  }, []);
 
   return (
     // Your app content
@@ -215,6 +216,9 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 | ----------------------- | --------- | ------- | ------------------------------------------------------------------- |
 | `websiteId`             | `string`  | -       | Your Crisp Website ID. **Required** when notifications are enabled. |
 | `notifications.enabled` | `boolean` | `false` | Enable push notifications for Crisp Chat.                           |
+
+> [!IMPORTANT]
+> The `websiteId` is **required** when `notifications.enabled` is `true`. The plugin will throw an error if it's missing.
 
 #### What the Plugin Configures
 
@@ -345,6 +349,8 @@ Crisp.pushSessionEvents([
 Subscribe to SDK events using the `useCrispEvents` hook:
 
 ```typescript
+import { useState } from "react";
+import { View, Button } from "react-native";
 import Crisp, { useCrispEvents } from "expo-crisp-sdk";
 
 function ChatScreen() {
@@ -402,6 +408,21 @@ Crisp.showMessage({
   url: "https://example.com/document.pdf",
   name: "Document.pdf",
   mimeType: "application/pdf",
+});
+
+// Animation (GIF)
+Crisp.showMessage({
+  type: "animation",
+  url: "https://example.com/celebration.gif",
+  mimeType: "image/gif",
+});
+
+// Audio message
+Crisp.showMessage({
+  type: "audio",
+  url: "https://example.com/voice-note.mp3",
+  mimeType: "audio/mpeg",
+  duration: 15,
 });
 
 // Picker for user choice
@@ -688,6 +709,49 @@ interface CrispEventCallbacks {
   onChatClosed?: () => void;
   onMessageSent?: (message: CrispMessage) => void;
   onMessageReceived?: (message: CrispMessage) => void;
+}
+```
+
+### Event Payload Types
+
+These types are used internally by the event system:
+
+```typescript
+// Payload for onSessionLoaded callback
+interface SessionLoadedPayload {
+  sessionId: string;
+}
+
+// Payload for onMessageSent and onMessageReceived callbacks
+interface MessagePayload {
+  message: CrispMessage;
+}
+
+// Empty payload for onChatOpened and onChatClosed callbacks
+type EmptyPayload = Record<string, never>;
+
+// Message origin type
+type CrispMessageOrigin = "local" | "network" | "update";
+```
+
+### Helper Types
+
+Types used within message content interfaces:
+
+```typescript
+// Choice option for picker messages
+interface PickerChoice {
+  value: string; // Unique identifier
+  label: string; // Display text
+  selected?: boolean; // Pre-selected state
+}
+
+// Target item for carousel messages
+interface CarouselTarget {
+  title: string; // Item title
+  description?: string; // Item description
+  imageUrl?: string; // Image URL
+  actionUrl?: string; // Action URL when tapped
 }
 ```
 
