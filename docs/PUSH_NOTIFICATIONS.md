@@ -119,7 +119,8 @@ After running `npx expo prebuild`, open your project in Xcode and verify:
 
 ### Important Notes for iOS
 
-> [!WARNING] > **Push notifications do NOT work on iOS Simulator.** You must test on a real device.
+> [!WARNING]
+> **Push notifications do NOT work on iOS Simulator.** You must test on a real device.
 
 #### Environment Matching
 
@@ -225,8 +226,8 @@ Now that your app is registered, you need to get two pieces of information from 
 
    <img width="1161" height="579" alt="Firebase Sender ID" src="https://github.com/user-attachments/assets/9f33214a-b9f0-4ab0-a2c3-2e240cf1348b" />
 
-   > [!NOTE]
-   > The "Sender ID" IS your Project Number. Firebase uses these terms interchangeably.
+> [!NOTE]
+> The "Sender ID" IS your Project Number. Firebase uses these terms interchangeably.
 
 4. Copy this number (e.g., `123456789012`)
 
