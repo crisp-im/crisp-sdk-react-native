@@ -134,3 +134,155 @@ Your build type must match your APNs key environment and Crisp Sandbox setting:
 - [ ] Testing on a real iOS device (not simulator)
 
 Once Crisp confirms successful configuration, you're ready to receive push notifications!
+
+---
+
+## Android Setup (Firebase Cloud Messaging)
+
+### Step 1: Create a Firebase Project
+
+1. Go to the [Firebase Console](https://console.firebase.google.com/)
+
+2. Click **Create a project** (or **Add project** if you already have projects)
+
+3. Enter your **Project name** (e.g., "My App Crisp")
+
+4. Choose whether to enable Google Analytics (optional)
+
+5. Click **Create project** and wait for the setup to complete
+
+### Step 2: Add an Android App to Your Firebase Project
+
+1. From your Firebase project dashboard, click the **Android icon** to add an Android app
+
+2. Enter your **Android package name**
+
+   > [!IMPORTANT]
+   > This must exactly match your `expo.android.package` value in `app.json`
+
+3. (Optional) Enter an app nickname for identification in the Firebase Console
+
+4. (Optional) Enter your SHA-1 signing certificate (not required for push notifications)
+
+5. Click **Register app**
+
+### Step 3: Download the Configuration File
+
+1. After registering, click **Download google-services.json**
+
+2. Place this file at the **root of your Expo project** (same level as `app.json`)
+
+3. Update your `app.json` to reference the file:
+
+   ```json
+   {
+     "expo": {
+       "android": {
+         "googleServicesFile": "./google-services.json",
+         "package": "com.yourcompany.yourapp"
+       }
+     }
+   }
+   ```
+
+4. **Skip** the "Add Firebase SDK" step in Firebase Console - the expo-crisp-sdk plugin handles this automatically
+
+5. Click **Continue to console**
+
+> [!WARNING]
+> Keep your `google-services.json` file secure. While it contains public identifiers, it's best practice not to expose it unnecessarily.
+
+### Step 4: Get Your Firebase Credentials for Crisp
+
+You need two pieces of information from Firebase:
+
+#### 4.1: Get the Sender ID (Project Number)
+
+1. In Firebase Console, click the **gear icon** (⚙️) next to "Project Overview"
+
+2. Select **Project settings**
+
+3. In the **General** tab, find the **Project number**
+
+   > [!NOTE]
+   > The "Project number" IS your Sender ID. Firebase uses these terms interchangeably.
+
+4. Copy this number (e.g., `123456789012`)
+
+#### 4.2: Generate a Private Key
+
+1. Still in Project settings, go to the **Service accounts** tab
+
+2. Click **Generate new private key**
+
+3. Confirm by clicking **Generate key**
+
+4. A JSON file will be downloaded automatically
+
+> [!WARNING]
+> Store this private key securely. It grants access to your Firebase project and should never be committed to version control or shared publicly.
+
+### Step 5: Configure Push Notifications in Crisp Dashboard
+
+1. Go to [Crisp Dashboard](https://app.crisp.chat)
+
+2. Navigate to **Settings** > **Chatbox** > **Push Notifications**
+
+3. In the Android section, provide the following information:
+
+   | Field          | Description                            | Where to find it                                       |
+   | -------------- | -------------------------------------- | ------------------------------------------------------ |
+   | **Certificate**| Your Firebase private key JSON file    | Downloaded in Step 4.2                                 |
+   | **Project ID** | Your Firebase Sender ID (Project Number) | Firebase Console > Project settings > General tab    |
+
+4. Click **Verify** to validate your credentials
+
+5. If verification succeeds, the status will show as **live**
+
+### Step 6: Verify Expo Configuration
+
+Ensure your `app.json` is correctly configured:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-crisp-sdk",
+        {
+          "websiteId": "YOUR_WEBSITE_ID",
+          "notifications": {
+            "enabled": true
+          }
+        }
+      ]
+    ],
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "package": "com.yourcompany.yourapp"
+    }
+  }
+}
+```
+
+After configuration, run:
+
+```bash
+npx expo prebuild --clean
+```
+
+> [!NOTE]
+> The expo-crisp-sdk config plugin automatically adds Firebase Messaging dependencies and configures the native Android project when `notifications.enabled` is `true`.
+
+### Checklist Before Testing
+
+- [ ] `google-services.json` is at the root of your Expo project
+- [ ] `googleServicesFile` path is correctly set in `app.json`
+- [ ] Package name in Firebase matches `expo.android.package` in `app.json`
+- [ ] `notifications.enabled` is `true` in the plugin configuration
+- [ ] Private key JSON uploaded to Crisp Dashboard
+- [ ] Sender ID (Project Number) entered in Crisp Dashboard
+- [ ] Crisp verification shows **live** status
+- [ ] App has been rebuilt with `npx expo prebuild --clean`
+
+Once Crisp confirms successful configuration, you're ready to receive push notifications on Android!
