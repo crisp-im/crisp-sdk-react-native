@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://crisp.chat/static/common/brand-assets/logo/color@3x.png" alt="Crisp Logo" height="80" />
+  <img width="1318" height="366" alt="crisp-banner" src="https://github.com/user-attachments/assets/ac273b9a-5713-4fb6-ab1e-7214a018731e" />
   <br />
   <h3 align="center">expo-crisp-sdk</h3>
   <p align="center">Expo Module for Crisp Chat - Add live chat to your React Native app</p>
