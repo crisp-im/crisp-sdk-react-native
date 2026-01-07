@@ -311,7 +311,7 @@ The final step is to add the Firebase configuration to your project. Choose the 
 
 1. Place the `google-services.json` file in the **`android/app/`** directory of your project (at the app module level)
 
-   <img width="280" height="300" alt="google-services.json location in Android project" src="https://github.com/user-attachments/assets/YOUR_IMAGE_ID" />
+  <img width="424" height="440" alt="android_studio_project_panel@2x" src="https://github.com/user-attachments/assets/a7ac7873-502f-4684-aaf6-f7a3bd57b860" />
 
 2. Follow the [Firebase Android Setup Guide](https://firebase.google.com/docs/android/setup) to configure your project
 
