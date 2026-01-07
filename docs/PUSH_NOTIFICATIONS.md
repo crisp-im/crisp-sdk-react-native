@@ -62,8 +62,8 @@ Apple maintains two completely separate push notification environments:
 
 3. **Download** your `.p8` certificate file immediately
 
-   > [!WARNING]
-   > The `.p8` file can only be downloaded once. Store it securely as you cannot re-download it later.
+> [!WARNING]
+> The `.p8` file can only be downloaded once. Store it securely as you cannot re-download it later.
 
 4. Note down the **Key ID** displayed on the page (e.g., `V55RRC7V8R`) - you'll need this for Crisp
 
