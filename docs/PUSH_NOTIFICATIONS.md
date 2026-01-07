@@ -154,7 +154,9 @@ Once Crisp confirms successful configuration, you're ready to receive push notif
 ### Step 2: Add an Android App to Your Firebase Project
 
 1. From your Firebase project dashboard, click the **Android icon** to add an Android app
-<img width="571" height="163" alt="Capture d’écran 2026-01-07 à 16 09 38" src="https://github.com/user-attachments/assets/389d6f08-8d27-4875-a380-cbd86ceb3109" />
+
+   <img width="571" height="163" alt="Add Android App to Firebase" src="https://github.com/user-attachments/assets/389d6f08-8d27-4875-a380-cbd86ceb3109" />
+
 2. Enter your **Android package name**
 
    > [!IMPORTANT]
@@ -196,15 +198,17 @@ Once Crisp confirms successful configuration, you're ready to receive push notif
 
 You need two pieces of information from Firebase:
 
-#### 4.1: Get the Sender ID (Project Number)
+#### 4.1: Get the Sender ID
 
-1. In Firebase Console, click the **gear icon** (⚙️) next to "Project Overview"
-<img width="436" height="155" alt="Capture d’écran 2026-01-07 à 16 19 59" src="https://github.com/user-attachments/assets/a03467d1-3b16-4019-8f93-bbab11407d73" />
+1. In Firebase Console, click the **gear icon** next to "Project Overview"
+
+   <img width="436" height="155" alt="Firebase Project Settings" src="https://github.com/user-attachments/assets/a03467d1-3b16-4019-8f93-bbab11407d73" />
 
 2. Select **Project settings**
 
 3. In the **Cloud Messaging** tab, find the **Sender ID**
-<img width="1161" height="579" alt="Capture d’écran 2026-01-07 à 16 22 17" src="https://github.com/user-attachments/assets/9f33214a-b9f0-4ab0-a2c3-2e240cf1348b" />
+
+   <img width="1161" height="579" alt="Firebase Sender ID" src="https://github.com/user-attachments/assets/9f33214a-b9f0-4ab0-a2c3-2e240cf1348b" />
 
    > [!NOTE]
    > The "Sender ID" IS your Project ID. Firebase uses these terms interchangeably.
@@ -220,7 +224,8 @@ You need two pieces of information from Firebase:
 3. Confirm by clicking **Generate key**
 
 4. A JSON file will be downloaded automatically
-<img width="1142" height="748" alt="Capture d’écran 2026-01-07 à 16 26 32" src="https://github.com/user-attachments/assets/ed60751e-3888-4b12-96bb-862e9cb4f8d4" />
+
+   <img width="1142" height="748" alt="Generate Firebase Private Key" src="https://github.com/user-attachments/assets/ed60751e-3888-4b12-96bb-862e9cb4f8d4" />
 
 > [!WARNING]
 > Store this private key securely. It grants access to your Firebase project and should never be committed to version control or shared publicly.
@@ -233,15 +238,16 @@ You need two pieces of information from Firebase:
 
 3. In the Android section, provide the following information:
 
-   | Field          | Description                            | Where to find it                                       |
-   | -------------- | -------------------------------------- | ------------------------------------------------------ |
-   | **Certificate**| Your Firebase private key JSON file    | Downloaded in Step 4.2                                 |
-   | **Project ID** | Your Firebase Sender ID (Project Number) | Firebase Console > Project settings > General tab    |
+   | Field           | Description                              | Where to find it                                           |
+   | --------------- | ---------------------------------------- | ---------------------------------------------------------- |
+   | **Certificate** | Your Firebase private key JSON file      | Downloaded in Step 4.2                                     |
+   | **Project ID**  | Your Firebase Sender ID (Project Number) | Firebase Console > Project settings > Cloud Messaging tab |
 
 4. Click **Verify** to validate your credentials
 
 5. If verification succeeds, the status will show as **live**
-<img width="1908" height="871" alt="Capture d’écran 2026-01-07 à 16 47 55" src="https://github.com/user-attachments/assets/18758630-cb06-452b-a613-213eec4b1f5c" />
+
+   <img width="1908" height="871" alt="Crisp Dashboard Android Configuration" src="https://github.com/user-attachments/assets/18758630-cb06-452b-a613-213eec4b1f5c" />
 
 ### Step 6: Verify Expo Configuration
 
@@ -285,7 +291,7 @@ npx expo prebuild --clean
 - [ ] Package name in Firebase matches `expo.android.package` in `app.json`
 - [ ] `notifications.enabled` is `true` in the plugin configuration
 - [ ] Private key JSON uploaded to Crisp Dashboard
-- [ ] Sender ID (Project Number) entered in Crisp Dashboard
+- [ ] Sender ID entered in Crisp Dashboard
 - [ ] Crisp verification shows **live** status
 - [ ] App has been rebuilt with `npx expo prebuild --clean`
 
