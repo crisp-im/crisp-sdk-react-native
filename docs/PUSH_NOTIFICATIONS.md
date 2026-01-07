@@ -2,6 +2,14 @@
 
 This guide walks you through configuring push notifications for the Crisp SDK on iOS and Android.
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [iOS Setup (APNs)](#ios-setup-apns)
+- [Android Setup (Firebase Cloud Messaging)](#android-setup-firebase-cloud-messaging)
+
+---
+
 ## Prerequisites
 
 Before starting, ensure you have:
