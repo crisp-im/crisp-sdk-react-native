@@ -167,8 +167,8 @@ Once Crisp confirms successful configuration, you're ready to receive push notif
 
 2. Enter your **Android package name**
 
-   > [!IMPORTANT]
-   > This must exactly match your `expo.android.package` value in `app.json`
+> [!IMPORTANT]
+> This must exactly match your `expo.android.package` value in `app.json`
 
 3. (Optional) Enter an app nickname for identification in the Firebase Console
 
