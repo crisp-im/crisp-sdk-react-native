@@ -43,11 +43,11 @@ Before starting, ensure you have:
 
 When configuring the key, you must select which APNs environment(s) your key will support:
 
-| Environment              | Description                      | Use Case                                                     |
-| ------------------------ | -------------------------------- | ------------------------------------------------------------ |
-| **Sandbox**              | Development/testing environment  | Local development builds, debug builds from Xcode            |
-| **Production**           | Live environment                 | App Store releases, TestFlight builds                        |
-| **Sandbox & Production** | Both environments                | Recommended for flexibility during development and production |
+| Environment              | Description                     | Use Case                                                      |
+| ------------------------ | ------------------------------- | ------------------------------------------------------------- |
+| **Sandbox**              | Development/testing environment | Local development builds, debug builds from Xcode             |
+| **Production**           | Live environment                | App Store releases, TestFlight builds                         |
+| **Sandbox & Production** | Both environments               | Recommended for flexibility during development and production |
 
 #### Understanding APNs Environments
 
@@ -87,12 +87,12 @@ Apple maintains two completely separate push notification environments:
 
 3. In the iOS section, provide the following information:
 
-   | Field           | Description                                        | Where to find it                                                                                                                       |
-   | --------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-   | **Certificate** | Your `.p8` APNs key file                           | Downloaded in Step 3                                                                                                                   |
+   | Field           | Description                                          | Where to find it                                                                                                                      |
+   | --------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+   | **Certificate** | Your `.p8` APNs key file                             | Downloaded in Step 3                                                                                                                  |
    | **Team ID**     | Your Apple Developer Team identifier (10 characters) | [Apple Developer Account](https://developer.apple.com/account) > Membership details, or visible in Xcode under Signing & Capabilities |
-   | **Bundle ID**   | Your app's bundle identifier                       | Defined in your `app.json` (`expo.ios.bundleIdentifier`) or Xcode project settings                                                     |
-   | **Key ID**      | The APNs key identifier (10 characters)            | Shown after creating the key, or in your Keys list                                                                                     |
+   | **Bundle ID**   | Your app's bundle identifier                         | Defined in your `app.json` (`expo.ios.bundleIdentifier`) or Xcode project settings                                                    |
+   | **Key ID**      | The APNs key identifier (10 characters)              | Shown after creating the key, or in your Keys list                                                                                    |
 
 4. If you want to test with development builds, enable the **Sandbox mode** toggle in Crisp Dashboard
 
@@ -119,8 +119,7 @@ After running `npx expo prebuild`, open your project in Xcode and verify:
 
 ### Important Notes for iOS
 
-> [!WARNING]
-> **Push notifications do NOT work on iOS Simulator.** You must test on a real device.
+> [!WARNING] > **Push notifications do NOT work on iOS Simulator.** You must test on a real device.
 
 #### Environment Matching
 
@@ -219,7 +218,7 @@ You need two pieces of information from Firebase:
    <img width="1161" height="579" alt="Firebase Sender ID" src="https://github.com/user-attachments/assets/9f33214a-b9f0-4ab0-a2c3-2e240cf1348b" />
 
    > [!NOTE]
-   > The "Sender ID" IS your Project ID. Firebase uses these terms interchangeably.
+   > The "Sender ID" IS your Project Number. Firebase uses these terms interchangeably.
 
 4. Copy this number (e.g., `123456789012`)
 
@@ -246,10 +245,10 @@ You need two pieces of information from Firebase:
 
 3. In the Android section, provide the following information:
 
-   | Field           | Description                              | Where to find it                                           |
-   | --------------- | ---------------------------------------- | ---------------------------------------------------------- |
-   | **Certificate** | Your Firebase private key JSON file      | Downloaded in Step 4.2                                     |
-   | **Project ID**  | Your Firebase Sender ID (Project Number) | Firebase Console > Project settings > Cloud Messaging tab |
+   | Field              | Description                              | Where to find it                                          |
+   | ------------------ | ---------------------------------------- | --------------------------------------------------------- |
+   | **Certificate**    | Your Firebase private key JSON file      | Downloaded in Step 4.2                                    |
+   | **Project Number** | Your Firebase Sender ID (Project Number) | Firebase Console > Project settings > Cloud Messaging tab |
 
 4. Click **Verify** to validate your credentials
 
