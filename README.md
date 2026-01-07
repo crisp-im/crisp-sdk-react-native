@@ -238,6 +238,12 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 > [!NOTE]
 > After enabling notifications, rebuild your app with `npx expo prebuild --clean` followed by `npx expo run:ios` or `npx expo run:android`.
 
+#### Crisp Dashboard Configuration
+
+Push notifications require additional setup in your Crisp Dashboard (APNs for iOS, Firebase for Android).
+
+See the [Push Notifications Setup Guide](./docs/PUSH_NOTIFICATIONS.md) for detailed step-by-step instructions.
+
 ---
 
 ## Usage Examples
