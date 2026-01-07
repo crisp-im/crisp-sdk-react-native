@@ -19,8 +19,10 @@ Before starting, ensure you have:
 
 1. Go to your [Apple Developer Account - Keys](https://developer.apple.com/account/resources/authkeys/list)
 2. Click the **+** button to create a new key
+<img width="1251" height="380" alt="Create-APNs-Key" src="https://github.com/user-attachments/assets/744d1ab1-c734-459c-a7ed-2db00dccff35" />
 3. Enter a **Key Name** (e.g., "Crisp Push Notifications")
 4. Check the **Apple Push Notifications service (APNs)** checkbox
+<img width="1282" height="712" alt="Check-APNs-key" src="https://github.com/user-attachments/assets/83fcc472-75a2-45fe-b280-dd9468701ede" />
 5. Click **Configure** to set up the environment
 
 ### Step 2: Choose the APNs Environment
@@ -56,11 +58,14 @@ Apple maintains two completely separate push notification environments:
 > The `.p8` file can only be downloaded once. Store it securely as you cannot re-download it later.
 
 4. Note down the **Key ID** displayed on the page (e.g., `V55RRC7V8R`) - you'll need this for Crisp
+<img width="1394" height="414" alt="Key-ID-APNs-Key" src="https://github.com/user-attachments/assets/fd2f931d-5602-4cf8-83fc-f9b908dcfaec" />
 
 ### Step 4: Configure Push Notifications in Crisp Dashboard
 
 1. Go to [Crisp Dashboard](https://app.crisp.chat)
 2. Navigate to **Settings** > **Chatbox** > **Push Notifications**
+<img width="1635" height="965" alt="Configure-Dashboard-APNs-key" src="https://github.com/user-attachments/assets/1e295575-0663-49a8-8c36-db7b39d9aa43" />
+
 3. In the iOS section, provide the following information:
 
 | Field | Description | Where to find it |
@@ -86,6 +91,7 @@ After running `npx expo prebuild`, open your project in Xcode and verify:
 
 > [!NOTE]
 > The expo-crisp-sdk config plugin automatically adds these capabilities when `notifications.enabled` is `true`.
+<img width="1907" height="774" alt="Xcode-APNs-Key" src="https://github.com/user-attachments/assets/115cae98-ef02-489e-b5d9-16bc493e996c" />
 
 ### Important Notes for iOS
 
