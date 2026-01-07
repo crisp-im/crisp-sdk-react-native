@@ -146,6 +146,14 @@ Once Crisp confirms successful configuration, you're ready to receive push notif
 
 ## Android Setup (Firebase Cloud Messaging)
 
+Android push notifications use Firebase Cloud Messaging (FCM). The setup consists of three parts:
+
+1. **Firebase Console**: Create a project and get your credentials
+2. **Crisp Dashboard**: Configure your Firebase credentials
+3. **Your Project**: Add the configuration file and enable notifications
+
+Let's start with Firebase.
+
 ### Step 1: Create a Firebase Project
 
 1. Go to the [Firebase Console](https://console.firebase.google.com/)
@@ -203,7 +211,7 @@ Once Crisp confirms successful configuration, you're ready to receive push notif
 
 ### Step 4: Get Your Firebase Credentials for Crisp
 
-You need two pieces of information from Firebase:
+Now that your app is registered, you need to get two pieces of information from Firebase to configure Crisp:
 
 #### 4.1: Get the Sender ID
 
@@ -239,6 +247,8 @@ You need two pieces of information from Firebase:
 
 ### Step 5: Configure Push Notifications in Crisp Dashboard
 
+With your Firebase credentials ready, let's configure Crisp to send push notifications.
+
 1. Go to [Crisp Dashboard](https://app.crisp.chat)
 
 2. Navigate to **Settings** > **Chatbox** > **Push Notifications**
@@ -256,42 +266,74 @@ You need two pieces of information from Firebase:
 
    <img width="1908" height="871" alt="Crisp Dashboard Android Configuration" src="https://github.com/user-attachments/assets/18758630-cb06-452b-a613-213eec4b1f5c" />
 
-### Step 6: Verify Expo Configuration
+### Step 6: Configure Your Project
 
-Ensure your `app.json` is correctly configured:
+The final step is to add the Firebase configuration to your project. Choose the instructions based on your project type:
 
-```json
-{
-  "expo": {
-    "plugins": [
-      [
-        "expo-crisp-sdk",
-        {
-          "websiteId": "YOUR_WEBSITE_ID",
-          "notifications": {
-            "enabled": true
-          }
-        }
-      ]
-    ],
-    "android": {
-      "googleServicesFile": "./google-services.json",
-      "package": "com.yourcompany.yourapp"
-    }
-  }
-}
-```
+#### Expo CLI
 
-After configuration, run:
+1. Place the `google-services.json` file at the **root of your Expo project** (same level as `app.json`)
 
-```bash
-npx expo prebuild --clean
-```
+2. Update your `app.json` to reference the file and enable notifications:
+
+   ```json
+   {
+     "expo": {
+       "plugins": [
+         [
+           "expo-crisp-sdk",
+           {
+             "websiteId": "YOUR_WEBSITE_ID",
+             "notifications": {
+               "enabled": true
+             }
+           }
+         ]
+       ],
+       "android": {
+         "googleServicesFile": "./google-services.json",
+         "package": "com.yourcompany.yourapp"
+       }
+     }
+   }
+   ```
+
+3. Rebuild your project:
+
+   ```bash
+   npx expo prebuild --clean
+   ```
 
 > [!NOTE]
 > The expo-crisp-sdk config plugin automatically adds Firebase Messaging dependencies and configures the native Android project when `notifications.enabled` is `true`.
 
+#### React Native CLI
+
+1. Place the `google-services.json` file in the **`android/app/`** directory of your project (at the app module level)
+
+   <img width="280" height="300" alt="google-services.json location in Android project" src="https://github.com/user-attachments/assets/YOUR_IMAGE_ID" />
+
+2. Follow the [Firebase Android Setup Guide](https://firebase.google.com/docs/android/setup) to configure your project
+
+3. Add the Firebase Messaging dependency to your **app-level** `build.gradle` file (`android/app/build.gradle`):
+
+   ```gradle
+   dependencies {
+       // ... other dependencies
+       implementation 'com.google.firebase:firebase-messaging'
+   }
+   ```
+
+4. Rebuild your project:
+
+   ```bash
+   cd android && ./gradlew clean && cd ..
+   npx react-native run-android
+   ```
+
 ### Checklist Before Testing
+
+#### For Expo CLI
 
 - [ ] `google-services.json` is at the root of your Expo project
 - [ ] `googleServicesFile` path is correctly set in `app.json`
@@ -301,5 +343,15 @@ npx expo prebuild --clean
 - [ ] Sender ID entered in Crisp Dashboard
 - [ ] Crisp verification shows **live** status
 - [ ] App has been rebuilt with `npx expo prebuild --clean`
+
+#### For React Native CLI
+
+- [ ] `google-services.json` is in the `android/app/` directory
+- [ ] Package name in Firebase matches `applicationId` in `android/app/build.gradle`
+- [ ] Firebase Messaging dependency added to `build.gradle`
+- [ ] Private key JSON uploaded to Crisp Dashboard
+- [ ] Sender ID entered in Crisp Dashboard
+- [ ] Crisp verification shows **live** status
+- [ ] App has been rebuilt
 
 Once Crisp confirms successful configuration, you're ready to receive push notifications on Android!
