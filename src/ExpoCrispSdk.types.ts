@@ -47,6 +47,36 @@ export enum CrispSessionEventColors {
 }
 
 /**
+ * Log levels available for SDK logging.
+ * Controls the verbosity of logs emitted by the native Crisp SDK.
+ *
+ * @example
+ * ```typescript
+ * import ExpoCrispSdk, { CrispLogLevel } from "expo-crisp-sdk";
+ *
+ * // Set to DEBUG to see more detailed logs
+ * ExpoCrispSdk.setLogLevel(CrispLogLevel.DEBUG);
+ *
+ * // Set to ERROR to only see errors
+ * ExpoCrispSdk.setLogLevel(CrispLogLevel.ERROR);
+ * ```
+ */
+export enum CrispLogLevel {
+  /** Most verbose - includes all log messages */
+  VERBOSE = 0,
+  /** Debug information for development */
+  DEBUG = 1,
+  /** Informational messages */
+  INFO = 2,
+  /** Warnings (default level) */
+  WARN = 3,
+  /** Error messages only */
+  ERROR = 4,
+  /** Critical assertion failures */
+  ASSERT = 5,
+}
+
+/**
  * Employment information for a user within their company.
  *
  * @example
@@ -292,6 +322,38 @@ export interface CrispMessage {
 }
 
 /**
+ * Log entry emitted by the native Crisp SDK.
+ * Received through the onLogReceived event when a log handler is active.
+ *
+ * @example
+ * ```typescript
+ * import { useCrispEvents, CrispLogLevel } from "expo-crisp-sdk";
+ *
+ * useCrispEvents({
+ *   onLogReceived: (log) => {
+ *     console.log(`[${CrispLogLevel[log.level]}] ${log.tag}: ${log.message}`);
+ *   }
+ * });
+ * ```
+ */
+export interface CrispLogEntry {
+  /**
+   * The log level (VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT).
+   */
+  level: CrispLogLevel;
+
+  /**
+   * The log tag/category identifying the source of the log.
+   */
+  tag: string;
+
+  /**
+   * The log message content.
+   */
+  message: string;
+}
+
+/**
  * Event payload for the onSessionLoaded callback.
  * Emitted when the Crisp session has fully loaded.
  */
@@ -310,6 +372,17 @@ export interface MessagePayload {
    * The message details.
    */
   message: CrispMessage;
+}
+
+/**
+ * Event payload for the onLogReceived callback.
+ * Emitted when the native SDK generates a log message.
+ */
+export interface LogReceivedPayload {
+  /**
+   * The log entry details.
+   */
+  log: CrispLogEntry;
 }
 
 /**

@@ -7,8 +7,10 @@ public class ExpoCrispSdkModule: Module {
   private let onChatClosed = "onChatClosed"
   private let onMessageSent = "onMessageSent"
   private let onMessageReceived = "onMessageReceived"
+  private let onLogReceived = "onLogReceived"
 
   private var callbackTokens: [CallbackToken] = []
+  private var logHandler: CrispLogHandlerBridge?
 
   public func definition() -> ModuleDefinition {
     Name("ExpoCrispSdk")
@@ -18,11 +20,17 @@ public class ExpoCrispSdkModule: Module {
       onChatOpened,
       onChatClosed,
       onMessageSent,
-      onMessageReceived
+      onMessageReceived,
+      onLogReceived
     )
 
     OnCreate {
       self.setupCallbacks()
+      self.setupLogHandler()
+    }
+
+    OnDestroy {
+      self.cleanupCallbacks()
     }
 
     // MARK: - Configuration
@@ -33,6 +41,11 @@ public class ExpoCrispSdkModule: Module {
 
     Function("setTokenId") { (tokenId: String?) in
       CrispSDK.setTokenID(tokenID: tokenId)
+    }
+
+    Function("setLogLevel") { (level: Int) in
+      let severity = self.convertIntToSeverity(level)
+      CrispSDK.setLogLevel(severity)
     }
 
     // MARK: - User Information
@@ -229,4 +242,57 @@ public class ExpoCrispSdkModule: Module {
       })
     )
   }
+
+  private func setupLogHandler() {
+    logHandler = CrispLogHandlerBridge { [weak self] severity, message in
+      guard let self = self else { return }
+      let levelInt = self.convertSeverityToInt(severity)
+      self.sendEvent(self.onLogReceived, [
+        "log": [
+          "level": levelInt,
+          "tag": "Crisp",  // iOS SDK doesn't provide a tag
+          "message": message
+        ]
+      ])
+    }
+    if let handler = logHandler {
+      CrispSDK.addLogHandler(handler)
+    }
+  }
+
+  private func cleanupCallbacks() {
+    for token in callbackTokens {
+      CrispSDK.removeCallback(token: token)
+    }
+    callbackTokens.removeAll()
+
+    // Note: Crisp SDK does not provide a way to remove log handlers.
+    // The handler remains registered for the app lifetime.
+    logHandler = nil
+  }
+
+  /// Converts TypeScript CrispLogLevel int to iOS Severity.
+  /// Maps: VERBOSE(0)->debug, DEBUG(1)->debug, INFO(2)->info, WARN(3)->warning, ERROR(4)->error, ASSERT(5)->error
+  private func convertIntToSeverity(_ levelInt: Int) -> Severity {
+    switch levelInt {
+    case 0, 1: return .debug     // VERBOSE and DEBUG -> debug
+    case 2: return .info         // INFO -> info
+    case 3: return .warning      // WARN -> warning
+    case 4, 5: return .error     // ERROR and ASSERT -> error
+    default: return .warning
+    }
+  }
+
+  /// Converts iOS Severity to TypeScript CrispLogLevel int.
+  /// Maps: debug->1, info->2, warning->3, error->4
+  private func convertSeverityToInt(_ severity: Severity) -> Int {
+    switch severity {
+    case .debug: return 1      // DEBUG
+    case .info: return 2       // INFO
+    case .warning: return 3    // WARN
+    case .error: return 4      // ERROR
+    @unknown default: return 3 // WARN
+    }
+  }
 }
+

@@ -7,6 +7,7 @@ import expo.modules.kotlin.Promise
 
 import im.crisp.client.external.ChatActivity
 import im.crisp.client.external.Crisp
+import im.crisp.client.external.Logger
 import im.crisp.client.external.data.SessionEvent
 import im.crisp.client.external.data.SessionEvent.Color
 
@@ -15,12 +16,14 @@ class ExpoCrispSdkModule : Module() {
     get() = requireNotNull(appContext.reactContext)
 
   private var eventsCallback: CrispEventsBridge? = null
+  private var loggerCallback: CrispLoggerBridge? = null
 
   private val onSessionLoaded = "onSessionLoaded"
   private val onChatOpened = "onChatOpened"
   private val onChatClosed = "onChatClosed"
   private val onMessageSent = "onMessageSent"
   private val onMessageReceived = "onMessageReceived"
+  private val onLogReceived = "onLogReceived"
 
   override fun definition() = ModuleDefinition {
     Name("ExpoCrispSdk")
@@ -30,15 +33,18 @@ class ExpoCrispSdkModule : Module() {
       onChatOpened,
       onChatClosed,
       onMessageSent,
-      onMessageReceived
+      onMessageReceived,
+      onLogReceived
     )
 
     OnCreate {
       registerEventsCallback()
+      registerLogger()
     }
 
     OnDestroy {
       unregisterEventsCallback()
+      unregisterLogger()
     }
 
     // MARK: - Configuration
@@ -49,6 +55,11 @@ class ExpoCrispSdkModule : Module() {
 
     Function("setTokenId") { tokenId: String? ->
       Crisp.setTokenID(context, tokenId)
+    }
+
+    Function("setLogLevel") { level: Int ->
+      val logLevel = convertIntToLogLevel(level)
+      Crisp.setLogLevel(logLevel)
     }
 
     // MARK: - User Information
@@ -179,6 +190,52 @@ class ExpoCrispSdkModule : Module() {
     eventsCallback?.let {
       Crisp.removeCallback(it)
       eventsCallback = null
+    }
+  }
+
+  private fun registerLogger() {
+    unregisterLogger()
+    loggerCallback = CrispLoggerBridge { level, tag, message ->
+      val levelInt = convertLogLevelToInt(level)
+      this@ExpoCrispSdkModule.sendEvent(onLogReceived, mapOf(
+        "log" to mapOf(
+          "level" to levelInt,
+          "tag" to tag,
+          "message" to message
+        )
+      ))
+    }
+    loggerCallback?.let { Crisp.addLogger(it) }
+  }
+
+  private fun unregisterLogger() {
+    // Note: Crisp SDK does not provide a removeLogger API.
+    // The logger remains registered for the app lifetime.
+    // Setting to null allows garbage collection of our bridge object,
+    // though the SDK may still hold a reference.
+    loggerCallback = null
+  }
+
+  private fun convertIntToLogLevel(levelInt: Int): Logger.Level {
+    return when (levelInt) {
+      0 -> Logger.Level.VERBOSE
+      1 -> Logger.Level.DEBUG
+      2 -> Logger.Level.INFO
+      3 -> Logger.Level.WARN
+      4 -> Logger.Level.ERROR
+      5 -> Logger.Level.ASSERT
+      else -> Logger.Level.WARN
+    }
+  }
+
+  private fun convertLogLevelToInt(level: Logger.Level): Int {
+    return when (level) {
+      Logger.Level.VERBOSE -> 0
+      Logger.Level.DEBUG -> 1
+      Logger.Level.INFO -> 2
+      Logger.Level.WARN -> 3
+      Logger.Level.ERROR -> 4
+      Logger.Level.ASSERT -> 5
     }
   }
 }
