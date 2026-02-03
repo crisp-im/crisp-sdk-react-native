@@ -21,7 +21,6 @@
       },
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
-      "predictiveBackGestureEnabled": false,
       "package": "com.expo.crisp.sdk"
     },
     "plugins": [

@@ -1,16 +1,44 @@
-import Crisp, { useCrispEvents, getSDKVersion } from "expo-crisp-sdk";
+import Crisp, {
+  useCrispEvents,
+  getSDKVersion,
+  CrispLogLevel,
+  CrispLogEntry,
+} from "expo-crisp-sdk";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CrispButton from "../components/CrispButton";
 
 // 1. Get your Website ID from https://app.crisp.chat/settings/websites/
 const WEBSITE_ID = "YOUR_WEBSITE_ID";
 
+// Extended log entry with unique ID for React keys
+type LogEntryWithId = CrispLogEntry & { id: string };
+
+// Counter for generating unique log IDs
+let logIdCounter = 0;
+
+// Helper to get log level name
+const getLogLevelName = (level: CrispLogLevel): string => {
+  const names: Record<CrispLogLevel, string> = {
+    [CrispLogLevel.VERBOSE]: "VERBOSE",
+    [CrispLogLevel.DEBUG]: "DEBUG",
+    [CrispLogLevel.INFO]: "INFO",
+    [CrispLogLevel.WARN]: "WARN",
+    [CrispLogLevel.ERROR]: "ERROR",
+    [CrispLogLevel.ASSERT]: "ASSERT",
+  };
+  return names[level] ?? "UNKNOWN";
+};
+
 export default function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [chatStatus, setChatStatus] = useState<"closed" | "open">("closed");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<LogEntryWithId[]>([]);
+  const [currentLogLevel, setCurrentLogLevel] = useState<CrispLogLevel>(
+    CrispLogLevel.DEBUG,
+  );
 
   console.log("SDK Version:", getSDKVersion());
 
@@ -34,12 +62,33 @@ export default function HomeScreen() {
     onMessageReceived: (message) => {
       console.log("[Crisp] Message received:", message);
     },
+    // Logger callback - receives logs from native SDK
+    onLogReceived: (log) => {
+      console.log(
+        `[Crisp Log] [${getLogLevelName(log.level)}] ${log.tag}: ${
+          log.message
+        }`,
+      );
+      // Add unique ID and keep last 20 logs
+      const logWithId: LogEntryWithId = { ...log, id: `log-${++logIdCounter}` };
+      setLogs((prev) => [...prev.slice(-19), logWithId]);
+    },
   });
 
   useEffect(() => {
     // 2. Configure Crisp with your Website ID (required before any other call)
     Crisp.configure(WEBSITE_ID);
+
+    // 3. Enable debug logging to receive logs via onLogReceived
+    Crisp.setLogLevel(CrispLogLevel.DEBUG);
   }, []);
+
+  // Change log level dynamically
+  const handleSetLogLevel = (level: CrispLogLevel) => {
+    Crisp.setLogLevel(level);
+    setCurrentLogLevel(level);
+    setLogs([]); // Clear logs when changing level
+  };
 
   // 3. Optional: Set user information when they log in
   const handleLogin = () => {
@@ -83,7 +132,11 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>Example App</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.sectionTitle}>User Session</Text>
 
         {!isLoggedIn ? (
@@ -189,7 +242,72 @@ export default function HomeScreen() {
         <Text style={styles.hint}>
           Tap a button then open the chat to see the message appear.
         </Text>
-      </View>
+
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
+          Logger Test
+        </Text>
+        <View style={styles.logLevelButtons}>
+          {[
+            { level: CrispLogLevel.DEBUG, label: "DEBUG" },
+            { level: CrispLogLevel.INFO, label: "INFO" },
+            { level: CrispLogLevel.WARN, label: "WARN" },
+            { level: CrispLogLevel.ERROR, label: "ERROR" },
+          ].map(({ level, label }) => (
+            <Pressable
+              key={level}
+              style={[
+                styles.logLevelButton,
+                currentLogLevel === level && styles.logLevelButtonActive,
+              ]}
+              onPress={() => handleSetLogLevel(level)}
+            >
+              <Text
+                style={[
+                  styles.logLevelButtonText,
+                  currentLogLevel === level && styles.logLevelButtonTextActive,
+                ]}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.hint}>
+          Current level: {getLogLevelName(currentLogLevel)}. Logs at or above
+          this level will appear below.
+        </Text>
+
+        {logs.length > 0 && (
+          <View style={styles.logsContainer}>
+            <View style={styles.logsHeader}>
+              <Text style={styles.logsTitle}>Recent Logs ({logs.length})</Text>
+              <Pressable onPress={() => setLogs([])}>
+                <Text style={styles.clearButton}>Clear</Text>
+              </Pressable>
+            </View>
+            <ScrollView style={styles.logsList}>
+              {logs.map((log) => (
+                <View key={log.id} style={styles.logEntry}>
+                  <Text
+                    style={[
+                      styles.logLevel,
+                      log.level >= CrispLogLevel.ERROR && styles.logLevelError,
+                      log.level === CrispLogLevel.WARN && styles.logLevelWarn,
+                      log.level === CrispLogLevel.INFO && styles.logLevelInfo,
+                    ]}
+                  >
+                    [{getLogLevelName(log.level)}]
+                  </Text>
+                  <Text style={styles.logTag}>{log.tag}:</Text>
+                  <Text style={styles.logMessage} numberOfLines={2}>
+                    {log.message}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </ScrollView>
 
       {/* 5. Floating chat button - tap to open Crisp chat */}
       <CrispButton onPress={() => Crisp.show()} />
@@ -219,6 +337,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 100, // Space for the floating button
   },
   sectionTitle: {
     fontSize: 13,
@@ -290,5 +411,88 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     backgroundColor: "#6c757d",
+  },
+  logLevelButtons: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  logLevelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "#e9ecef",
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  logLevelButtonActive: {
+    backgroundColor: "#0066FF",
+    borderColor: "#0066FF",
+  },
+  logLevelButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#495057",
+  },
+  logLevelButtonTextActive: {
+    color: "#fff",
+  },
+  logsContainer: {
+    marginTop: 16,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 12,
+    padding: 12,
+    maxHeight: 200,
+  },
+  logsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  logsTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#888",
+  },
+  clearButton: {
+    fontSize: 12,
+    color: "#0066FF",
+    fontWeight: "600",
+  },
+  logsList: {
+    flex: 1,
+  },
+  logEntry: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 4,
+    gap: 4,
+  },
+  logLevel: {
+    fontSize: 10,
+    fontFamily: "monospace",
+    color: "#6c757d",
+    fontWeight: "600",
+  },
+  logLevelError: {
+    color: "#dc3545",
+  },
+  logLevelWarn: {
+    color: "#ffc107",
+  },
+  logLevelInfo: {
+    color: "#17a2b8",
+  },
+  logTag: {
+    fontSize: 10,
+    fontFamily: "monospace",
+    color: "#888",
+  },
+  logMessage: {
+    fontSize: 10,
+    fontFamily: "monospace",
+    color: "#ccc",
+    flex: 1,
   },
 });
