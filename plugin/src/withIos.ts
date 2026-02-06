@@ -1,13 +1,12 @@
-import {
-  type ConfigPlugin,
-  withEntitlementsPlist,
-  withInfoPlist,
-} from "expo/config-plugins";
+import { type ConfigPlugin, withEntitlementsPlist, withInfoPlist } from "expo/config-plugins";
+import type { NotificationConfig } from "./withExpoCrisp";
 
-export const withIosNotifications: ConfigPlugin<string> = (
+export const withIosNotifications: ConfigPlugin<NotificationConfig> = (
   config,
-  websiteId
+  notificationConfig,
 ) => {
+  const { websiteId, mode } = notificationConfig;
+
   // Add remote-notification to UIBackgroundModes
   config = withInfoPlist(config, (config) => {
     const modes = config.modResults.UIBackgroundModes ?? [];
@@ -18,6 +17,8 @@ export const withIosNotifications: ConfigPlugin<string> = (
     // Store websiteId for CrispAppDelegateSubscriber to read at runtime
     config.modResults.CrispWebsiteId = websiteId;
     config.modResults.CrispNotificationsEnabled = true;
+    // Store notification mode for runtime reading
+    config.modResults.CrispNotificationMode = mode;
 
     return config;
   });

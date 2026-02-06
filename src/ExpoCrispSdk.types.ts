@@ -391,6 +391,115 @@ export interface LogReceivedPayload {
 export type EmptyPayload = Record<string, never>;
 
 // ============================================================================
+// Push Notification Types
+// ============================================================================
+
+/**
+ * Notification mode for the Crisp SDK.
+ * - 'sdk-managed': Crisp handles token registration and notification display automatically (default)
+ * - 'app-managed': App handles tokens and forwards notifications to Crisp
+ */
+export type NotificationMode = "sdk-managed" | "app-managed";
+
+/**
+ * Result of registering a push token with Crisp.
+ */
+export interface TokenRegistrationResult {
+  /** Whether registration succeeded */
+  success: boolean;
+  /** Error type if failed */
+  error?: "invalid_token" | "network_error" | "invalid_mode" | "rate_limited";
+  /** Human-readable error message */
+  message?: string;
+}
+
+/**
+ * Current push notification status.
+ */
+export interface NotificationStatus {
+  /** Whether a token is currently registered */
+  isRegistered: boolean;
+  /** Current notification mode */
+  mode: NotificationMode | "uninitialized";
+  /** ISO timestamp of last registration */
+  lastRegistered?: string;
+  /** Failure reason if registration failed */
+  failureReason?: string;
+}
+
+/**
+ * Options for handling a notification.
+ */
+export interface NotificationHandleOptions {
+  /**
+   * Whether Crisp should display the notification.
+   * - true: Crisp shows notification and opens chatbox on tap
+   * - false: Crisp processes silently, app controls display
+   *
+   * Default: true
+   *
+   * WARNING: iOS always displays - this option only works on Android.
+   */
+  displayNotification?: boolean;
+}
+
+/**
+ * Result of handling a notification.
+ */
+export interface NotificationHandleResult {
+  /** Whether Crisp processed this notification */
+  wasHandled: boolean;
+  /** Whether notification was displayed */
+  wasDisplayed: boolean;
+  /** Session ID if available */
+  sessionId?: string;
+  /** Platform-specific warnings */
+  warnings?: string[];
+}
+
+/**
+ * Crisp notification payload structure.
+ */
+export interface CrispNotificationPayload {
+  /** Sender identifier (always "crisp" for Crisp notifications) */
+  sender?: string;
+  /** Website ID this notification belongs to */
+  website_id?: string;
+  /** Session ID for this conversation */
+  session_id?: string;
+  /** Message preview */
+  message?: string;
+  /** Timestamp */
+  timestamp?: string;
+  /** Additional fields */
+  [key: string]: unknown;
+}
+
+/**
+ * Event payload for the onNotificationReceived callback.
+ * Emitted when a Crisp notification is received while app is in foreground.
+ * Only fires in app-managed mode when handleNotification() is called.
+ */
+export interface NotificationReceivedPayload {
+  /** The notification data */
+  notification: CrispNotificationPayload;
+  /** Whether the notification was displayed */
+  wasDisplayed: boolean;
+}
+
+/**
+ * Event payload for the onNotificationTapped callback.
+ * Emitted when user taps a Crisp notification.
+ * Fires in both SDK-managed and app-managed modes.
+ */
+export interface NotificationTappedPayload {
+  /** The notification data */
+  notification: CrispNotificationPayload;
+  /** Session ID for this conversation */
+  sessionId: string;
+}
+
+// ============================================================================
 // Message Content Types (for showMessage)
 // ============================================================================
 

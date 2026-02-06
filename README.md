@@ -212,10 +212,55 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 
 #### Plugin Options
 
-| Option                  | Type      | Default | Description                                                         |
-| ----------------------- | --------- | ------- | ------------------------------------------------------------------- |
-| `websiteId`             | `string`  | -       | Your Crisp Website ID. **Required** when notifications are enabled. |
-| `notifications.enabled` | `boolean` | `false` | Enable push notifications for Crisp Chat.                           |
+| Option                  | Type                                 | Default         | Description                                                         |
+| ----------------------- | ------------------------------------ | --------------- | ------------------------------------------------------------------- |
+| `websiteId`             | `string`                             | -               | Your Crisp Website ID. **Required** when notifications are enabled. |
+| `notifications.enabled` | `boolean`                            | `false`         | Enable push notifications for Crisp Chat.                           |
+| `notifications.mode`    | `"sdk-managed"` \| `"app-managed"` | `"sdk-managed"` | Notification handling mode (see below).                             |
+
+#### Notification Modes
+
+**SDK-Managed (default):** Crisp handles everything automatically. Token registration and notification display are managed by the SDK.
+
+**App-Managed:** Your app handles token registration and notification routing. Use this when integrating with `expo-notifications`, `react-native-firebase`, or other notification libraries.
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-crisp-sdk",
+        {
+          "websiteId": "YOUR_WEBSITE_ID",
+          "notifications": {
+            "enabled": true,
+            "mode": "app-managed"
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+
+In app-managed mode, you must call `registerPushToken()` and `handleNotification()` manually:
+
+```typescript
+import Crisp from "expo-crisp-sdk";
+import * as Notifications from "expo-notifications";
+
+// Register token
+const { data: token } = await Notifications.getDevicePushTokenAsync();
+await Crisp.registerPushToken(token);
+
+// Handle incoming notifications
+Notifications.addNotificationReceivedListener(async (notification) => {
+  const data = notification.request.content.data;
+  if (Crisp.isCrispNotification(data)) {
+    await Crisp.handleNotification(data);
+  }
+});
+```
 
 > [!IMPORTANT]
 > The `websiteId` is **required** when `notifications.enabled` is `true`. The plugin will throw an error if it's missing.
@@ -563,6 +608,18 @@ Crisp.runBotScenario("welcome-flow");
 | ---------------------- | --------------------------------------------------- | ------------------------- | ------ |
 | `showMessage(content)` | Display a message as operator in the local chatbox. | `content: MessageContent` | `void` |
 
+### Push Notification Methods (App-Managed Mode)
+
+These methods are for use in app-managed notification mode. See [Notification Modes](#notification-modes) for configuration.
+
+| Method                                     | Description                                                                                                              | Parameters                                                         | Return                             |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ---------------------------------- |
+| `registerPushToken(token)`                 | Register device push token with Crisp.                                                                                   | `token: string` (APNs hex string on iOS, FCM token on Android)     | `Promise<TokenRegistrationResult>` |
+| `unregisterPushToken()`                    | Unregister current push token from Crisp.                                                                                | -                                                                  | `Promise<{ success: boolean }>`    |
+| `getNotificationStatus()`                  | Get current push notification registration status.                                                                       | -                                                                  | `Promise<NotificationStatus>`      |
+| `isCrispNotification(payload)`             | Check if a notification payload is from Crisp. Synchronous for fast routing.                                             | `payload: Record<string, unknown> \| null \| undefined`            | `boolean`                          |
+| `handleNotification(payload, options?)`    | Forward a notification to Crisp for processing. Optionally control display.                                              | `payload: Record<string, unknown>, options?: NotificationHandleOptions` | `Promise<NotificationHandleResult>` |
+
 ### React Hook
 
 | Hook                        | Description                                     | Parameters                       | Return |
@@ -715,6 +772,9 @@ interface CrispEventCallbacks {
   onChatClosed?: () => void;
   onMessageSent?: (message: CrispMessage) => void;
   onMessageReceived?: (message: CrispMessage) => void;
+  // App-managed notification mode callbacks
+  onNotificationReceived?: (notification: CrispNotificationPayload, wasDisplayed: boolean) => void;
+  onNotificationTapped?: (notification: CrispNotificationPayload, sessionId: string) => void;
 }
 ```
 
@@ -738,6 +798,51 @@ type EmptyPayload = Record<string, never>;
 
 // Message origin type
 type CrispMessageOrigin = "local" | "network" | "update";
+```
+
+### Notification Types (App-Managed Mode)
+
+```typescript
+// Notification mode
+type NotificationMode = "sdk-managed" | "app-managed";
+
+// Result of registering a push token
+interface TokenRegistrationResult {
+  success: boolean;
+  error?: "invalid_token" | "network_error" | "invalid_mode" | "rate_limited";
+  message?: string;
+}
+
+// Current notification status
+interface NotificationStatus {
+  isRegistered: boolean;
+  mode: NotificationMode | "uninitialized";
+  lastRegistered?: string; // ISO timestamp
+  failureReason?: string;
+}
+
+// Options for handleNotification()
+interface NotificationHandleOptions {
+  displayNotification?: boolean; // Default: true. Android only - iOS always displays.
+}
+
+// Result of handleNotification()
+interface NotificationHandleResult {
+  wasHandled: boolean;
+  wasDisplayed: boolean;
+  sessionId?: string;
+  warnings?: string[]; // Platform-specific warnings
+}
+
+// Crisp notification payload structure
+interface CrispNotificationPayload {
+  sender?: string; // "crisp" for Crisp notifications
+  website_id?: string;
+  session_id?: string;
+  message?: string;
+  timestamp?: string;
+  [key: string]: unknown;
+}
 ```
 
 ### Helper Types

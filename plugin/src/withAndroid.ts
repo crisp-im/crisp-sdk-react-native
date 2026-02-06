@@ -4,43 +4,43 @@ import {
   withAndroidManifest,
   withAppBuildGradle,
 } from "expo/config-plugins";
+import type { NotificationConfig } from "./withExpoCrisp";
 
-export const withAndroidNotifications: ConfigPlugin<string> = (
+export const withAndroidNotifications: ConfigPlugin<NotificationConfig> = (
   config,
-  websiteId
+  notificationConfig,
 ) => {
+  const { websiteId, mode } = notificationConfig;
+
   // Add CrispNotificationService and meta-data to manifest
   config = withAndroidManifest(config, (config) => {
-    const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(
-      config.modResults
-    );
+    const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(config.modResults);
 
-    // Add CrispNotificationService
-    if (!mainApplication.service) {
-      mainApplication.service = [];
-    }
+    // Only add CrispNotificationService in sdk-managed mode
+    if (mode === "sdk-managed") {
+      if (!mainApplication.service) {
+        mainApplication.service = [];
+      }
 
-    const hasService = mainApplication.service.some(
-      (s) =>
-        s.$?.["android:name"] ===
-        "im.crisp.client.external.notification.CrispNotificationService"
-    );
+      const hasService = mainApplication.service.some(
+        (s) =>
+          s.$?.["android:name"] ===
+          "im.crisp.client.external.notification.CrispNotificationService",
+      );
 
-    if (!hasService) {
-      mainApplication.service.push({
-        $: {
-          "android:name":
-            "im.crisp.client.external.notification.CrispNotificationService",
-          "android:exported": "false",
-        },
-        "intent-filter": [
-          {
-            action: [
-              { $: { "android:name": "com.google.firebase.MESSAGING_EVENT" } },
-            ],
+      if (!hasService) {
+        mainApplication.service.push({
+          $: {
+            "android:name": "im.crisp.client.external.notification.CrispNotificationService",
+            "android:exported": "false",
           },
-        ],
-      });
+          "intent-filter": [
+            {
+              action: [{ $: { "android:name": "com.google.firebase.MESSAGING_EVENT" } }],
+            },
+          ],
+        });
+      }
     }
 
     // Add meta-data for CrispApplicationLifecycleListener to read at runtime
@@ -50,7 +50,7 @@ export const withAndroidNotifications: ConfigPlugin<string> = (
 
     // Add websiteId meta-data
     const hasWebsiteId = mainApplication["meta-data"].some(
-      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.WEBSITE_ID"
+      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.WEBSITE_ID",
     );
     if (!hasWebsiteId) {
       mainApplication["meta-data"].push({
@@ -63,14 +63,26 @@ export const withAndroidNotifications: ConfigPlugin<string> = (
 
     // Add notifications enabled meta-data
     const hasNotificationsEnabled = mainApplication["meta-data"].some(
-      (m) =>
-        m.$?.["android:name"] === "expo.modules.crispsdk.NOTIFICATIONS_ENABLED"
+      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.NOTIFICATIONS_ENABLED",
     );
     if (!hasNotificationsEnabled) {
       mainApplication["meta-data"].push({
         $: {
           "android:name": "expo.modules.crispsdk.NOTIFICATIONS_ENABLED",
           "android:value": "true",
+        },
+      });
+    }
+
+    // Add notification mode meta-data
+    const hasNotificationMode = mainApplication["meta-data"].some(
+      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.NOTIFICATION_MODE",
+    );
+    if (!hasNotificationMode) {
+      mainApplication["meta-data"].push({
+        $: {
+          "android:name": "expo.modules.crispsdk.NOTIFICATION_MODE",
+          "android:value": mode,
         },
       });
     }
@@ -85,7 +97,7 @@ export const withAndroidNotifications: ConfigPlugin<string> = (
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies\s*\{/,
         `dependencies {
-    implementation 'im.crisp:crisp-sdk:2.0.15'`
+    implementation 'im.crisp:crisp-sdk:2.0.15'`,
       );
     }
 
@@ -94,7 +106,7 @@ export const withAndroidNotifications: ConfigPlugin<string> = (
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies\s*\{/,
         `dependencies {
-    implementation 'com.google.firebase:firebase-messaging'`
+    implementation 'com.google.firebase:firebase-messaging'`,
       );
     }
     return config;

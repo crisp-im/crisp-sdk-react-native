@@ -1,16 +1,18 @@
-import Crisp, {
-  useCrispEvents,
+import { useEffect, useState } from "react";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Crisp,{
   getSDKVersion,
+  useCrispEvents,
+  type NotificationStatus,
   CrispLogLevel,
   CrispLogEntry,
 } from "expo-crisp-sdk";
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CrispButton from "../components/CrispButton";
+import { useNotification } from "../context/NotificationContext";
 
 // 1. Get your Website ID from https://app.crisp.chat/settings/websites/
-const WEBSITE_ID = "YOUR_WEBSITE_ID";
+const WEBSITE_ID = "e93e073a-1f69-4cbc-8934-f9e1611e65bb";
 
 // Extended log entry with unique ID for React keys
 type LogEntryWithId = CrispLogEntry & { id: string };
@@ -39,8 +41,14 @@ export default function HomeScreen() {
   const [currentLogLevel, setCurrentLogLevel] = useState<CrispLogLevel>(
     CrispLogLevel.DEBUG,
   );
+  const [notificationStatus, setNotificationStatus] =
+    useState<NotificationStatus | null>(null);
+  const [lastNotification, setLastNotification] = useState<string | null>(null);
+  const { expoPushToken, error } = useNotification();
 
   console.log("SDK Version:", getSDKVersion());
+  console.log("expoPushToken:", expoPushToken);
+  console.log("notification error:", error);
 
   // Test Events Callbacks
   useCrispEvents({
@@ -73,6 +81,27 @@ export default function HomeScreen() {
       const logWithId: LogEntryWithId = { ...log, id: `log-${++logIdCounter}` };
       setLogs((prev) => [...prev.slice(-19), logWithId]);
     },
+    // App-managed notification mode callbacks
+    onNotificationReceived: (notification, wasDisplayed) => {
+      console.log(
+        "[Crisp] Notification received:",
+        notification,
+        "displayed:",
+        wasDisplayed,
+      );
+      setLastNotification(`Received: ${notification.message ?? "No message"}`);
+    },
+    onNotificationTapped: (notification, tapSessionId) => {
+      console.log(
+        "[Crisp] Notification tapped:",
+        notification,
+        "sessionId:",
+        tapSessionId,
+      );
+      setLastNotification(`Tapped: ${notification.message ?? "No message"}`);
+      // Optionally open the chat when notification is tapped
+      Crisp.show();
+    },
   });
 
   useEffect(() => {
@@ -81,6 +110,9 @@ export default function HomeScreen() {
 
     // 3. Enable debug logging to receive logs via onLogReceived
     Crisp.setLogLevel(CrispLogLevel.DEBUG);
+
+    // Load notification status on mount
+    loadNotificationStatus();
   }, []);
 
   // Change log level dynamically
@@ -88,6 +120,118 @@ export default function HomeScreen() {
     Crisp.setLogLevel(level);
     setCurrentLogLevel(level);
     setLogs([]); // Clear logs when changing level
+  };
+
+  // Load current notification status
+  const loadNotificationStatus = async () => {
+    try {
+      const status = await Crisp.getNotificationStatus();
+      console.log("[Crisp] Notification status:", status);
+      setNotificationStatus(status);
+    } catch (error) {
+      console.error("[Crisp] Failed to get notification status:", error);
+    }
+  };
+
+  // Register a mock push token (in real app, get this from expo-notifications or firebase)
+  const handleRegisterToken = async () => {
+    try {
+      // This is a mock token for testing - in production use real APNs/FCM token
+      const mockToken =
+        Platform.OS === "ios"
+          ? "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2" // 64 hex chars for APNs
+          : "mock-fcm-token-for-android-testing";
+
+      console.log("[Crisp] Registering token:", mockToken);
+      const result = await Crisp.registerPushToken(mockToken);
+      console.log("[Crisp] Registration result:", result);
+
+      if (result.success) {
+        Alert.alert("Success", "Push token registered successfully");
+      } else {
+        Alert.alert("Error", result.message ?? "Failed to register token");
+      }
+
+      // Refresh status
+      await loadNotificationStatus();
+    } catch (error) {
+      console.error("[Crisp] Token registration error:", error);
+      Alert.alert("Error", String(error));
+    }
+  };
+
+  // Unregister push token
+  const handleUnregisterToken = async () => {
+    try {
+      const result = await Crisp.unregisterPushToken();
+      console.log("[Crisp] Unregistration result:", result);
+
+      if (result.success) {
+        Alert.alert("Success", "Push token unregistered");
+      }
+
+      // Refresh status
+      await loadNotificationStatus();
+    } catch (error) {
+      console.error("[Crisp] Token unregistration error:", error);
+      Alert.alert("Error", String(error));
+    }
+  };
+
+  // Test isCrispNotification with mock payload
+  const handleTestDetection = () => {
+    const crispPayload = {
+      sender: "crisp",
+      website_id: WEBSITE_ID,
+      session_id: "test-session-123",
+      message: "Hello from Crisp!",
+    };
+
+    const otherPayload = {
+      sender: "other-service",
+      data: "some data",
+    };
+
+    const isCrisp = Crisp.isCrispNotification(crispPayload);
+    const isOther = Crisp.isCrispNotification(otherPayload);
+    const isNull = Crisp.isCrispNotification(null);
+
+    Alert.alert(
+      "Detection Test",
+      `Crisp payload: ${isCrisp} (expected: true)\n` +
+        `Other payload: ${isOther} (expected: false)\n` +
+        `Null payload: ${isNull} (expected: false)`,
+    );
+  };
+
+  // Test handleNotification with mock payload
+  const handleTestNotification = async () => {
+    const mockPayload = {
+      sender: "crisp",
+      website_id: WEBSITE_ID,
+      session_id: sessionId ?? "test-session",
+      message: "Test notification message",
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      console.log("[Crisp] Testing handleNotification with:", mockPayload);
+      const result = await Crisp.handleNotification(mockPayload, {
+        displayNotification: true,
+      });
+      console.log("[Crisp] Handle result:", result);
+
+      Alert.alert(
+        "Handle Result",
+        `Handled: ${result.wasHandled}\n` +
+          `Displayed: ${result.wasDisplayed}\n` +
+          `Session ID: ${result.sessionId ?? "N/A"}\n` +
+          `Warnings: ${result.warnings?.join(", ") ?? "None"}`,
+      );
+    } catch (error) {
+      console.error("[Crisp] Handle notification error:", error);
+      Alert.alert("Error", String(error));
+    }
   };
 
   // 3. Optional: Set user information when they log in
@@ -129,7 +273,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Expo Crisp SDK</Text>
-        <Text style={styles.subtitle}>Example App</Text>
+        <Text style={styles.subtitle}>Example App (App-Managed Mode)</Text>
       </View>
 
       <ScrollView
@@ -181,6 +325,97 @@ export default function HomeScreen() {
         <Text style={styles.hint}>
           Open/close the chat to see events fire. Check console for message
           events.
+        </Text>
+
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
+          Push Notifications (App-Managed)
+        </Text>
+        <View style={styles.statusContainer}>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Mode:</Text>
+            <View style={[styles.statusBadge, styles.statusMode]}>
+              <Text style={styles.statusBadgeText}>
+                {notificationStatus?.mode?.toUpperCase() ?? "LOADING"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Registered:</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                notificationStatus?.isRegistered
+                  ? styles.statusOpen
+                  : styles.statusClosed,
+              ]}
+            >
+              <Text style={styles.statusBadgeText}>
+                {notificationStatus?.isRegistered ? "YES" : "NO"}
+              </Text>
+            </View>
+          </View>
+          {notificationStatus?.lastRegistered && (
+            <View style={styles.statusRow}>
+              <Text style={styles.statusLabel}>Last Registered:</Text>
+              <Text style={styles.statusValue}>
+                {new Date(
+                  notificationStatus.lastRegistered,
+                ).toLocaleTimeString()}
+              </Text>
+            </View>
+          )}
+          {lastNotification && (
+            <View style={styles.statusRow}>
+              <Text style={styles.statusLabel}>Last Event:</Text>
+              <Text style={[styles.statusValue, { flex: 1 }]} numberOfLines={1}>
+                {lastNotification}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.notificationButtons}>
+          <Pressable
+            style={[styles.button, styles.notificationButton]}
+            onPress={handleRegisterToken}
+          >
+            <Text style={styles.buttonText}>Register Token</Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.button,
+              styles.notificationButton,
+              styles.dangerButton,
+            ]}
+            onPress={handleUnregisterToken}
+          >
+            <Text style={styles.buttonText}>Unregister Token</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, styles.notificationButton]}
+            onPress={handleTestDetection}
+          >
+            <Text style={styles.buttonText}>Test Detection</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, styles.notificationButton]}
+            onPress={handleTestNotification}
+          >
+            <Text style={styles.buttonText}>Test Handle</Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.button,
+              styles.notificationButton,
+              { backgroundColor: "#17a2b8" },
+            ]}
+            onPress={loadNotificationStatus}
+          >
+            <Text style={styles.buttonText}>Refresh Status</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.hint}>
+          Test push notification methods. In production, use real tokens from
+          expo-notifications.
         </Text>
 
         <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
@@ -319,7 +554,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-    padding: 20,
+    paddingHorizontal: 20,
   },
   header: {
     marginBottom: 40,
@@ -494,5 +729,24 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     color: "#ccc",
     flex: 1,
+  },
+  notificationButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12,
+  },
+  notificationButton: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: "#28a745",
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  dangerButton: {
+    backgroundColor: "#dc3545",
+  },
+  statusMode: {
+    backgroundColor: "#e2e3e5",
   },
 });

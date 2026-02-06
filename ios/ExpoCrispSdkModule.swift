@@ -8,9 +8,13 @@ public class ExpoCrispSdkModule: Module {
   private let onMessageSent = "onMessageSent"
   private let onMessageReceived = "onMessageReceived"
   private let onLogReceived = "onLogReceived"
+  private let onNotificationReceived = "onNotificationReceived"
+  private let onNotificationTapped = "onNotificationTapped"
 
   private var callbackTokens: [CallbackToken] = []
   private var logHandler: CrispLogHandlerBridge?
+  private var isTokenRegistered = false
+  private var lastRegisteredDate: Date?
 
   public func definition() -> ModuleDefinition {
     Name("ExpoCrispSdk")
@@ -21,7 +25,9 @@ public class ExpoCrispSdkModule: Module {
       onChatClosed,
       onMessageSent,
       onMessageReceived,
-      onLogReceived
+      onLogReceived,
+      onNotificationReceived,
+      onNotificationTapped
     )
 
     OnCreate {
@@ -112,8 +118,9 @@ public class ExpoCrispSdkModule: Module {
     Function("pushSessionEvents") { (events: [[String: Any]]) in
       var sessionEvents: [SessionEvent] = []
       for event in events {
-        if let name = event["name"] as? String,
-           let colorValue = event["color"] as? Int {
+        if let name = event["name"] as? String {
+          // Default to BLACK (9) if color is not provided (consistent with Android)
+          let colorValue = event["color"] as? Int ?? 9
           let color = self.convertIntToColor(colorValue)
           sessionEvents.append(SessionEvent(name: name, color: color))
         }
@@ -174,9 +181,113 @@ public class ExpoCrispSdkModule: Module {
         )
       }
     }
+
+    // MARK: - Push Notifications
+
+    AsyncFunction("registerPushToken") { (token: String, promise: Promise) in
+      guard let tokenData = Data(hexString: token) else {
+        promise.resolve([
+          "success": false,
+          "error": "invalid_token",
+          "message": "Invalid hex token format. Expected hex-encoded APNs device token."
+        ])
+        return
+      }
+
+      CrispSDK.setDeviceToken(tokenData)
+      self.isTokenRegistered = true
+      self.lastRegisteredDate = Date()
+      promise.resolve(["success": true])
+    }
+
+    AsyncFunction("unregisterPushToken") { (promise: Promise) in
+      // Crisp iOS SDK doesn't have an explicit unregister method
+      // Setting an empty token or nil is not supported
+      // Just mark as unregistered locally
+      self.isTokenRegistered = false
+      self.lastRegisteredDate = nil
+      promise.resolve(["success": true])
+    }
+
+    AsyncFunction("getNotificationStatus") { (promise: Promise) in
+      let mode = self.getNotificationMode()
+      var result: [String: Any] = [
+        "isRegistered": self.isTokenRegistered,
+        "mode": mode
+      ]
+
+      if let date = self.lastRegisteredDate {
+        let formatter = ISO8601DateFormatter()
+        result["lastRegistered"] = formatter.string(from: date)
+      }
+
+      promise.resolve(result)
+    }
+
+    Function("isCrispNotification") { (payload: [String: Any]?) -> Bool in
+      guard let payload = payload else { return false }
+
+      let sender = (payload["sender"] as? String)?.lowercased()
+      return sender == "crisp" &&
+             payload["website_id"] != nil &&
+             payload["session_id"] != nil
+    }
+
+    AsyncFunction("handleNotification") { (payload: [String: Any], options: [String: Any]?, promise: Promise) in
+      // Check if this is a Crisp notification
+      let sender = (payload["sender"] as? String)?.lowercased()
+      let isCrisp = sender == "crisp" &&
+                    payload["website_id"] != nil &&
+                    payload["session_id"] != nil
+
+      guard isCrisp else {
+        promise.resolve([
+          "wasHandled": false,
+          "wasDisplayed": false
+        ])
+        return
+      }
+
+      let displayNotification = options?["displayNotification"] as? Bool ?? true
+      var warnings: [String] = []
+
+      // iOS always displays notifications - warn if user tried to suppress
+      if !displayNotification {
+        warnings.append("iOS always displays notifications - displayNotification option ignored")
+      }
+
+      // Emit notification received event
+      self.sendEvent(self.onNotificationReceived, [
+        "notification": payload,
+        "wasDisplayed": true // iOS always displays
+      ])
+
+      var result: [String: Any] = [
+        "wasHandled": true,
+        "wasDisplayed": true, // iOS always displays
+        "sessionId": payload["session_id"] as Any
+      ]
+
+      if !warnings.isEmpty {
+        result["warnings"] = warnings
+      }
+
+      promise.resolve(result)
+    }
   }
 
   // MARK: - Private Helpers
+
+  private func getNotificationMode() -> String {
+    if let mode = Bundle.main.object(forInfoDictionaryKey: "CrispNotificationMode") as? String {
+      return mode
+    }
+    // Default to uninitialized if not configured
+    if Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool == true {
+      return "sdk-managed"
+    }
+    return "uninitialized"
+  }
 
   private func convertIntToColor(_ colorInt: Int) -> SessionEventColor {
     switch colorInt {
@@ -296,3 +407,21 @@ public class ExpoCrispSdkModule: Module {
   }
 }
 
+// MARK: - Data Extension for Hex String Conversion
+
+extension Data {
+  init?(hexString: String) {
+    let len = hexString.count / 2
+    var data = Data(capacity: len)
+    var index = hexString.startIndex
+    for _ in 0..<len {
+      let nextIndex = hexString.index(index, offsetBy: 2)
+      guard let byte = UInt8(hexString[index..<nextIndex], radix: 16) else {
+        return nil
+      }
+      data.append(byte)
+      index = nextIndex
+    }
+    self = data
+  }
+}

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import type { CrispLogEntry, CrispMessage } from "./ExpoCrispSdk.types";
+import type { CrispLogEntry, CrispMessage, CrispNotificationPayload } from "./ExpoCrispSdk.types";
 import ExpoCrispSdk from "./ExpoCrispSdkModule";
 
 /**
@@ -64,6 +64,22 @@ export interface CrispEventCallbacks {
    * @param log - The log entry details
    */
   onLogReceived?: (log: CrispLogEntry) => void;
+
+  /**
+   * Called when a Crisp notification is received while the app is in foreground.
+   * Only fires in app-managed mode when handleNotification() is called.
+   * @param notification - The notification payload
+   * @param wasDisplayed - Whether the notification was displayed to the user
+   */
+  onNotificationReceived?: (notification: CrispNotificationPayload, wasDisplayed: boolean) => void;
+
+  /**
+   * Called when user taps a Crisp notification.
+   * Fires in both SDK-managed and app-managed modes.
+   * @param notification - The notification payload
+   * @param sessionId - The Crisp session ID associated with the notification
+   */
+  onNotificationTapped?: (notification: CrispNotificationPayload, sessionId: string) => void;
 }
 
 /**
@@ -137,6 +153,18 @@ export function useCrispEvents(callbacks: CrispEventCallbacks = {}): void {
     subscriptions.push(
       ExpoCrispSdk.addListener("onLogReceived", ({ log }) => {
         callbacksRef.current.onLogReceived?.(log);
+      }),
+    );
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onNotificationReceived", ({ notification, wasDisplayed }) => {
+        callbacksRef.current.onNotificationReceived?.(notification, wasDisplayed);
+      }),
+    );
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onNotificationTapped", ({ notification, sessionId }) => {
+        callbacksRef.current.onNotificationTapped?.(notification, sessionId);
       }),
     );
 

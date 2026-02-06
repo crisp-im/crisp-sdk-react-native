@@ -1,15 +1,21 @@
 package expo.modules.crispsdk
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 import im.crisp.client.external.ChatActivity
 import im.crisp.client.external.Crisp
 import im.crisp.client.external.Logger
 import im.crisp.client.external.data.SessionEvent
 import im.crisp.client.external.data.SessionEvent.Color
+import im.crisp.client.external.notification.CrispNotificationClient
 
 class ExpoCrispSdkModule : Module() {
   private val context
@@ -18,12 +24,20 @@ class ExpoCrispSdkModule : Module() {
   private var eventsCallback: CrispEventsBridge? = null
   private var loggerCallback: CrispLoggerBridge? = null
 
+  // Push notification state (volatile for thread safety)
+  @Volatile
+  private var isTokenRegistered = false
+  @Volatile
+  private var lastRegisteredDate: Long? = null
+
   private val onSessionLoaded = "onSessionLoaded"
   private val onChatOpened = "onChatOpened"
   private val onChatClosed = "onChatClosed"
   private val onMessageSent = "onMessageSent"
   private val onMessageReceived = "onMessageReceived"
   private val onLogReceived = "onLogReceived"
+  private val onNotificationReceived = "onNotificationReceived"
+  private val onNotificationTapped = "onNotificationTapped"
 
   override fun definition() = ModuleDefinition {
     Name("ExpoCrispSdk")
@@ -34,7 +48,9 @@ class ExpoCrispSdkModule : Module() {
       onChatClosed,
       onMessageSent,
       onMessageReceived,
-      onLogReceived
+      onLogReceived,
+      onNotificationReceived,
+      onNotificationTapped
     )
 
     OnCreate {
@@ -161,6 +177,85 @@ class ExpoCrispSdkModule : Module() {
       val content = ContentParser.fromMap(contentData)
       Crisp.showMessage(content)
     }
+
+    // MARK: - Push Notifications
+
+    AsyncFunction("registerPushToken") { token: String, promise: Promise ->
+      try {
+        // Send the FCM token to Crisp servers
+        CrispNotificationClient.sendTokenToCrisp(context, token)
+        isTokenRegistered = true
+        lastRegisteredDate = System.currentTimeMillis()
+        promise.resolve(mapOf("success" to true))
+      } catch (e: Exception) {
+        promise.resolve(mapOf(
+          "success" to false,
+          "error" to "network_error",
+          "message" to (e.message ?: "Failed to register token")
+        ))
+      }
+    }
+
+    AsyncFunction("unregisterPushToken") { promise: Promise ->
+      isTokenRegistered = false
+      lastRegisteredDate = null
+      promise.resolve(mapOf("success" to true))
+    }
+
+    AsyncFunction("getNotificationStatus") { promise: Promise ->
+      val mode = getNotificationMode()
+      val result = mutableMapOf<String, Any?>(
+        "isRegistered" to isTokenRegistered,
+        "mode" to mode
+      )
+
+      lastRegisteredDate?.let { timestamp ->
+        val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+        formatter.timeZone = TimeZone.getTimeZone("UTC")
+        result["lastRegistered"] = formatter.format(Date(timestamp))
+      }
+
+      promise.resolve(result)
+    }
+
+    Function("isCrispNotification") { payload: Map<String, Any?>? ->
+      if (payload == null) return@Function false
+
+      val sender = (payload["sender"] as? String)?.lowercase()
+      sender == "crisp" &&
+        payload["website_id"] != null &&
+        payload["session_id"] != null
+    }
+
+    AsyncFunction("handleNotification") { payload: Map<String, Any?>, options: Map<String, Any?>?, promise: Promise ->
+      // Check if this is a Crisp notification
+      val sender = (payload["sender"] as? String)?.lowercase()
+      val isCrisp = sender == "crisp" &&
+        payload["website_id"] != null &&
+        payload["session_id"] != null
+
+      if (!isCrisp) {
+        promise.resolve(mapOf(
+          "wasHandled" to false,
+          "wasDisplayed" to false
+        ))
+        return@AsyncFunction
+      }
+
+      val displayNotification = options?.get("displayNotification") as? Boolean ?: true
+
+      // Emit notification received event
+      sendEvent(onNotificationReceived, mapOf(
+        "notification" to payload,
+        "wasDisplayed" to displayNotification
+      ))
+
+      promise.resolve(mapOf(
+        "wasHandled" to true,
+        "wasDisplayed" to displayNotification,
+        "sessionId" to payload["session_id"]
+      ))
+    }
   }
 
   private fun convertIntToColor(colorInt: Int): Color {
@@ -175,6 +270,24 @@ class ExpoCrispSdkModule : Module() {
       7 -> Color.BROWN
       8 -> Color.GREY
       else -> Color.BLACK
+    }
+  }
+
+  private fun getNotificationMode(): String {
+    return try {
+      val appInfo = context.packageManager.getApplicationInfo(
+        context.packageName,
+        PackageManager.GET_META_DATA
+      )
+      val mode = appInfo.metaData?.getString("expo.modules.crispsdk.NOTIFICATION_MODE")
+
+      when {
+        mode != null -> mode
+        appInfo.metaData?.getBoolean("expo.modules.crispsdk.NOTIFICATIONS_ENABLED", false) == true -> "sdk-managed"
+        else -> "uninitialized"
+      }
+    } catch (e: Exception) {
+      "uninitialized"
     }
   }
 

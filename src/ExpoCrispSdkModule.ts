@@ -8,8 +8,14 @@ import type {
   LogReceivedPayload,
   MessageContent,
   MessagePayload,
+  NotificationHandleOptions,
+  NotificationHandleResult,
+  NotificationReceivedPayload,
+  NotificationStatus,
+  NotificationTappedPayload,
   SessionEvent,
   SessionLoadedPayload,
+  TokenRegistrationResult,
 } from "./ExpoCrispSdk.types";
 
 type ExpoCrispSdkEvents = {
@@ -47,6 +53,20 @@ type ExpoCrispSdkEvents = {
    * @param params - Contains the log entry details
    */
   onLogReceived: (params: LogReceivedPayload) => void;
+
+  /**
+   * Emitted when a Crisp notification is received while app is in foreground.
+   * Only fires in app-managed mode when handleNotification() is called.
+   * @param params - Contains the notification data and display status
+   */
+  onNotificationReceived: (params: NotificationReceivedPayload) => void;
+
+  /**
+   * Emitted when user taps a Crisp notification.
+   * Fires in both SDK-managed and app-managed modes.
+   * @param params - Contains the notification data and session ID
+   */
+  onNotificationTapped: (params: NotificationTappedPayload) => void;
 };
 
 declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
@@ -298,6 +318,130 @@ declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
    * });
    */
   showMessage(content: MessageContent): void;
+
+  // ============================================================================
+  // Push Notifications
+  // ============================================================================
+
+  /**
+   * Register device push token with Crisp.
+   *
+   * Use this in app-managed mode when you obtain tokens from your own
+   * notification system (expo-notifications, react-native-firebase, etc.).
+   *
+   * @param token - APNs token (iOS, hex string) or FCM token (Android)
+   * @returns Promise with registration result
+   *
+   * @example
+   * // With expo-notifications
+   * const { data: token } = await Notifications.getDevicePushTokenAsync();
+   * const result = await ExpoCrispSdk.registerPushToken(token);
+   * if (!result.success) {
+   *   console.error('Failed to register:', result.message);
+   * }
+   *
+   * @example
+   * // With react-native-firebase
+   * const token = await messaging().getToken();
+   * await ExpoCrispSdk.registerPushToken(token);
+   */
+  registerPushToken(token: string): Promise<TokenRegistrationResult>;
+
+  /**
+   * Unregister current push token from Crisp.
+   *
+   * Call this before registering a new token on refresh to prevent
+   * duplicate notifications.
+   *
+   * @returns Promise with success status
+   *
+   * @example
+   * // On token refresh
+   * messaging().onTokenRefresh(async (newToken) => {
+   *   await ExpoCrispSdk.unregisterPushToken();
+   *   await ExpoCrispSdk.registerPushToken(newToken);
+   * });
+   */
+  unregisterPushToken(): Promise<{ success: boolean }>;
+
+  /**
+   * Get current push notification registration status.
+   *
+   * @returns Promise with current status
+   *
+   * @example
+   * const status = await ExpoCrispSdk.getNotificationStatus();
+   * if (!status.isRegistered) {
+   *   // Prompt user to enable notifications
+   * }
+   */
+  getNotificationStatus(): Promise<NotificationStatus>;
+
+  /**
+   * Check if a notification payload is from Crisp.
+   *
+   * This is a synchronous check for fast routing decisions.
+   * Use this to route notifications in apps with multiple SDKs.
+   *
+   * Detection checks:
+   * - `sender` field equals "crisp" (case-insensitive)
+   * - `website_id` field is present
+   * - `session_id` field is present
+   *
+   * WARNING: This check is NOT cryptographically secure. For security-sensitive
+   * operations, verify notification content against your backend.
+   *
+   * @param payload - Notification data payload (remoteMessage.data)
+   * @returns true if notification is from Crisp
+   *
+   * @example
+   * messaging().onMessage(async remoteMessage => {
+   *   if (ExpoCrispSdk.isCrispNotification(remoteMessage.data)) {
+   *     await ExpoCrispSdk.handleNotification(remoteMessage.data);
+   *   } else if (Intercom.isIntercomPush(remoteMessage)) {
+   *     Intercom.handlePushMessage();
+   *   } else {
+   *     // Handle other notifications
+   *   }
+   * });
+   */
+  isCrispNotification(payload: Record<string, unknown> | null | undefined): boolean;
+
+  /**
+   * Forward a notification to Crisp for processing.
+   *
+   * Call this after verifying the notification is from Crisp using
+   * `isCrispNotification()`.
+   *
+   * Behavior:
+   * - SDK-managed mode: Logs warning, notification already handled
+   * - App-managed mode: Processes notification, optionally displays
+   *
+   * @param payload - Notification data payload
+   * @param options - Optional handling configuration
+   * @returns Promise with handle result
+   *
+   * @example
+   * // Let Crisp handle display
+   * const result = await ExpoCrispSdk.handleNotification(payload);
+   *
+   * @example
+   * // Handle display yourself (Android only)
+   * const result = await ExpoCrispSdk.handleNotification(payload, {
+   *   displayNotification: false
+   * });
+   * if (result.wasHandled) {
+   *   // Show custom notification UI
+   *   await Notifications.presentLocalNotificationAsync({
+   *     title: 'New message from support',
+   *     body: payload.message,
+   *   });
+   * }
+   */
+  handleNotification(
+    payload: Record<string, unknown>,
+    options?: NotificationHandleOptions,
+  ): Promise<NotificationHandleResult>;
 }
 
 export default requireNativeModule<ExpoCrispSdkModule>("ExpoCrispSdk");
