@@ -17,10 +17,10 @@
  * import { CrispSessionEventColors } from "expo-crisp-sdk";
  *
  * // Use GREEN for successful actions
- * ExpoCrispSdk.pushSessionEvent("Purchase completed", CrispSessionEventColors.GREEN);
+ * pushSessionEvent("Purchase completed", CrispSessionEventColors.GREEN);
  *
  * // Use RED for errors or issues
- * ExpoCrispSdk.pushSessionEvent("Payment failed", CrispSessionEventColors.RED);
+ * pushSessionEvent("Payment failed", CrispSessionEventColors.RED);
  * ```
  */
 export enum CrispSessionEventColors {
@@ -52,13 +52,13 @@ export enum CrispSessionEventColors {
  *
  * @example
  * ```typescript
- * import ExpoCrispSdk, { CrispLogLevel } from "expo-crisp-sdk";
+ * import { setLogLevel, CrispLogLevel } from "expo-crisp-sdk";
  *
  * // Set to DEBUG to see more detailed logs
- * ExpoCrispSdk.setLogLevel(CrispLogLevel.DEBUG);
+ * setLogLevel(CrispLogLevel.DEBUG);
  *
  * // Set to ERROR to only see errors
- * ExpoCrispSdk.setLogLevel(CrispLogLevel.ERROR);
+ * setLogLevel(CrispLogLevel.ERROR);
  * ```
  */
 export enum CrispLogLevel {
@@ -132,9 +132,9 @@ export interface Geolocation {
  *
  * @example
  * ```typescript
- * import ExpoCrispSdk from "expo-crisp-sdk";
+ * import { setUserCompany } from "expo-crisp-sdk";
  *
- * ExpoCrispSdk.setUserCompany({
+ * setUserCompany({
  *   name: "Acme Corporation",
  *   url: "https://acme.com",
  *   companyDescription: "Leading provider of innovative solutions",
@@ -188,7 +188,7 @@ export interface Company {
  *
  * @example
  * ```typescript
- * import ExpoCrispSdk, { CrispSessionEventColors, SessionEvent } from "expo-crisp-sdk";
+ * import { pushSessionEvents, CrispSessionEventColors, type SessionEvent } from "expo-crisp-sdk";
  *
  * const events: SessionEvent[] = [
  *   { name: "Viewed pricing page", color: CrispSessionEventColors.BLUE },
@@ -196,7 +196,7 @@ export interface Company {
  *   { name: "Upgraded to Pro", color: CrispSessionEventColors.PURPLE }
  * ];
  *
- * ExpoCrispSdk.pushSessionEvents(events);
+ * pushSessionEvents(events);
  * ```
  */
 export interface SessionEvent {
@@ -407,6 +407,36 @@ export interface PushNotificationPayload {
 }
 
 // ============================================================================
+// Helpdesk Types
+// ============================================================================
+
+/**
+ * Options for opening a helpdesk article.
+ *
+ * @example
+ * ```typescript
+ * import { openHelpdeskArticle } from "expo-crisp-sdk";
+ *
+ * openHelpdeskArticle({
+ *   id: "article-slug",
+ *   locale: "en",
+ *   title: "Getting Started",
+ *   category: "Guides",
+ * });
+ * ```
+ */
+export interface HelpdeskArticleOptions {
+  /** Article slug or identifier */
+  id: string;
+  /** Article locale (e.g., "en", "fr") */
+  locale: string;
+  /** Optional article title for display */
+  title?: string | null;
+  /** Optional category name for display */
+  category?: string | null;
+}
+
+// ============================================================================
 // Message Content Types (for showMessage)
 // ============================================================================
 
@@ -415,7 +445,7 @@ export interface PushNotificationPayload {
  *
  * @example
  * ```typescript
- * Crisp.showMessage({ type: "text", text: "Hello! How can I help you?" });
+ * showMessage({ type: "text", text: "Hello! How can I help you?" });
  * ```
  */
 export interface TextMessageContent {
@@ -429,7 +459,7 @@ export interface TextMessageContent {
  *
  * @example
  * ```typescript
- * Crisp.showMessage({
+ * showMessage({
  *   type: "file",
  *   url: "https://example.com/document.pdf",
  *   name: "Document.pdf",
@@ -452,7 +482,7 @@ export interface FileMessageContent {
  *
  * @example
  * ```typescript
- * Crisp.showMessage({
+ * showMessage({
  *   type: "animation",
  *   url: "https://example.com/animation.gif",
  *   mimeType: "image/gif"
@@ -472,7 +502,7 @@ export interface AnimationMessageContent {
  *
  * @example
  * ```typescript
- * Crisp.showMessage({
+ * showMessage({
  *   type: "audio",
  *   url: "https://example.com/audio.mp3",
  *   mimeType: "audio/mpeg",
@@ -507,7 +537,7 @@ export interface PickerChoice {
  *
  * @example
  * ```typescript
- * Crisp.showMessage({
+ * showMessage({
  *   type: "picker",
  *   id: "satisfaction",
  *   text: "How satisfied are you?",
@@ -534,7 +564,7 @@ export interface PickerMessageContent {
  *
  * @example
  * ```typescript
- * Crisp.showMessage({
+ * showMessage({
  *   type: "field",
  *   id: "email",
  *   text: "What's your email?",
@@ -574,7 +604,7 @@ export interface CarouselTarget {
  *
  * @example
  * ```typescript
- * Crisp.showMessage({
+ * showMessage({
  *   type: "carousel",
  *   text: "Check out our products",
  *   targets: [
@@ -599,10 +629,10 @@ export interface CarouselMessageContent {
  * @example
  * ```typescript
  * // Simple text message
- * Crisp.showMessage({ type: "text", text: "Hello!" });
+ * showMessage({ type: "text", text: "Hello!" });
  *
  * // File attachment
- * Crisp.showMessage({
+ * showMessage({
  *   type: "file",
  *   url: "https://example.com/doc.pdf",
  *   name: "doc.pdf",
@@ -610,7 +640,7 @@ export interface CarouselMessageContent {
  * });
  *
  * // Picker for user choice
- * Crisp.showMessage({
+ * showMessage({
  *   type: "picker",
  *   id: "rating",
  *   text: "Rate us",

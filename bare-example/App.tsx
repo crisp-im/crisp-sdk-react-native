@@ -1,20 +1,24 @@
-import Crisp, {
+import {
   type CrispLogEntry,
   CrispLogLevel,
+  configure,
   getSDKVersion,
   type PushNotificationPayload,
+  resetSession,
+  setLogLevel,
+  setShouldPromptForNotificationPermission,
+  setTokenId,
+  setUserCompany,
+  setUserEmail,
+  setUserNickname,
+  setUserPhone,
+  show,
+  showMessage,
   useCrispEvents,
-} from 'expo-crisp-sdk';
-import { useEffect, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+} from "expo-crisp-sdk";
+import { useEffect, useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 // 1. Get your Website ID from https://app.crisp.chat/settings/websites/
 const WEBSITE_ID = process.env.EXPO_PUBLIC_CRISP_WEBSITE_ID!;
@@ -25,100 +29,93 @@ let logIdCounter = 0;
 
 const getLogLevelName = (level: CrispLogLevel): string => {
   const names: Record<CrispLogLevel, string> = {
-    [CrispLogLevel.VERBOSE]: 'VERBOSE',
-    [CrispLogLevel.DEBUG]: 'DEBUG',
-    [CrispLogLevel.INFO]: 'INFO',
-    [CrispLogLevel.WARN]: 'WARN',
-    [CrispLogLevel.ERROR]: 'ERROR',
-    [CrispLogLevel.ASSERT]: 'ASSERT',
+    [CrispLogLevel.VERBOSE]: "VERBOSE",
+    [CrispLogLevel.DEBUG]: "DEBUG",
+    [CrispLogLevel.INFO]: "INFO",
+    [CrispLogLevel.WARN]: "WARN",
+    [CrispLogLevel.ERROR]: "ERROR",
+    [CrispLogLevel.ASSERT]: "ASSERT",
   };
-  return names[level] ?? 'UNKNOWN';
+  return names[level] ?? "UNKNOWN";
 };
 
 function HomeScreen() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [chatStatus, setChatStatus] = useState<'closed' | 'open'>('closed');
+  const [chatStatus, setChatStatus] = useState<"closed" | "open">("closed");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntryWithId[]>([]);
-  const [currentLogLevel, setCurrentLogLevel] = useState<CrispLogLevel>(
-    CrispLogLevel.DEBUG,
-  );
-  const [lastNotification, setLastNotification] =
-    useState<PushNotificationPayload | null>(null);
+  const [currentLogLevel, setCurrentLogLevel] = useState<CrispLogLevel>(CrispLogLevel.DEBUG);
+  const [lastNotification, setLastNotification] = useState<PushNotificationPayload | null>(null);
 
-  console.log('SDK Version:', getSDKVersion());
+  console.log("SDK Version:", getSDKVersion());
 
   useCrispEvents({
-    onSessionLoaded: id => {
-      console.log('[Crisp] Session loaded:', id);
+    onSessionLoaded: (id) => {
+      console.log("[Crisp] Session loaded:", id);
       setSessionId(id);
     },
     onChatOpened: () => {
-      console.log('[Crisp] Chat opened');
-      setChatStatus('open');
+      console.log("[Crisp] Chat opened");
+      setChatStatus("open");
     },
     onChatClosed: () => {
-      console.log('[Crisp] Chat closed');
-      setChatStatus('closed');
+      console.log("[Crisp] Chat closed");
+      setChatStatus("closed");
     },
-    onMessageSent: message => {
-      console.log('[Crisp] Message sent:', message);
+    onMessageSent: (message) => {
+      console.log("[Crisp] Message sent:", message);
     },
-    onMessageReceived: message => {
-      console.log('[Crisp] Message received:', message);
+    onMessageReceived: (message) => {
+      console.log("[Crisp] Message received:", message);
     },
-    onPushNotificationReceived: notification => {
-      console.log('[Crisp] Push notification received:', notification);
+    onPushNotificationReceived: (notification) => {
+      console.log("[Crisp] Push notification received:", notification);
       setLastNotification(notification);
     },
-    onLogReceived: log => {
-      console.log(
-        `[Crisp Log] [${getLogLevelName(log.level)}] ${log.tag}: ${
-          log.message
-        }`,
-      );
+    onLogReceived: (log) => {
+      console.log(`[Crisp Log] [${getLogLevelName(log.level)}] ${log.tag}: ${log.message}`);
       const logWithId: LogEntryWithId = {
         ...log,
         id: `log-${++logIdCounter}`,
       };
-      setLogs(prev => [...prev.slice(-19), logWithId]);
+      setLogs((prev) => [...prev.slice(-19), logWithId]);
     },
   });
 
   useEffect(() => {
-    if (!WEBSITE_ID || WEBSITE_ID === 'YOUR_WEBSITE_ID') {
+    if (!WEBSITE_ID || WEBSITE_ID === "YOUR_WEBSITE_ID") {
       Alert.alert(
-        'Configuration Required',
-        'Please set your Crisp Website ID in App.tsx (WEBSITE_ID constant)',
+        "Configuration Required",
+        "Please set your Crisp Website ID in App.tsx (WEBSITE_ID constant)",
       );
       return;
     }
-    Crisp.configure(WEBSITE_ID);
-    Crisp.setLogLevel(CrispLogLevel.DEBUG);
+    configure(WEBSITE_ID);
+    setLogLevel(CrispLogLevel.DEBUG);
   }, []);
 
   const handleSetLogLevel = (level: CrispLogLevel) => {
-    Crisp.setLogLevel(level);
+    setLogLevel(level);
     setCurrentLogLevel(level);
     setLogs([]);
   };
 
   const handleLogin = () => {
-    Crisp.setTokenId('bare-example-token-001');
-    Crisp.setUserEmail('test@bareexample.com');
-    Crisp.setUserNickname('Bare Example User');
-    Crisp.setUserPhone('+33600000000');
-    Crisp.setUserCompany({
-      name: 'Test Company',
-      url: 'https://example.com',
-      companyDescription: 'Bare Workflow Test',
+    setTokenId("bare-example-token-001");
+    setUserEmail("test@bareexample.com");
+    setUserNickname("Bare Example User");
+    setUserPhone("+33600000000");
+    setUserCompany({
+      name: "Test Company",
+      url: "https://example.com",
+      companyDescription: "Bare Workflow Test",
       employment: {
-        title: 'Developer',
-        role: 'Engineering',
+        title: "Developer",
+        role: "Engineering",
       },
       geolocation: {
-        city: 'Paris',
-        country: 'FR',
+        city: "Paris",
+        country: "FR",
       },
     });
 
@@ -126,8 +123,8 @@ function HomeScreen() {
   };
 
   const handleLogout = () => {
-    Crisp.setTokenId(null);
-    Crisp.resetSession();
+    setTokenId(null);
+    resetSession();
     setIsLoggedIn(false);
   };
 
@@ -151,61 +148,49 @@ function HomeScreen() {
             <Text style={styles.buttonText}>Login (Set User Info)</Text>
           </Pressable>
         ) : (
-          <Pressable
-            style={[styles.button, styles.logoutButton]}
-            onPress={handleLogout}
-          >
+          <Pressable style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
             <Text style={styles.buttonText}>Logout (Reset Session)</Text>
           </Pressable>
         )}
         <Text style={styles.hint}>
           {isLoggedIn
             ? 'User info set. Tap "Open Chat" to talk with support.'
-            : 'Login to set user information, then open the chat.'}
+            : "Login to set user information, then open the chat."}
         </Text>
 
         {/* Open Chat */}
         <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Chat</Text>
-        <Pressable
-          style={[styles.button, styles.chatButton]}
-          onPress={() => Crisp.show()}
-        >
+        <Pressable style={[styles.button, styles.chatButton]} onPress={() => show()}>
           <Text style={styles.buttonText}>Open Chat</Text>
         </Pressable>
 
         {/* Events */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Events Callbacks
-        </Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Events Callbacks</Text>
         <View style={styles.statusContainer}>
           <View style={styles.statusRow}>
             <Text style={styles.statusLabel}>Chat Status:</Text>
             <View
               style={[
                 styles.statusBadge,
-                chatStatus === 'open' ? styles.statusOpen : styles.statusClosed,
+                chatStatus === "open" ? styles.statusOpen : styles.statusClosed,
               ]}
             >
-              <Text style={styles.statusBadgeText}>
-                {chatStatus.toUpperCase()}
-              </Text>
+              <Text style={styles.statusBadgeText}>{chatStatus.toUpperCase()}</Text>
             </View>
           </View>
           <View style={styles.statusRow}>
             <Text style={styles.statusLabel}>Session ID:</Text>
-            <Text style={styles.statusValue}>{sessionId ?? 'Not loaded'}</Text>
+            <Text style={styles.statusValue}>{sessionId ?? "Not loaded"}</Text>
           </View>
         </View>
 
         {/* Messages */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Show Message Test
-        </Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Show Message Test</Text>
         <View style={styles.messageButtons}>
           <Pressable
             style={[styles.button, styles.messageButton]}
             onPress={() => {
-              Crisp.showMessage({ type: 'text', text: 'Hello from Crisp!' });
+              showMessage({ type: "text", text: "Hello from Crisp!" });
             }}
           >
             <Text style={styles.buttonText}>Text Message</Text>
@@ -213,14 +198,14 @@ function HomeScreen() {
           <Pressable
             style={[styles.button, styles.messageButton]}
             onPress={() => {
-              Crisp.showMessage({
-                type: 'picker',
-                id: 'rating',
-                text: 'How would you rate our service?',
+              showMessage({
+                type: "picker",
+                id: "rating",
+                text: "How would you rate our service?",
                 choices: [
-                  { value: 'great', label: 'Great!', selected: false },
-                  { value: 'ok', label: "It's okay", selected: false },
-                  { value: 'poor', label: 'Could be better', selected: false },
+                  { value: "great", label: "Great!", selected: false },
+                  { value: "ok", label: "It's okay", selected: false },
+                  { value: "poor", label: "Could be better", selected: false },
                 ],
               });
             }}
@@ -230,9 +215,9 @@ function HomeScreen() {
           <Pressable
             style={[styles.button, styles.messageButton]}
             onPress={() => {
-              Crisp.showMessage({
-                type: 'field',
-                id: 'email',
+              showMessage({
+                type: "field",
+                id: "email",
                 text: "What's your email?",
                 explain: "We'll send you a confirmation",
                 required: true,
@@ -242,14 +227,10 @@ function HomeScreen() {
             <Text style={styles.buttonText}>Field Message</Text>
           </Pressable>
         </View>
-        <Text style={styles.hint}>
-          Tap a button then open the chat to see the message.
-        </Text>
+        <Text style={styles.hint}>Tap a button then open the chat to see the message.</Text>
 
         {/* Push Notifications */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Push Notifications
-        </Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Push Notifications</Text>
         <View style={styles.statusContainer}>
           {lastNotification ? (
             <>
@@ -263,32 +244,28 @@ function HomeScreen() {
               </View>
             </>
           ) : (
-            <Text style={styles.statusLabel}>
-              No Crisp notification received yet
-            </Text>
+            <Text style={styles.statusLabel}>No Crisp notification received yet</Text>
           )}
         </View>
         <Pressable
           style={[styles.button, styles.messageButton, { marginTop: 12 }]}
           onPress={() => {
-            Crisp.setShouldPromptForNotificationPermission(false);
-            console.log('[Crisp] Disabled auto notification prompt');
+            setShouldPromptForNotificationPermission(false);
+            console.log("[Crisp] Disabled auto notification prompt");
           }}
         >
           <Text style={styles.buttonText}>Disable Auto Prompt</Text>
         </Pressable>
 
         {/* Logger */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Logger Test
-        </Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Logger Test</Text>
         <View style={styles.logLevelButtons}>
           {(
             [
-              { level: CrispLogLevel.DEBUG, label: 'DEBUG' },
-              { level: CrispLogLevel.INFO, label: 'INFO' },
-              { level: CrispLogLevel.WARN, label: 'WARN' },
-              { level: CrispLogLevel.ERROR, label: 'ERROR' },
+              { level: CrispLogLevel.DEBUG, label: "DEBUG" },
+              { level: CrispLogLevel.INFO, label: "INFO" },
+              { level: CrispLogLevel.WARN, label: "WARN" },
+              { level: CrispLogLevel.ERROR, label: "ERROR" },
             ] as const
           ).map(({ level, label }) => (
             <Pressable
@@ -310,9 +287,7 @@ function HomeScreen() {
             </Pressable>
           ))}
         </View>
-        <Text style={styles.hint}>
-          Current level: {getLogLevelName(currentLogLevel)}
-        </Text>
+        <Text style={styles.hint}>Current level: {getLogLevelName(currentLogLevel)}</Text>
 
         {logs.length > 0 && (
           <View style={styles.logsContainer}>
@@ -323,7 +298,7 @@ function HomeScreen() {
               </Pressable>
             </View>
             <ScrollView style={styles.logsList}>
-              {logs.map(log => (
+              {logs.map((log) => (
                 <View key={log.id} style={styles.logEntry}>
                   <Text
                     style={[
@@ -360,7 +335,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     padding: 20,
   },
   header: {
@@ -369,17 +344,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   version: {
     fontSize: 12,
-    color: '#999',
+    color: "#999",
     marginTop: 2,
   },
   content: {
@@ -390,55 +365,55 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#999',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    color: "#999",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 16,
   },
   button: {
-    backgroundColor: '#0066FF',
+    backgroundColor: "#0066FF",
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
   },
   chatButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: "#28a745",
   },
   logoutButton: {
-    backgroundColor: '#dc3545',
+    backgroundColor: "#dc3545",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   hint: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 16,
     lineHeight: 20,
   },
   statusContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     gap: 12,
   },
   statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   statusLabel: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   statusValue: {
     fontSize: 14,
-    color: '#1a1a1a',
-    fontFamily: 'monospace',
+    color: "#1a1a1a",
+    fontFamily: "monospace",
     flexShrink: 1,
   },
   statusBadge: {
@@ -447,102 +422,102 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusOpen: {
-    backgroundColor: '#d4edda',
+    backgroundColor: "#d4edda",
   },
   statusClosed: {
-    backgroundColor: '#f8d7da',
+    backgroundColor: "#f8d7da",
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   messageButtons: {
     gap: 12,
   },
   messageButton: {
-    backgroundColor: '#6c757d',
+    backgroundColor: "#6c757d",
   },
   logLevelButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   logLevelButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#e9ecef',
+    backgroundColor: "#e9ecef",
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   logLevelButtonActive: {
-    backgroundColor: '#0066FF',
-    borderColor: '#0066FF',
+    backgroundColor: "#0066FF",
+    borderColor: "#0066FF",
   },
   logLevelButtonText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#495057',
+    fontWeight: "600",
+    color: "#495057",
   },
   logLevelButtonTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   logsContainer: {
     marginTop: 16,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     borderRadius: 12,
     padding: 12,
     maxHeight: 200,
   },
   logsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   logsTitle: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#888',
+    fontWeight: "600",
+    color: "#888",
   },
   clearButton: {
     fontSize: 12,
-    color: '#0066FF',
-    fontWeight: '600',
+    color: "#0066FF",
+    fontWeight: "600",
   },
   logsList: {
     flex: 1,
   },
   logEntry: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 4,
     gap: 4,
   },
   logLevel: {
     fontSize: 10,
-    fontFamily: 'monospace',
-    color: '#6c757d',
-    fontWeight: '600',
+    fontFamily: "monospace",
+    color: "#6c757d",
+    fontWeight: "600",
   },
   logLevelError: {
-    color: '#dc3545',
+    color: "#dc3545",
   },
   logLevelWarn: {
-    color: '#ffc107',
+    color: "#ffc107",
   },
   logLevelInfo: {
-    color: '#17a2b8',
+    color: "#17a2b8",
   },
   logTag: {
     fontSize: 10,
-    fontFamily: 'monospace',
-    color: '#888',
+    fontFamily: "monospace",
+    color: "#888",
   },
   logMessage: {
     fontSize: 10,
-    fontFamily: 'monospace',
-    color: '#ccc',
+    fontFamily: "monospace",
+    color: "#ccc",
     flex: 1,
   },
 });

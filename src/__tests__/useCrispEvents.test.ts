@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 
 // Mock the native module before importing the hook
 const mockRemove = jest.fn();
@@ -11,8 +11,8 @@ jest.mock("../ExpoCrispSdkModule", () => ({
   },
 }));
 
+import type { CrispLogEntry, CrispMessage, PushNotificationPayload } from "../ExpoCrispSdk.types";
 import { useCrispEvents } from "../useCrispEvents";
-import type { CrispMessage, CrispLogEntry, PushNotificationPayload } from "../ExpoCrispSdk.types";
 
 beforeEach(() => {
   mockAddListener.mockClear();
@@ -31,7 +31,10 @@ describe("useCrispEvents", () => {
     expect(mockAddListener).toHaveBeenCalledWith("onMessageSent", expect.any(Function));
     expect(mockAddListener).toHaveBeenCalledWith("onMessageReceived", expect.any(Function));
     expect(mockAddListener).toHaveBeenCalledWith("onLogReceived", expect.any(Function));
-    expect(mockAddListener).toHaveBeenCalledWith("onPushNotificationReceived", expect.any(Function));
+    expect(mockAddListener).toHaveBeenCalledWith(
+      "onPushNotificationReceived",
+      expect.any(Function),
+    );
   });
 
   it("removes all subscriptions on unmount", () => {
@@ -183,7 +186,9 @@ describe("useCrispEvents", () => {
 
 /** Helper to extract the listener handler for a specific event */
 function getListenerHandler(eventName: string): (...args: unknown[]) => void {
-  const calls = mockAddListener.mock.calls as unknown as Array<[string, (...args: unknown[]) => void]>;
+  const calls = mockAddListener.mock.calls as unknown as Array<
+    [string, (...args: unknown[]) => void]
+  >;
   const call = calls.find(([name]) => name === eventName);
   if (!call) throw new Error(`No listener registered for ${eventName}`);
   return call[1];
