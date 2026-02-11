@@ -196,7 +196,30 @@ declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
   /**
    * Get the current session identifier.
    *
-   * @returns Promise resolving to the session ID, or null if not available
+   * @returns Promise resolving to the session ID, or `null` if no session is active yet.
+   *
+   * @remarks
+   * Returns `null` in these cases:
+   * - Session hasn't loaded yet (wait for `onSessionLoaded` event first)
+   * - `configure()` was not called
+   * - Native SDK hasn't established a session
+   *
+   * The promise does not reject under normal conditions.
+   *
+   * @example
+   * ```typescript
+   * // Wait for session to be ready, then get the ID
+   * useCrispEvents({
+   *   onSessionLoaded: async (sessionId) => {
+   *     // sessionId is already provided in the event
+   *     console.log("Session ready:", sessionId);
+   *
+   *     // Or fetch it manually
+   *     const id = await ExpoCrispSdk.getSessionIdentifier();
+   *     console.log("Same session:", id);
+   *   }
+   * });
+   * ```
    */
   getSessionIdentifier(): Promise<string | null>;
 
