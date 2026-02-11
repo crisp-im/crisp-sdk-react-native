@@ -2,11 +2,29 @@
   "name": "expo-crisp-sdk",
   "version": "0.1.0",
   "description": "Expo Module bridge for Crisp Chat iOS and Android SDK",
+  "keywords": [
+    "crisp",
+    "chat",
+    "react-native",
+    "expo",
+    "expo-crisp-sdk",
+    "ExpoCrispSdk"
+  ],
+  "author": "Crisp IM SAS",
+  "homepage": "https://github.com/crisp-im/crisp-sdk-react-native",
+  "license": "MIT",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "sideEffects": [
     "./build/ExpoCrispSdkModule.js"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crisp-im/crisp-sdk-react-native.git"
+  },
   "scripts": {
     "build": "expo-module build",
     "build:plugin": "expo-module build plugin",
@@ -24,19 +42,10 @@
     "version": "changeset version",
     "release": "yarn build && changeset publish"
   },
-  "keywords": [
-    "react-native",
-    "expo",
-    "expo-crisp-sdk",
-    "ExpoCrispSdk"
-  ],
-  "repository": "https://github.com/VirtuozTM/expo-crisp-sdk",
   "bugs": {
-    "url": "https://github.com/VirtuozTM/expo-crisp-sdk/issues"
+    "url": "https://github.com/crisp-im/crisp-sdk-react-native/issues"
   },
-  "author": "Armand Petit <armand_petit@outlook.fr> (https://github.com/VirtuozTM)",
-  "license": "MIT",
-  "homepage": "https://github.com/VirtuozTM/expo-crisp-sdk#readme",
+  "packageManager": "yarn@4.7.0",
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
     "@changesets/cli": "^2.29.8",
@@ -69,6 +78,5 @@
     "ios",
     "android",
     "expo-module.config.json"
-  ],
-  "packageManager": "yarn@4.7.0"
+  ]
 }
