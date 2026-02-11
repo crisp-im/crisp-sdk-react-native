@@ -175,11 +175,11 @@ Configure the SDK at app startup with your Website ID:
 
 ```typescript
 import { useEffect } from "react";
-import Crisp from "expo-crisp-sdk";
+import { configure } from "expo-crisp-sdk";
 
 export default function App() {
   useEffect(() => {
-    Crisp.configure("YOUR_WEBSITE_ID");
+    configure("YOUR_WEBSITE_ID");
   }, []);
 
   return (
@@ -277,16 +277,16 @@ In coexistence mode, the plugin:
 **JS API for coexistence mode:**
 
 ```typescript
-import Crisp from "expo-crisp-sdk";
+import { registerPushToken, isCrispPushNotification, setShouldPromptForNotificationPermission } from "expo-crisp-sdk";
 
 // Register a push token obtained from your notification system
-Crisp.registerPushToken(expoPushToken);
+registerPushToken(expoPushToken);
 
 // Check if a notification payload is from Crisp
-const isCrisp = Crisp.isCrispPushNotification(notificationData);
+const isCrisp = isCrispPushNotification(notificationData);
 
 // Control whether Crisp auto-prompts for notification permissions (iOS only)
-Crisp.setShouldPromptForNotificationPermission(false);
+setShouldPromptForNotificationPermission(false);
 ```
 
 **Listen for Crisp notifications in the foreground (iOS only):**
@@ -317,11 +317,11 @@ useCrispEvents({
 Display the Crisp chat widget:
 
 ```typescript
-import Crisp from "expo-crisp-sdk";
+import { show } from "expo-crisp-sdk";
 
 function ChatButton() {
   const openChat = () => {
-    Crisp.show();
+    show();
   };
 
   return <Button title="Chat with us" onPress={openChat} />;
@@ -333,18 +333,21 @@ function ChatButton() {
 Set user information to personalize the chat experience:
 
 ```typescript
-import Crisp from "expo-crisp-sdk";
+import {
+  setUserEmail, setUserNickname, setUserPhone, setUserAvatar,
+  setUserCompany, setTokenId, resetSession,
+} from "expo-crisp-sdk";
 
 // After user logs in
 function identifyUser(user) {
   // Basic identification
-  Crisp.setUserEmail(user.email);
-  Crisp.setUserNickname(user.name);
-  Crisp.setUserPhone(user.phone); // E.164 format recommended: "+1234567890"
-  Crisp.setUserAvatar(user.avatarUrl);
+  setUserEmail(user.email);
+  setUserNickname(user.name);
+  setUserPhone(user.phone); // E.164 format recommended: "+1234567890"
+  setUserAvatar(user.avatarUrl);
 
   // Set company information
-  Crisp.setUserCompany({
+  setUserCompany({
     name: "Acme Corporation",
     url: "https://acme.com",
     companyDescription: "Leading provider of innovative solutions",
@@ -359,13 +362,13 @@ function identifyUser(user) {
   });
 
   // Enable session persistence across devices
-  Crisp.setTokenId(user.id);
+  setTokenId(user.id);
 }
 
 // On logout
 function onLogout() {
-  Crisp.setTokenId(null);
-  Crisp.resetSession();
+  setTokenId(null);
+  resetSession();
 }
 ```
 
@@ -374,24 +377,27 @@ function onLogout() {
 Store custom data visible to operators in the Crisp dashboard:
 
 ```typescript
-import Crisp from "expo-crisp-sdk";
+import {
+  setSessionString, setSessionBool, setSessionInt,
+  setSessionSegment, setSessionSegments, getSessionIdentifier,
+} from "expo-crisp-sdk";
 
 // Store different data types
-Crisp.setSessionString("plan", "premium");
-Crisp.setSessionBool("verified", true);
-Crisp.setSessionInt("loginCount", 42);
+setSessionString("plan", "premium");
+setSessionBool("verified", true);
+setSessionInt("loginCount", 42);
 
 // Categorize users with segments
-Crisp.setSessionSegment("vip");
+setSessionSegment("vip");
 
 // Or set multiple segments at once
-Crisp.setSessionSegments(["premium", "early-adopter", "beta-tester"]);
+setSessionSegments(["premium", "early-adopter", "beta-tester"]);
 
 // Replace all existing segments
-Crisp.setSessionSegments(["enterprise"], true);
+setSessionSegments(["enterprise"], true);
 
 // Get the current session identifier
-const sessionId = await Crisp.getSessionIdentifier();
+const sessionId = await getSessionIdentifier();
 console.log("Session ID:", sessionId);
 ```
 
@@ -400,14 +406,14 @@ console.log("Session ID:", sessionId);
 Track user actions in the chat timeline:
 
 ```typescript
-import Crisp, { CrispSessionEventColors } from "expo-crisp-sdk";
+import { pushSessionEvent, pushSessionEvents, CrispSessionEventColors } from "expo-crisp-sdk";
 
 // Track a single event
-Crisp.pushSessionEvent("Purchase completed", CrispSessionEventColors.GREEN);
-Crisp.pushSessionEvent("Payment failed", CrispSessionEventColors.RED);
+pushSessionEvent("Purchase completed", CrispSessionEventColors.GREEN);
+pushSessionEvent("Payment failed", CrispSessionEventColors.RED);
 
 // Track multiple events at once
-Crisp.pushSessionEvents([
+pushSessionEvents([
   { name: "Viewed pricing page", color: CrispSessionEventColors.BLUE },
   { name: "Started free trial", color: CrispSessionEventColors.GREEN },
   { name: "Upgraded to Pro", color: CrispSessionEventColors.PURPLE },
@@ -421,7 +427,7 @@ Subscribe to SDK events using the `useCrispEvents` hook:
 ```typescript
 import { useState } from "react";
 import { View, Button } from "react-native";
-import Crisp, { useCrispEvents } from "expo-crisp-sdk";
+import { show, useCrispEvents } from "expo-crisp-sdk";
 
 function ChatScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -452,7 +458,7 @@ function ChatScreen() {
     <View>
       <Button
         title={`Open Chat (${unreadCount})`}
-        onPress={() => Crisp.show()}
+        onPress={() => show()}
       />
     </View>
   );
@@ -464,16 +470,16 @@ function ChatScreen() {
 Display messages programmatically in the chat:
 
 ```typescript
-import Crisp from "expo-crisp-sdk";
+import { showMessage } from "expo-crisp-sdk";
 
 // Simple text message
-Crisp.showMessage({
+showMessage({
   type: "text",
   text: "Hello! How can I help you today?",
 });
 
 // File attachment
-Crisp.showMessage({
+showMessage({
   type: "file",
   url: "https://example.com/document.pdf",
   name: "Document.pdf",
@@ -481,14 +487,14 @@ Crisp.showMessage({
 });
 
 // Animation (GIF)
-Crisp.showMessage({
+showMessage({
   type: "animation",
   url: "https://example.com/celebration.gif",
   mimeType: "image/gif",
 });
 
 // Audio message
-Crisp.showMessage({
+showMessage({
   type: "audio",
   url: "https://example.com/voice-note.mp3",
   mimeType: "audio/mpeg",
@@ -496,7 +502,7 @@ Crisp.showMessage({
 });
 
 // Picker for user choice
-Crisp.showMessage({
+showMessage({
   type: "picker",
   id: "satisfaction",
   text: "How satisfied are you with our service?",
@@ -508,7 +514,7 @@ Crisp.showMessage({
 });
 
 // Field for user input
-Crisp.showMessage({
+showMessage({
   type: "field",
   id: "email",
   text: "What's your email address?",
@@ -517,7 +523,7 @@ Crisp.showMessage({
 });
 
 // Carousel with multiple items
-Crisp.showMessage({
+showMessage({
   type: "carousel",
   text: "Check out our products",
   targets: [
@@ -542,18 +548,18 @@ Crisp.showMessage({
 Access your knowledge base:
 
 ```typescript
-import Crisp from "expo-crisp-sdk";
+import { searchHelpdesk, openHelpdeskArticle } from "expo-crisp-sdk";
 
 // Open helpdesk search
-Crisp.searchHelpdesk();
+searchHelpdesk();
 
 // Open a specific article
-Crisp.openHelpdeskArticle(
-  "getting-started", // Article slug
-  "en", // Locale
-  "Getting Started", // Optional: Display title
-  "Onboarding" // Optional: Category name
-);
+openHelpdeskArticle({
+  id: "getting-started",
+  locale: "en",
+  title: "Getting Started",    // Optional
+  category: "Onboarding",      // Optional
+});
 ```
 
 ### Bot Scenarios
@@ -561,10 +567,10 @@ Crisp.openHelpdeskArticle(
 Trigger automated conversation flows:
 
 ```typescript
-import Crisp from "expo-crisp-sdk";
+import { runBotScenario } from "expo-crisp-sdk";
 
 // Start a bot scenario configured in your Crisp dashboard
-Crisp.runBotScenario("welcome-flow");
+runBotScenario("welcome-flow");
 ```
 
 ### Debug Logging
@@ -572,10 +578,10 @@ Crisp.runBotScenario("welcome-flow");
 Enable native SDK logging to help debug integration issues:
 
 ```typescript
-import Crisp, { CrispLogLevel, useCrispEvents } from "expo-crisp-sdk";
+import { setLogLevel, CrispLogLevel, useCrispEvents } from "expo-crisp-sdk";
 
 // Set the minimum log level (default: WARN)
-Crisp.setLogLevel(CrispLogLevel.DEBUG);
+setLogLevel(CrispLogLevel.DEBUG);
 
 // Listen to log messages from the native SDK
 useCrispEvents({
@@ -656,7 +662,7 @@ Available log levels (from most to least verbose):
 | ---------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------- | ------ |
 | `show()`                                             | Open the Crisp chat widget.         | -                                                                               | `void` |
 | `searchHelpdesk()`                                   | Open the helpdesk search interface. | -                                                                               | `void` |
-| `openHelpdeskArticle(id, locale, title?, category?)` | Open a specific helpdesk article.   | `id: string, locale: string, title?: string \| null, category?: string \| null` | `void` |
+| `openHelpdeskArticle(options)` | Open a specific helpdesk article.   | `options: HelpdeskArticleOptions` | `void` |
 | `runBotScenario(scenarioId)`                         | Trigger an automated bot scenario.  | `scenarioId: string`                                                            | `void` |
 
 ### Push Notification Methods (Coexistence Mode)

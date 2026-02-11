@@ -1,8 +1,19 @@
-import Crisp, {
+import {
   type CrispLogEntry,
   CrispLogLevel,
+  configure,
   getSDKVersion,
   type PushNotificationPayload,
+  resetSession,
+  setLogLevel,
+  setShouldPromptForNotificationPermission,
+  setTokenId,
+  setUserCompany,
+  setUserEmail,
+  setUserNickname,
+  setUserPhone,
+  show,
+  showMessage,
   useCrispEvents,
 } from "expo-crisp-sdk";
 import { useEffect, useState } from "react";
@@ -90,15 +101,15 @@ export default function HomeScreen() {
 
   useEffect(() => {
     // 2. Configure Crisp with your Website ID (required before any other call)
-    Crisp.configure(WEBSITE_ID);
+    configure(WEBSITE_ID);
 
     // 3. Enable debug logging to receive logs via onLogReceived
-    Crisp.setLogLevel(CrispLogLevel.DEBUG);
+    setLogLevel(CrispLogLevel.DEBUG);
   }, []);
 
   // Change log level dynamically
   const handleSetLogLevel = (level: CrispLogLevel) => {
-    Crisp.setLogLevel(level);
+    setLogLevel(level);
     setCurrentLogLevel(level);
     setLogs([]); // Clear logs when changing level
   };
@@ -106,15 +117,15 @@ export default function HomeScreen() {
   // 3. Optional: Set user information when they log in
   const handleLogin = () => {
     // Use a unique token to persist sessions across devices
-    Crisp.setTokenId("e041988c-fe41-4901-88b5-4953e1513b9e");
+    setTokenId("e041988c-fe41-4901-88b5-4953e1513b9e");
 
     // Set user details
-    Crisp.setUserEmail("armand_petit@outlook.fr");
-    Crisp.setUserNickname("Armand PETIT");
-    Crisp.setUserPhone("+33783949275");
+    setUserEmail("armand_petit@outlook.fr");
+    setUserNickname("Armand PETIT");
+    setUserPhone("+33783949275");
 
     // Add company information with full details
-    Crisp.setUserCompany({
+    setUserCompany({
       name: "Crisp",
       url: "https://crisp.chat/",
       companyDescription: "Customer Messaging Platform",
@@ -133,8 +144,8 @@ export default function HomeScreen() {
 
   // 4. Clear session when user logs out
   const handleLogout = () => {
-    Crisp.setTokenId(null);
-    Crisp.resetSession();
+    setTokenId(null);
+    resetSession();
     setIsLoggedIn(false);
   };
 
@@ -195,7 +206,7 @@ export default function HomeScreen() {
           <Pressable
             style={[styles.button, styles.messageButton]}
             onPress={() => {
-              Crisp.showMessage({
+              showMessage({
                 type: "text",
                 text: "Hello from Crisp Team !",
               });
@@ -208,7 +219,7 @@ export default function HomeScreen() {
           <Pressable
             style={[styles.button, styles.messageButton]}
             onPress={() => {
-              Crisp.showMessage({
+              showMessage({
                 type: "picker",
                 id: "rating",
                 text: "How would you rate our service?",
@@ -231,7 +242,7 @@ export default function HomeScreen() {
           <Pressable
             style={[styles.button, styles.messageButton]}
             onPress={() => {
-              Crisp.showMessage({
+              showMessage({
                 type: "field",
                 id: "email",
                 text: "What's your email address?",
@@ -273,7 +284,7 @@ export default function HomeScreen() {
           <Pressable
             style={[styles.button, styles.messageButton]}
             onPress={() => {
-              Crisp.setShouldPromptForNotificationPermission(false);
+              setShouldPromptForNotificationPermission(false);
               console.log("[Crisp] Disabled auto notification prompt");
             }}
           >
@@ -407,7 +418,7 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* 5. Floating chat button - tap to open Crisp chat */}
-      <CrispButton onPress={() => Crisp.show()} />
+      <CrispButton onPress={() => show()} />
     </SafeAreaView>
   );
 }
