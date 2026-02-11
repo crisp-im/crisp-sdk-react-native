@@ -288,7 +288,7 @@ const isCrisp = Crisp.isCrispPushNotification(notificationData);
 Crisp.setShouldPromptForNotificationPermission(false);
 ```
 
-**Listen for Crisp notifications in the foreground:**
+**Listen for Crisp notifications in the foreground (iOS only):**
 
 ```typescript
 import { useCrispEvents } from "expo-crisp-sdk";
@@ -300,6 +300,9 @@ useCrispEvents({
   },
 });
 ```
+
+> [!NOTE]
+> `onPushNotificationReceived` is currently **iOS only**. On Android, the Crisp SDK does not expose a foreground notification callback — notifications are handled entirely at the native `FirebaseMessagingService` level.
 
 > [!NOTE]
 > In coexistence mode, the native routing is automatic — you don't need to write JS filtering code. The JS API methods (`registerPushToken`, `isCrispPushNotification`) are optional utilities for advanced use cases.
@@ -563,6 +566,38 @@ import Crisp from "expo-crisp-sdk";
 Crisp.runBotScenario("welcome-flow");
 ```
 
+### Debug Logging
+
+Enable native SDK logging to help debug integration issues:
+
+```typescript
+import Crisp, { CrispLogLevel, useCrispEvents } from "expo-crisp-sdk";
+
+// Set the minimum log level (default: WARN)
+Crisp.setLogLevel(CrispLogLevel.DEBUG);
+
+// Listen to log messages from the native SDK
+useCrispEvents({
+  onLogReceived: (log) => {
+    console.log(`[Crisp] [${log.level}] ${log.tag}: ${log.message}`);
+  },
+});
+```
+
+Available log levels (from most to least verbose):
+
+| Level     | Value | Description                    |
+| --------- | ----- | ------------------------------ |
+| `VERBOSE` | 0     | Most verbose, all log messages |
+| `DEBUG`   | 1     | Debug information              |
+| `INFO`    | 2     | Informational messages         |
+| `WARN`    | 3     | Warnings (default)             |
+| `ERROR`   | 4     | Error messages only            |
+| `ASSERT`  | 5     | Critical assertion failures    |
+
+> [!NOTE]
+> Set the log level **after** calling `configure()`. Only logs at or above the configured level are emitted to the `onLogReceived` callback.
+
 ---
 
 ## API Reference
@@ -573,6 +608,12 @@ Crisp.runBotScenario("welcome-flow");
 | ---------------------- | ---------------------------------------------------------------------------- | ------------------------- | ------ |
 | `configure(websiteId)` | Initialize the SDK with your Website ID. Must be called once at app startup. | `websiteId: string`       | `void` |
 | `setTokenId(tokenId)`  | Set a token for session persistence across app reinstalls and devices.       | `tokenId: string \| null` | `void` |
+
+### Logger Methods
+
+| Method              | Description                                                                 | Parameters              | Return |
+| ------------------- | --------------------------------------------------------------------------- | ----------------------- | ------ |
+| `setLogLevel(level)` | Set the minimum log level for native SDK logging. Logs at or above this level are emitted via `onLogReceived`. | `level: CrispLogLevel` | `void` |
 
 ### User Information Methods
 
@@ -783,7 +824,8 @@ interface CrispEventCallbacks {
   onChatClosed?: () => void;
   onMessageSent?: (message: CrispMessage) => void;
   onMessageReceived?: (message: CrispMessage) => void;
-  onPushNotificationReceived?: (notification: PushNotificationPayload) => void;
+  onPushNotificationReceived?: (notification: PushNotificationPayload) => void; // iOS only
+  onLogReceived?: (log: CrispLogEntry) => void;
 }
 ```
 
@@ -805,10 +847,22 @@ interface MessagePayload {
 // Empty payload for onChatOpened and onChatClosed callbacks
 type EmptyPayload = Record<string, never>;
 
-// Payload for onPushNotificationReceived callback
+// Payload for onPushNotificationReceived callback (iOS only)
 interface PushNotificationPayload {
   title: string;
   body: string;
+}
+
+// Payload for onLogReceived callback
+interface LogReceivedPayload {
+  log: CrispLogEntry;
+}
+
+// Log entry from the native SDK
+interface CrispLogEntry {
+  level: CrispLogLevel; // The log level
+  tag: string; // Log category/source
+  message: string; // Log message content
 }
 
 // Message origin type
@@ -852,6 +906,17 @@ interface CarouselTarget {
 | `BROWN` (7)  | Brown  | Historical, archive events           |
 | `GREY` (8)   | Grey   | Secondary, low-priority events       |
 | `BLACK` (9)  | Black  | System, administrative events        |
+
+#### CrispLogLevel
+
+| Value          | Description                              |
+| -------------- | ---------------------------------------- |
+| `VERBOSE` (0)  | Most verbose; includes all log messages  |
+| `DEBUG` (1)    | Debug information for development        |
+| `INFO` (2)     | Informational messages                   |
+| `WARN` (3)     | Warnings (default level)                 |
+| `ERROR` (4)    | Error messages only                      |
+| `ASSERT` (5)   | Critical assertion failures              |
 
 ---
 
