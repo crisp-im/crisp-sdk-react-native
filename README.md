@@ -288,7 +288,7 @@ const isCrisp = Crisp.isCrispPushNotification(notificationData);
 Crisp.setShouldPromptForNotificationPermission(false);
 ```
 
-**Listen for Crisp notifications in the foreground:**
+**Listen for Crisp notifications in the foreground (iOS only):**
 
 ```typescript
 import { useCrispEvents } from "expo-crisp-sdk";
@@ -300,6 +300,9 @@ useCrispEvents({
   },
 });
 ```
+
+> [!NOTE]
+> `onPushNotificationReceived` is currently **iOS only**. On Android, the Crisp SDK does not expose a foreground notification callback — notifications are handled entirely at the native `FirebaseMessagingService` level.
 
 > [!NOTE]
 > In coexistence mode, the native routing is automatic — you don't need to write JS filtering code. The JS API methods (`registerPushToken`, `isCrispPushNotification`) are optional utilities for advanced use cases.
@@ -821,7 +824,7 @@ interface CrispEventCallbacks {
   onChatClosed?: () => void;
   onMessageSent?: (message: CrispMessage) => void;
   onMessageReceived?: (message: CrispMessage) => void;
-  onPushNotificationReceived?: (notification: PushNotificationPayload) => void;
+  onPushNotificationReceived?: (notification: PushNotificationPayload) => void; // iOS only
   onLogReceived?: (log: CrispLogEntry) => void;
 }
 ```
@@ -844,7 +847,7 @@ interface MessagePayload {
 // Empty payload for onChatOpened and onChatClosed callbacks
 type EmptyPayload = Record<string, never>;
 
-// Payload for onPushNotificationReceived callback
+// Payload for onPushNotificationReceived callback (iOS only)
 interface PushNotificationPayload {
   title: string;
   body: string;
