@@ -201,7 +201,8 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
         {
           "websiteId": "YOUR_WEBSITE_ID",
           "notifications": {
-            "enabled": true
+            "enabled": true,
+            "mode": "sdk-managed"
           }
         }
       ]
@@ -947,6 +948,19 @@ Ensure you've called `configure()` with a valid Website ID before calling `show(
 ### Session data not persisting
 
 Use `setTokenId()` with a unique user identifier to enable session persistence across app reinstalls and devices.
+
+---
+
+## Example Apps
+
+Two fully functional example apps are included in the repository to help you get started:
+
+| App | Directory | Description |
+|-----|-----------|-------------|
+| **Expo** | [`/example`](./example) | Expo Router app with push notifications (coexistence mode with `expo-notifications`), event listeners, and all SDK features |
+| **Bare React Native** | [`/bare-example`](./bare-example) | Bare React Native CLI app demonstrating integration without the Expo managed workflow |
+
+Both apps are pre-configured and ready to run — just add your Website ID and follow the setup instructions in each directory.
 
 ---
 

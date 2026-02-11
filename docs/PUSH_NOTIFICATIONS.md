@@ -286,7 +286,8 @@ The final step is to add the Firebase configuration to your project. Choose the 
            {
              "websiteId": "YOUR_WEBSITE_ID",
              "notifications": {
-               "enabled": true
+               "enabled": true,
+               "mode": "sdk-managed"
              }
            }
          ]
