@@ -4,6 +4,9 @@
   "description": "Expo Module bridge for Crisp Chat iOS and Android SDK",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "sideEffects": [
+    "./build/ExpoCrispSdkModule.js"
+  ],
   "scripts": {
     "build": "expo-module build",
     "build:plugin": "expo-module build plugin",
@@ -37,11 +40,19 @@
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
     "@changesets/cli": "^2.29.8",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
+    "@types/react-dom": "^19",
     "eslint": "^8.57.0",
     "expo": "*",
     "expo-module-scripts": "^5.0.7",
-    "react-native": "*"
+    "jest": "^30.2.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-native": "*",
+    "ts-jest": "^29.4.6"
   },
   "peerDependencies": {
     "expo": "*",
