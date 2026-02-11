@@ -21,7 +21,7 @@
 > [!WARNING]
 > **Expo SDK 53+ Required**
 >
-> This SDK is exclusively compatible with Expo SDK version 53 and newer. For projects using older Expo versions, please use the [legacy React Native SDK](https://github.com/walterholohan/react-native-crisp-chat-sdk).
+> This SDK is exclusively compatible with Expo SDK version 53 and newer. For projects using older Expo versions, please use the [legacy React Native SDK](https://github.com/walterholohan/react-native-crisp-chat-sdk). If you're migrating from the legacy SDK, see the [Migration Guide](./MIGRATION.md).
 
 > [!WARNING]
 > **Expo Go is Not Supported**
