@@ -32,8 +32,24 @@ type ExpoCrispPluginProps = {
    */
   notifications?: {
     enabled: boolean;
+    /**
+     * Notification handling mode.
+     *
+     * - `"sdk-managed"` (default): Crisp handles all notification routing exclusively.
+     *   CrispNotificationService (Android) / auto-register (iOS).
+     * - `"coexistence"`: Crisp notifications coexist with other notification systems
+     *   (expo-notifications, Firebase, OneSignal, etc.). A chained service (Android) and
+     *   filtered delegate (iOS) handle routing at the native level.
+     *
+     * @default "sdk-managed"
+     */
+    mode?: "sdk-managed" | "coexistence";
   };
 };
+
+export type NotificationMode = "sdk-managed" | "coexistence";
+
+const VALID_MODES: NotificationMode[] = ["sdk-managed", "coexistence"];
 
 const withExpoCrisp: ConfigPlugin<ExpoCrispPluginProps> = (
   config,
@@ -50,11 +66,20 @@ const withExpoCrisp: ConfigPlugin<ExpoCrispPluginProps> = (
     );
   }
 
+  const mode: NotificationMode = notifications.mode ?? "sdk-managed";
+
+  if (!VALID_MODES.includes(mode)) {
+    throw new Error(
+      `[expo-crisp-sdk] Invalid notifications.mode "${mode}". ` +
+        `Accepted values: ${VALID_MODES.map((m) => `"${m}"`).join(", ")}.`,
+    );
+  }
+
   // Apply Android modifications
-  config = withAndroidNotifications(config, websiteId);
+  config = withAndroidNotifications(config, [websiteId, mode]);
 
   // Apply iOS modifications
-  config = withIosNotifications(config, websiteId);
+  config = withIosNotifications(config, [websiteId, mode]);
 
   return config;
 };

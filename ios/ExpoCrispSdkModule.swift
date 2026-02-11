@@ -8,6 +8,7 @@ public class ExpoCrispSdkModule: Module {
   private let onMessageSent = "onMessageSent"
   private let onMessageReceived = "onMessageReceived"
   private let onLogReceived = "onLogReceived"
+  private let onPushNotificationReceived = "onPushNotificationReceived"
 
   private var callbackTokens: [CallbackToken] = []
   private var logHandler: CrispLogHandlerBridge?
@@ -21,12 +22,14 @@ public class ExpoCrispSdkModule: Module {
       onChatClosed,
       onMessageSent,
       onMessageReceived,
-      onLogReceived
+      onLogReceived,
+      onPushNotificationReceived
     )
 
     OnCreate {
       self.setupCallbacks()
       self.setupLogHandler()
+      self.setupNotificationEventEmitter()
     }
 
     OnDestroy {
@@ -148,6 +151,31 @@ public class ExpoCrispSdkModule: Module {
       CrispSDK.session.runBotScenario(id: scenarioId)
     }
 
+    // MARK: - Push Notifications (Coexistence Mode)
+
+    Function("registerPushToken") { (token: String) in
+      guard !token.isEmpty else { return }
+      // Convert hex string to Data
+      var data = Data()
+      var index = token.startIndex
+      while index < token.endIndex {
+        let nextIndex = token.index(index, offsetBy: 2, limitedBy: token.endIndex) ?? token.endIndex
+        if let byte = UInt8(token[index..<nextIndex], radix: 16) {
+          data.append(byte)
+        }
+        index = nextIndex
+      }
+      CrispSDK.setDeviceToken(data)
+    }
+
+    Function("isCrispPushNotification") { (data: [String: String]) in
+      return data.keys.contains("crisp_website_id")
+    }
+
+    Function("setShouldPromptForNotificationPermission") { (enabled: Bool) in
+      CrispSDK.setShouldPromptForNotificationPermission(enabled)
+    }
+
     // MARK: - Messages
 
     Function("showMessage") { (contentData: [String: Any]) in
@@ -257,6 +285,12 @@ public class ExpoCrispSdkModule: Module {
     }
     if let handler = logHandler {
       CrispSDK.addLogHandler(handler)
+    }
+  }
+
+  private func setupNotificationEventEmitter() {
+    CrispNotificationEventEmitter.shared.sendEvent = { [weak self] name, body in
+      self?.sendEvent(name, body)
     }
   }
 

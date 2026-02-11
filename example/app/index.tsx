@@ -1,16 +1,18 @@
 import Crisp, {
-  useCrispEvents,
-  getSDKVersion,
+  type CrispLogEntry,
   CrispLogLevel,
-  CrispLogEntry,
+  getSDKVersion,
+  type PushNotificationPayload,
+  useCrispEvents,
 } from "expo-crisp-sdk";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CrispButton from "../components/CrispButton";
+import { useExpoNotifications } from "../contexts/ExpoNotificationsContext";
 
 // 1. Get your Website ID from https://app.crisp.chat/settings/websites/
-const WEBSITE_ID = "YOUR_WEBSITE_ID";
+const WEBSITE_ID = process.env.EXPO_PUBLIC_CRISP_WEBSITE_ID!;
 
 // Extended log entry with unique ID for React keys
 type LogEntryWithId = CrispLogEntry & { id: string };
@@ -36,9 +38,16 @@ export default function HomeScreen() {
   const [chatStatus, setChatStatus] = useState<"closed" | "open">("closed");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntryWithId[]>([]);
-  const [currentLogLevel, setCurrentLogLevel] = useState<CrispLogLevel>(
-    CrispLogLevel.DEBUG,
-  );
+  const [currentLogLevel, setCurrentLogLevel] = useState<CrispLogLevel>(CrispLogLevel.DEBUG);
+  const [lastNotification, setLastNotification] = useState<PushNotificationPayload | null>(null);
+
+  const {
+    expoPushToken,
+    lastNotification: lastExpoNotification,
+    requestPermission,
+    sendLocalNotification,
+    sendPushNotification,
+  } = useExpoNotifications();
 
   console.log("SDK Version:", getSDKVersion());
 
@@ -62,15 +71,19 @@ export default function HomeScreen() {
     onMessageReceived: (message) => {
       console.log("[Crisp] Message received:", message);
     },
+    // Push notification callback - fires when Crisp notification received in foreground
+    onPushNotificationReceived: (notification) => {
+      console.log("[Crisp] Push notification received:", notification);
+      setLastNotification(notification);
+    },
     // Logger callback - receives logs from native SDK
     onLogReceived: (log) => {
-      console.log(
-        `[Crisp Log] [${getLogLevelName(log.level)}] ${log.tag}: ${
-          log.message
-        }`,
-      );
+      console.log(`[Crisp Log] [${getLogLevelName(log.level)}] ${log.tag}: ${log.message}`);
       // Add unique ID and keep last 20 logs
-      const logWithId: LogEntryWithId = { ...log, id: `log-${++logIdCounter}` };
+      const logWithId: LogEntryWithId = {
+        ...log,
+        id: `log-${++logIdCounter}`,
+      };
       setLogs((prev) => [...prev.slice(-19), logWithId]);
     },
   });
@@ -144,10 +157,7 @@ export default function HomeScreen() {
             <Text style={styles.buttonText}>Login (Set User Info)</Text>
           </Pressable>
         ) : (
-          <Pressable
-            style={[styles.button, styles.logoutButton]}
-            onPress={handleLogout}
-          >
+          <Pressable style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
             <Text style={styles.buttonText}>Logout (Reset Session)</Text>
           </Pressable>
         )}
@@ -168,9 +178,7 @@ export default function HomeScreen() {
                 chatStatus === "open" ? styles.statusOpen : styles.statusClosed,
               ]}
             >
-              <Text style={styles.statusBadgeText}>
-                {chatStatus.toUpperCase()}
-              </Text>
+              <Text style={styles.statusBadgeText}>{chatStatus.toUpperCase()}</Text>
             </View>
           </View>
           <View style={styles.statusRow}>
@@ -179,13 +187,10 @@ export default function HomeScreen() {
           </View>
         </View>
         <Text style={styles.hint}>
-          Open/close the chat to see events fire. Check console for message
-          events.
+          Open/close the chat to see events fire. Check console for message events.
         </Text>
 
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Show Message Test
-        </Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Show Message Test</Text>
         <View style={styles.messageButtons}>
           <Pressable
             style={[styles.button, styles.messageButton]}
@@ -239,13 +244,105 @@ export default function HomeScreen() {
             <Text style={styles.buttonText}>Field Message</Text>
           </Pressable>
         </View>
+        <Text style={styles.hint}>Tap a button then open the chat to see the message appear.</Text>
+
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
+          Push Notifications (Coexistence)
+        </Text>
+        <View style={styles.statusContainer}>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Mode:</Text>
+            <View style={[styles.statusBadge, styles.statusOpen]}>
+              <Text style={styles.statusBadgeText}>COEXISTENCE</Text>
+            </View>
+          </View>
+          {lastNotification && (
+            <>
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Last Title:</Text>
+                <Text style={styles.statusValue}>{lastNotification.title}</Text>
+              </View>
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Last Body:</Text>
+                <Text style={styles.statusValue}>{lastNotification.body}</Text>
+              </View>
+            </>
+          )}
+        </View>
+        <View style={[styles.messageButtons, { marginTop: 12 }]}>
+          <Pressable
+            style={[styles.button, styles.messageButton]}
+            onPress={() => {
+              Crisp.setShouldPromptForNotificationPermission(false);
+              console.log("[Crisp] Disabled auto notification prompt");
+            }}
+          >
+            <Text style={styles.buttonText}>Disable Auto Prompt</Text>
+          </Pressable>
+        </View>
         <Text style={styles.hint}>
-          Tap a button then open the chat to see the message appear.
+          Push notification events will appear above when a Crisp notification arrives while the app
+          is in the foreground.
         </Text>
 
         <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Logger Test
+          Expo Notifications (Coexistence Test)
         </Text>
+        <View style={styles.statusContainer}>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Push Token:</Text>
+            <Text style={styles.statusValue} numberOfLines={1}>
+              {expoPushToken ?? "Not registered"}
+            </Text>
+          </View>
+          {lastExpoNotification && (
+            <>
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Last Title:</Text>
+                <Text style={styles.statusValue}>
+                  {lastExpoNotification.request.content.title ?? "—"}
+                </Text>
+              </View>
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Last Body:</Text>
+                <Text style={styles.statusValue}>
+                  {lastExpoNotification.request.content.body ?? "—"}
+                </Text>
+              </View>
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Data:</Text>
+                <Text style={styles.statusValue} numberOfLines={1}>
+                  {JSON.stringify(lastExpoNotification.request.content.data)}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+        <View style={[styles.messageButtons, { marginTop: 12 }]}>
+          <Pressable style={[styles.button, styles.expoNotifButton]} onPress={requestPermission}>
+            <Text style={styles.buttonText}>Request Permission</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, styles.expoNotifButton]}
+            onPress={sendLocalNotification}
+          >
+            <Text style={styles.buttonText}>Send Local Notification</Text>
+          </Pressable>
+          {expoPushToken && (
+            <Pressable
+              style={[styles.button, styles.expoNotifButton]}
+              onPress={sendPushNotification}
+            >
+              <Text style={styles.buttonText}>Send via Expo Push</Text>
+            </Pressable>
+          )}
+        </View>
+        <Text style={styles.hint}>
+          Test expo-notifications alongside Crisp. Request permission, then use local or push
+          notifications. Both should work without conflicts.
+        </Text>
+
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Logger Test</Text>
         <View style={styles.logLevelButtons}>
           {[
             { level: CrispLogLevel.DEBUG, label: "DEBUG" },
@@ -273,8 +370,8 @@ export default function HomeScreen() {
           ))}
         </View>
         <Text style={styles.hint}>
-          Current level: {getLogLevelName(currentLogLevel)}. Logs at or above
-          this level will appear below.
+          Current level: {getLogLevelName(currentLogLevel)}. Logs at or above this level will appear
+          below.
         </Text>
 
         {logs.length > 0 && (
@@ -411,6 +508,9 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     backgroundColor: "#6c757d",
+  },
+  expoNotifButton: {
+    backgroundColor: "#7c3aed",
   },
   logLevelButtons: {
     flexDirection: "row",

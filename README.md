@@ -212,10 +212,11 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 
 #### Plugin Options
 
-| Option                  | Type      | Default | Description                                                         |
-| ----------------------- | --------- | ------- | ------------------------------------------------------------------- |
-| `websiteId`             | `string`  | -       | Your Crisp Website ID. **Required** when notifications are enabled. |
-| `notifications.enabled` | `boolean` | `false` | Enable push notifications for Crisp Chat.                           |
+| Option                  | Type                              | Default          | Description                                                                    |
+| ----------------------- | --------------------------------- | ---------------- | ------------------------------------------------------------------------------ |
+| `websiteId`             | `string`                          | -                | Your Crisp Website ID. **Required** when notifications are enabled.            |
+| `notifications.enabled` | `boolean`                         | `false`          | Enable push notifications for Crisp Chat.                                      |
+| `notifications.mode`    | `"sdk-managed" \| "coexistence"` | `"sdk-managed"` | Notification handling mode. See [Coexistence Mode](#coexistence-mode) below.   |
 
 > [!IMPORTANT]
 > The `websiteId` is **required** when `notifications.enabled` is `true`. The plugin will throw an error if it's missing.
@@ -243,6 +244,65 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 Push notifications require additional setup in your Crisp Dashboard (APNs for iOS, Firebase for Android).
 
 See the [Push Notifications Setup Guide](./docs/PUSH_NOTIFICATIONS.md) for detailed step-by-step instructions.
+
+#### Coexistence Mode
+
+By default, Crisp handles all push notification routing exclusively (`"sdk-managed"` mode). If your app uses another notification system (like `expo-notifications`, `@react-native-firebase/messaging`, or OneSignal), use `"coexistence"` mode to let both systems work together:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-crisp-sdk",
+        {
+          "websiteId": "YOUR_WEBSITE_ID",
+          "notifications": {
+            "enabled": true,
+            "mode": "coexistence"
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+
+In coexistence mode, the plugin:
+
+- **Android**: Generates a chained `FirebaseMessagingService` that routes Crisp notifications to the Crisp SDK and delegates all others to `expo-notifications` (or Firebase directly)
+- **iOS**: Implements a `UNUserNotificationCenterDelegate` that filters Crisp notifications and forwards the rest to the previous delegate (chain of responsibility)
+
+**JS API for coexistence mode:**
+
+```typescript
+import Crisp from "expo-crisp-sdk";
+
+// Register a push token obtained from your notification system
+Crisp.registerPushToken(expoPushToken);
+
+// Check if a notification payload is from Crisp
+const isCrisp = Crisp.isCrispPushNotification(notificationData);
+
+// Control whether Crisp auto-prompts for notification permissions (iOS only)
+Crisp.setShouldPromptForNotificationPermission(false);
+```
+
+**Listen for Crisp notifications in the foreground:**
+
+```typescript
+import { useCrispEvents } from "expo-crisp-sdk";
+
+useCrispEvents({
+  onPushNotificationReceived: ({ title, body }) => {
+    console.log("Crisp notification:", title, body);
+    // Update badge count, show toast, log analytics, etc.
+  },
+});
+```
+
+> [!NOTE]
+> In coexistence mode, the native routing is automatic — you don't need to write JS filtering code. The JS API methods (`registerPushToken`, `isCrispPushNotification`) are optional utilities for advanced use cases.
 
 ---
 
@@ -557,6 +617,14 @@ Crisp.runBotScenario("welcome-flow");
 | `openHelpdeskArticle(id, locale, title?, category?)` | Open a specific helpdesk article.   | `id: string, locale: string, title?: string \| null, category?: string \| null` | `void` |
 | `runBotScenario(scenarioId)`                         | Trigger an automated bot scenario.  | `scenarioId: string`                                                            | `void` |
 
+### Push Notification Methods (Coexistence Mode)
+
+| Method                                            | Description                                                                    | Parameters                       | Return    |
+| ------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------- | --------- |
+| `registerPushToken(token)`                        | Register a push token (FCM/APNs) with Crisp.                                  | `token: string`                  | `void`    |
+| `isCrispPushNotification(data)`                   | Check if a notification payload is from Crisp.                                 | `data: Record<string, string>`   | `boolean` |
+| `setShouldPromptForNotificationPermission(enabled)` | Control auto-prompting for notification permissions (iOS only, no-op on Android). | `enabled: boolean`               | `void`    |
+
 ### Message Methods
 
 | Method                 | Description                                         | Parameters                | Return |
@@ -715,6 +783,7 @@ interface CrispEventCallbacks {
   onChatClosed?: () => void;
   onMessageSent?: (message: CrispMessage) => void;
   onMessageReceived?: (message: CrispMessage) => void;
+  onPushNotificationReceived?: (notification: PushNotificationPayload) => void;
 }
 ```
 
@@ -735,6 +804,12 @@ interface MessagePayload {
 
 // Empty payload for onChatOpened and onChatClosed callbacks
 type EmptyPayload = Record<string, never>;
+
+// Payload for onPushNotificationReceived callback
+interface PushNotificationPayload {
+  title: string;
+  body: string;
+}
 
 // Message origin type
 type CrispMessageOrigin = "local" | "network" | "update";

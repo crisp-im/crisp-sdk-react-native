@@ -10,6 +10,7 @@ import im.crisp.client.external.Crisp
 import im.crisp.client.external.Logger
 import im.crisp.client.external.data.SessionEvent
 import im.crisp.client.external.data.SessionEvent.Color
+import im.crisp.client.external.notification.CrispNotificationClient
 
 class ExpoCrispSdkModule : Module() {
   private val context
@@ -24,6 +25,7 @@ class ExpoCrispSdkModule : Module() {
   private val onMessageSent = "onMessageSent"
   private val onMessageReceived = "onMessageReceived"
   private val onLogReceived = "onLogReceived"
+  private val onPushNotificationReceived = "onPushNotificationReceived"
 
   override fun definition() = ModuleDefinition {
     Name("ExpoCrispSdk")
@@ -34,7 +36,8 @@ class ExpoCrispSdkModule : Module() {
       onChatClosed,
       onMessageSent,
       onMessageReceived,
-      onLogReceived
+      onLogReceived,
+      onPushNotificationReceived
     )
 
     OnCreate {
@@ -153,6 +156,22 @@ class ExpoCrispSdkModule : Module() {
 
     Function("runBotScenario") { scenarioId: String ->
       Crisp.runBotScenario(scenarioId)
+    }
+
+    // MARK: - Push Notifications (Coexistence Mode)
+
+    Function("registerPushToken") { token: String ->
+      if (token.isNotEmpty()) {
+        CrispNotificationClient.sendTokenToCrisp(context, token)
+      }
+    }
+
+    Function("isCrispPushNotification") { data: Map<String, String> ->
+      data.containsKey("crisp_website_id")
+    }
+
+    Function("setShouldPromptForNotificationPermission") { _: Boolean ->
+      // No-op on Android — this API does not exist in the native SDK
     }
 
     // MARK: - Messages

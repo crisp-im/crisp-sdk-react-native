@@ -8,6 +8,7 @@ import type {
   LogReceivedPayload,
   MessageContent,
   MessagePayload,
+  PushNotificationPayload,
   SessionEvent,
   SessionLoadedPayload,
 } from "./ExpoCrispSdk.types";
@@ -47,6 +48,12 @@ type ExpoCrispSdkEvents = {
    * @param params - Contains the log entry details
    */
   onLogReceived: (params: LogReceivedPayload) => void;
+
+  /**
+   * Emitted when a Crisp push notification is received while the app is in the foreground.
+   * @param params - Contains the notification title and body
+   */
+  onPushNotificationReceived: (params: PushNotificationPayload) => void;
 };
 
 declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
@@ -269,6 +276,37 @@ declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
    * @param scenarioId - The scenario identifier from the Crisp dashboard
    */
   runBotScenario(scenarioId: string): void;
+
+  // ============================================================================
+  // Push Notifications (Coexistence Mode)
+  // ============================================================================
+
+  /**
+   * Register a push token (FCM or APNs) with Crisp.
+   * Use this when your notification system provides a token that Crisp should
+   * also use to send push notifications.
+   *
+   * @param token - The push token string (FCM token on Android, APNs hex token on iOS)
+   */
+  registerPushToken(token: string): void;
+
+  /**
+   * Check if a notification payload originates from Crisp.
+   * Useful for filtering Crisp notifications in your own JS notification handler.
+   *
+   * @param data - The notification data payload
+   * @returns `true` if the notification is from Crisp
+   */
+  isCrispPushNotification(data: Record<string, string>): boolean;
+
+  /**
+   * Control whether the Crisp SDK should automatically prompt the user
+   * for notification permissions.
+   * On Android, this is a no-op (the API does not exist in the native SDK).
+   *
+   * @param enabled - `true` to allow auto-prompting, `false` to disable
+   */
+  setShouldPromptForNotificationPermission(enabled: boolean): void;
 
   // ============================================================================
   // Messages

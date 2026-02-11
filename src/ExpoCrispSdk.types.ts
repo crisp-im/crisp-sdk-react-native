@@ -390,6 +390,22 @@ export interface LogReceivedPayload {
  */
 export type EmptyPayload = Record<string, never>;
 
+/**
+ * Event payload for the onPushNotificationReceived callback.
+ * Emitted when a Crisp push notification is received while the app is in the foreground.
+ */
+export interface PushNotificationPayload {
+  /**
+   * The notification title.
+   */
+  title: string;
+
+  /**
+   * The notification body text.
+   */
+  body: string;
+}
+
 // ============================================================================
 // Message Content Types (for showMessage)
 // ============================================================================

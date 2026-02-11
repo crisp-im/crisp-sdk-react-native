@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import type { CrispLogEntry, CrispMessage } from "./ExpoCrispSdk.types";
+import type { CrispLogEntry, CrispMessage, PushNotificationPayload } from "./ExpoCrispSdk.types";
 import ExpoCrispSdk from "./ExpoCrispSdkModule";
 
 /**
@@ -64,6 +64,12 @@ export interface CrispEventCallbacks {
    * @param log - The log entry details
    */
   onLogReceived?: (log: CrispLogEntry) => void;
+
+  /**
+   * Called when a Crisp push notification is received while the app is in the foreground.
+   * @param notification - The notification title and body
+   */
+  onPushNotificationReceived?: (notification: PushNotificationPayload) => void;
 }
 
 /**
@@ -137,6 +143,12 @@ export function useCrispEvents(callbacks: CrispEventCallbacks = {}): void {
     subscriptions.push(
       ExpoCrispSdk.addListener("onLogReceived", ({ log }) => {
         callbacksRef.current.onLogReceived?.(log);
+      }),
+    );
+
+    subscriptions.push(
+      ExpoCrispSdk.addListener("onPushNotificationReceived", (payload: PushNotificationPayload) => {
+        callbacksRef.current.onPushNotificationReceived?.(payload);
       }),
     );
 

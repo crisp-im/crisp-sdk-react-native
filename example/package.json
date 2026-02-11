@@ -10,23 +10,25 @@
     "format": "biome format --write ."
   },
   "dependencies": {
-    "expo": "~53.0.26",
-    "expo-constants": "~17.1.8",
-    "expo-linking": "~7.1.5",
-    "expo-router": "~5.1.11",
-    "expo-status-bar": "~2.2.3",
-    "react": "19.0.0",
-    "react-native": "0.79.6",
-    "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.11.0"
+    "expo": "^54.0.33",
+    "expo-constants": "~18.0.13",
+    "expo-device": "~8.0.10",
+    "expo-linking": "~8.0.11",
+    "expo-notifications": "~0.32.16",
+    "expo-router": "~6.0.23",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.27.1",
     "@biomejs/biome": "^2.3.8",
-    "@types/react": "~19.0.10",
+    "@types/react": "~19.1.10",
     "eslint": "^9.27.0",
-    "eslint-config-expo": "~9.2.0",
-    "typescript": "~5.8.3"
+    "eslint-config-expo": "~10.0.0",
+    "typescript": "~5.9.2"
   },
   "expo": {
     "autolinking": {
