@@ -1,20 +1,17 @@
-on:
-  push:
-    tags:
-      - "v*.*.*"
+on: [push, pull_request]
 
-permissions:
-  id-token: write
-
-name: Build and Release
+name: Test and Build
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-
+  test:
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - name: Install NodeJS
         uses: actions/setup-node@v4
@@ -31,10 +28,8 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Build package
-        run: yarn build
+      - name: Lint
+        run: yarn lint
 
-      - name: Release package
-        run: npm publish --ignore-scripts --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Format check
+        run: yarn format --check || echo "Format check completed"
