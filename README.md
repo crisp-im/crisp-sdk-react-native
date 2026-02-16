@@ -21,7 +21,7 @@
 > [!WARNING]
 > **Expo SDK 53+ Required**
 >
-> This SDK is exclusively compatible with Expo SDK version 53 and newer. For projects using older Expo versions, please use the [legacy React Native SDK](https://github.com/walterholohan/react-native-crisp-chat-sdk).
+> This SDK is exclusively compatible with Expo SDK version 53 and newer. For projects using older Expo versions, please use the [legacy React Native SDK](https://github.com/walterholohan/react-native-crisp-chat-sdk). If you're migrating from the legacy SDK, see the [Migration Guide](./MIGRATION.md).
 
 > [!WARNING]
 > **Expo Go is Not Supported**
@@ -165,8 +165,7 @@ To use the Crisp SDK, you need your Website ID from the Crisp Dashboard.
 3. Copy your Website ID
 
 <p align="center">
-  <em><img width="1575" height="870" alt="Configure_ID" src="https://github.com/user-attachments/assets/b4c37b71-a29f-4675-9831-fb0e5823cb70" /></em>
-
+  <em><img width="1797" height="872" alt="Setup and Integrations" src="https://github.com/user-attachments/assets/a68dd11e-84ed-4e9f-a68c-ec63fc58c61a" /></em>
 </p>
 
 ### Initialize Crisp
@@ -550,10 +549,10 @@ Access your knowledge base:
 ```typescript
 import { searchHelpdesk, openHelpdeskArticle } from "expo-crisp-sdk";
 
-// Open helpdesk search
+// Open helpdesk search (automatically opens the chat)
 searchHelpdesk();
 
-// Open a specific article
+// Open a specific article (automatically opens the chat)
 openHelpdeskArticle({
   id: "getting-started",
   locale: "en",
@@ -661,8 +660,8 @@ Available log levels (from most to least verbose):
 | Method                                               | Description                         | Parameters                                                                      | Return |
 | ---------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------- | ------ |
 | `show()`                                             | Open the Crisp chat widget.         | -                                                                               | `void` |
-| `searchHelpdesk()`                                   | Open the helpdesk search interface. | -                                                                               | `void` |
-| `openHelpdeskArticle(options)` | Open a specific helpdesk article.   | `options: HelpdeskArticleOptions` | `void` |
+| `searchHelpdesk()`                                   | Open the helpdesk search interface and the chat widget. | -                                                                               | `void` |
+| `openHelpdeskArticle(options)` | Open a specific helpdesk article and the chat widget.   | `options: HelpdeskArticleOptions` | `void` |
 | `runBotScenario(scenarioId)`                         | Trigger an automated bot scenario.  | `scenarioId: string`                                                            | `void` |
 
 ### Push Notification Methods (Coexistence Mode)

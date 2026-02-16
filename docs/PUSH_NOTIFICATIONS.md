@@ -81,11 +81,11 @@ Apple maintains two completely separate push notification environments:
 
 1. Go to [Crisp Dashboard](https://app.crisp.chat)
 
-2. Navigate to **Settings** > **Chatbox** > **Push Notifications**
+2. Navigate to **Settings** > **Chatbox Settings** > **Push Notifications**
+   
+   <img width="1789" height="864" alt="Push Notifs " src="https://github.com/user-attachments/assets/3f375634-f607-4055-8de0-13ad03408126" />
 
-   <img width="1635" height="965" alt="Configure-Dashboard-APNs-key" src="https://github.com/user-attachments/assets/1e295575-0663-49a8-8c36-db7b39d9aa43" />
-
-3. In the iOS section, provide the following information:
+4. In the iOS section, provide the following information:
 
    | Field           | Description                                          | Where to find it                                                                                                                      |
    | --------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -94,9 +94,9 @@ Apple maintains two completely separate push notification environments:
    | **Bundle ID**   | Your app's bundle identifier                         | Defined in your `app.json` (`expo.ios.bundleIdentifier`) or Xcode project settings                                                    |
    | **Key ID**      | The APNs key identifier (10 characters)              | Shown after creating the key, or in your Keys list                                                                                    |
 
-4. If you want to test with development builds, enable the **Sandbox mode** toggle in Crisp Dashboard
+5. If you want to test with development builds, enable the **Sandbox mode** toggle in Crisp Dashboard
 
-5. Click **Verify** to validate your credentials
+6. Click **Verify** to validate your credentials
 
 ### Step 5: Verify Xcode Configuration
 
@@ -224,7 +224,7 @@ Now that your app is registered, you need to get two pieces of information from 
 
 3. In the **Cloud Messaging** tab, find the **Sender ID**
 
-   <img width="1161" height="579" alt="Firebase Sender ID" src="https://github.com/user-attachments/assets/9f33214a-b9f0-4ab0-a2c3-2e240cf1348b" />
+   <img width="1294" height="416" alt="Firebase Cloud Messaging" src="https://github.com/user-attachments/assets/4714e4a2-4520-447d-bef1-74819de458fb" />
 
 > [!NOTE]
 > The "Sender ID" IS your Project Number. Firebase uses these terms interchangeably.
@@ -241,7 +241,7 @@ Now that your app is registered, you need to get two pieces of information from 
 
 4. A JSON file will be downloaded automatically
 
-   <img width="1142" height="748" alt="Generate Firebase Private Key" src="https://github.com/user-attachments/assets/ed60751e-3888-4b12-96bb-862e9cb4f8d4" />
+   <img width="1320" height="847" alt="Firebase Service Accounts" src="https://github.com/user-attachments/assets/3fe1ae89-dbdd-4ac7-b325-88ab73820657" />
 
 > [!WARNING]
 > Store this private key securely. It grants access to your Firebase project and should never be committed to version control or shared publicly.
@@ -264,8 +264,6 @@ With your Firebase credentials ready, let's configure Crisp to send push notific
 4. Click **Verify** to validate your credentials
 
 5. If verification succeeds, the status will show as **live**
-
-   <img width="1908" height="871" alt="Crisp Dashboard Android Configuration" src="https://github.com/user-attachments/assets/18758630-cb06-452b-a613-213eec4b1f5c" />
 
 ### Step 6: Configure Your Project
 
