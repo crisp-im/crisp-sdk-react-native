@@ -14,7 +14,7 @@
  *
  * @example
  * ```typescript
- * import { CrispSessionEventColors } from "expo-crisp-sdk";
+ * import { CrispSessionEventColors } from "crisp-sdk-react-native";
  *
  * // Use GREEN for successful actions
  * pushSessionEvent("Purchase completed", CrispSessionEventColors.GREEN);
@@ -52,7 +52,7 @@ export enum CrispSessionEventColors {
  *
  * @example
  * ```typescript
- * import { setLogLevel, CrispLogLevel } from "expo-crisp-sdk";
+ * import { setLogLevel, CrispLogLevel } from "crisp-sdk-react-native";
  *
  * // Set to DEBUG to see more detailed logs
  * setLogLevel(CrispLogLevel.DEBUG);
@@ -132,7 +132,7 @@ export interface Geolocation {
  *
  * @example
  * ```typescript
- * import { setUserCompany } from "expo-crisp-sdk";
+ * import { setUserCompany } from "crisp-sdk-react-native";
  *
  * setUserCompany({
  *   name: "Acme Corporation",
@@ -188,7 +188,7 @@ export interface Company {
  *
  * @example
  * ```typescript
- * import { pushSessionEvents, CrispSessionEventColors, type SessionEvent } from "expo-crisp-sdk";
+ * import { pushSessionEvents, CrispSessionEventColors, type SessionEvent } from "crisp-sdk-react-native";
  *
  * const events: SessionEvent[] = [
  *   { name: "Viewed pricing page", color: CrispSessionEventColors.BLUE },
@@ -258,7 +258,7 @@ export interface CrispUser {
  *
  * @example
  * ```typescript
- * import { useCrispEvents } from "expo-crisp-sdk";
+ * import { useCrispEvents } from "crisp-sdk-react-native";
  *
  * useCrispEvents({
  *   onMessageReceived: (message) => {
@@ -327,7 +327,7 @@ export interface CrispMessage {
  *
  * @example
  * ```typescript
- * import { useCrispEvents, CrispLogLevel } from "expo-crisp-sdk";
+ * import { useCrispEvents, CrispLogLevel } from "crisp-sdk-react-native";
  *
  * useCrispEvents({
  *   onLogReceived: (log) => {
@@ -415,7 +415,7 @@ export interface PushNotificationPayload {
  *
  * @example
  * ```typescript
- * import { openHelpdeskArticle } from "expo-crisp-sdk";
+ * import { openHelpdeskArticle } from "crisp-sdk-react-native";
  *
  * openHelpdeskArticle({
  *   id: "article-slug",

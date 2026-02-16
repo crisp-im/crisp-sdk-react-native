@@ -27,11 +27,11 @@ export { getSDKVersion } from "./version";
  *
  * @example
  * // Before (deprecated)
- * import CrispChat from "expo-crisp-sdk";
+ * import CrispChat from "crisp-sdk-react-native";
  * <CrispChat />
  *
  * // After (recommended)
- * import { show } from "expo-crisp-sdk";
+ * import { show } from "crisp-sdk-react-native";
  * show();
  */
 const CrispChat = () => {

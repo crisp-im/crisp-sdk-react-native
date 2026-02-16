@@ -19,7 +19,7 @@ config.resolver.nodeModulesPaths = [
 ];
 
 config.resolver.extraNodeModules = {
-  'expo-crisp-sdk': '..',
+  'crisp-sdk-react-native': '..',
 };
 
 config.watchFolders = [path.resolve(__dirname, '..')];

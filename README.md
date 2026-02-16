@@ -1,16 +1,16 @@
 <p align="center">
   <img width="659" alt="crisp-banner" src="https://github.com/user-attachments/assets/ac273b9a-5713-4fb6-ab1e-7214a018731e" />
   <br />
-  <h3 align="center">expo-crisp-sdk</h3>
+  <h3 align="center">crisp-sdk-react-native</h3>
   <p align="center">Expo Module for Crisp Chat - Add live chat to your React Native app</p>
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/expo-crisp-sdk">
-    <img src="https://img.shields.io/npm/v/expo-crisp-sdk.svg" alt="npm version" />
+  <a href="https://www.npmjs.com/package/crisp-sdk-react-native">
+    <img src="https://img.shields.io/npm/v/crisp-sdk-react-native.svg" alt="npm version" />
   </a>
-  <a href="https://github.com/VirtuozTM/expo-crisp-sdk/blob/main/LICENSE">
-    <img src="https://img.shields.io/npm/l/expo-crisp-sdk.svg" alt="license" />
+  <a href="https://github.com/VirtuozTM/crisp-sdk-react-native/blob/main/LICENSE">
+    <img src="https://img.shields.io/npm/l/crisp-sdk-react-native.svg" alt="license" />
   </a>
   <img src="https://img.shields.io/badge/Expo%20SDK-53%2B-blue" alt="Expo SDK 53+" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="platforms" />
@@ -44,16 +44,16 @@ Install the SDK using your preferred package manager:
 
 ```bash
 # Using bun
-bunx expo install expo-crisp-sdk
+bunx expo install crisp-sdk-react-native
 
 # Using pnpm
-pnpm dlx expo install expo-crisp-sdk
+pnpm dlx expo install crisp-sdk-react-native
 
 # Using npm
-npx expo install expo-crisp-sdk
+npx expo install crisp-sdk-react-native
 
 # Using yarn
-yarn dlx expo install expo-crisp-sdk
+yarn dlx expo install crisp-sdk-react-native
 ```
 
 ### Version Targeting
@@ -117,16 +117,16 @@ This command automatically configures your iOS and Android projects to support E
 
 ```bash
 # Using npm
-npm install expo-crisp-sdk
+npm install crisp-sdk-react-native
 
 # Using yarn
-yarn add expo-crisp-sdk
+yarn add crisp-sdk-react-native
 
 # Using pnpm
-pnpm add expo-crisp-sdk
+pnpm add crisp-sdk-react-native
 
 # Using bun
-bun add expo-crisp-sdk
+bun add crisp-sdk-react-native
 ```
 
 #### Step 3: Platform Configuration
@@ -174,7 +174,7 @@ Configure the SDK at app startup with your Website ID:
 
 ```typescript
 import { useEffect } from "react";
-import { configure } from "expo-crisp-sdk";
+import { configure } from "crisp-sdk-react-native";
 
 export default function App() {
   useEffect(() => {
@@ -196,7 +196,7 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
   "expo": {
     "plugins": [
       [
-        "expo-crisp-sdk",
+        "crisp-sdk-react-native",
         {
           "websiteId": "YOUR_WEBSITE_ID",
           "notifications": {
@@ -254,7 +254,7 @@ By default, Crisp handles all push notification routing exclusively (`"sdk-manag
   "expo": {
     "plugins": [
       [
-        "expo-crisp-sdk",
+        "crisp-sdk-react-native",
         {
           "websiteId": "YOUR_WEBSITE_ID",
           "notifications": {
@@ -276,7 +276,7 @@ In coexistence mode, the plugin:
 **JS API for coexistence mode:**
 
 ```typescript
-import { registerPushToken, isCrispPushNotification, setShouldPromptForNotificationPermission } from "expo-crisp-sdk";
+import { registerPushToken, isCrispPushNotification, setShouldPromptForNotificationPermission } from "crisp-sdk-react-native";
 
 // Register a push token obtained from your notification system
 registerPushToken(expoPushToken);
@@ -291,7 +291,7 @@ setShouldPromptForNotificationPermission(false);
 **Listen for Crisp notifications in the foreground (iOS only):**
 
 ```typescript
-import { useCrispEvents } from "expo-crisp-sdk";
+import { useCrispEvents } from "crisp-sdk-react-native";
 
 useCrispEvents({
   onPushNotificationReceived: ({ title, body }) => {
@@ -316,7 +316,7 @@ useCrispEvents({
 Display the Crisp chat widget:
 
 ```typescript
-import { show } from "expo-crisp-sdk";
+import { show } from "crisp-sdk-react-native";
 
 function ChatButton() {
   const openChat = () => {
@@ -335,7 +335,7 @@ Set user information to personalize the chat experience:
 import {
   setUserEmail, setUserNickname, setUserPhone, setUserAvatar,
   setUserCompany, setTokenId, resetSession,
-} from "expo-crisp-sdk";
+} from "crisp-sdk-react-native";
 
 // After user logs in
 function identifyUser(user) {
@@ -379,7 +379,7 @@ Store custom data visible to operators in the Crisp dashboard:
 import {
   setSessionString, setSessionBool, setSessionInt,
   setSessionSegment, setSessionSegments, getSessionIdentifier,
-} from "expo-crisp-sdk";
+} from "crisp-sdk-react-native";
 
 // Store different data types
 setSessionString("plan", "premium");
@@ -405,7 +405,7 @@ console.log("Session ID:", sessionId);
 Track user actions in the chat timeline:
 
 ```typescript
-import { pushSessionEvent, pushSessionEvents, CrispSessionEventColors } from "expo-crisp-sdk";
+import { pushSessionEvent, pushSessionEvents, CrispSessionEventColors } from "crisp-sdk-react-native";
 
 // Track a single event
 pushSessionEvent("Purchase completed", CrispSessionEventColors.GREEN);
@@ -426,7 +426,7 @@ Subscribe to SDK events using the `useCrispEvents` hook:
 ```typescript
 import { useState } from "react";
 import { View, Button } from "react-native";
-import { show, useCrispEvents } from "expo-crisp-sdk";
+import { show, useCrispEvents } from "crisp-sdk-react-native";
 
 function ChatScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -469,7 +469,7 @@ function ChatScreen() {
 Display messages programmatically in the chat:
 
 ```typescript
-import { showMessage } from "expo-crisp-sdk";
+import { showMessage } from "crisp-sdk-react-native";
 
 // Simple text message
 showMessage({
@@ -547,7 +547,7 @@ showMessage({
 Access your knowledge base:
 
 ```typescript
-import { searchHelpdesk, openHelpdeskArticle } from "expo-crisp-sdk";
+import { searchHelpdesk, openHelpdeskArticle } from "crisp-sdk-react-native";
 
 // Open helpdesk search (automatically opens the chat)
 searchHelpdesk();
@@ -566,7 +566,7 @@ openHelpdeskArticle({
 Trigger automated conversation flows:
 
 ```typescript
-import { runBotScenario } from "expo-crisp-sdk";
+import { runBotScenario } from "crisp-sdk-react-native";
 
 // Start a bot scenario configured in your Crisp dashboard
 runBotScenario("welcome-flow");
@@ -577,7 +577,7 @@ runBotScenario("welcome-flow");
 Enable native SDK logging to help debug integration issues:
 
 ```typescript
-import { setLogLevel, CrispLogLevel, useCrispEvents } from "expo-crisp-sdk";
+import { setLogLevel, CrispLogLevel, useCrispEvents } from "crisp-sdk-react-native";
 
 // Set the minimum log level (default: WARN)
 setLogLevel(CrispLogLevel.DEBUG);
@@ -688,7 +688,7 @@ Available log levels (from most to least verbose):
 
 | Function          | Description                            | Parameters | Return   |
 | ----------------- | -------------------------------------- | ---------- | -------- |
-| `getSDKVersion()` | Get the expo-crisp-sdk version string. | -          | `string` |
+| `getSDKVersion()` | Get the crisp-sdk-react-native version string. | -          | `string` |
 
 ---
 
@@ -978,7 +978,7 @@ Both apps are pre-configured and ready to run — just add your Website ID and f
 
 ## Contributing
 
-Issues and pull requests are welcome on [GitHub](https://github.com/VirtuozTM/expo-crisp-sdk/issues).
+Issues and pull requests are welcome on [GitHub](https://github.com/VirtuozTM/crisp-sdk-react-native/issues).
 
 ## License
 

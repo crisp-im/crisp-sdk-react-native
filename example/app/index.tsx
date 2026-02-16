@@ -15,7 +15,7 @@ import {
   show,
   showMessage,
   useCrispEvents,
-} from "expo-crisp-sdk";
+} from "crisp-sdk-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

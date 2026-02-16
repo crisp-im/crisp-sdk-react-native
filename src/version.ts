@@ -1,7 +1,7 @@
 import { version } from "../package.json";
 
 /**
- * Returns the version of the expo-crisp-sdk package.
+ * Returns the version of the crisp-sdk-react-native package.
  *
  * @returns The SDK version string (e.g., "0.1.0")
  * @example

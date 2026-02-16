@@ -1,8 +1,8 @@
-# Migration Guide: `react-native-crisp-chat-sdk` → `expo-crisp-sdk`
+# Migration Guide: `react-native-crisp-chat-sdk` → `crisp-sdk-react-native`
 
-This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](https://github.com/walterholohan/react-native-crisp-chat-sdk) to the official [`expo-crisp-sdk`](https://github.com/crisp-im/crisp-sdk-react-native).
+This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](https://github.com/walterholohan/react-native-crisp-chat-sdk) to the official [`crisp-sdk-react-native`](https://github.com/crisp-im/crisp-sdk-react-native).
 
-> **Requirements for `expo-crisp-sdk`:**
+> **Requirements for `crisp-sdk-react-native`:**
 >
 > - Expo SDK 53+ (or React Native 0.79+ with Expo Modules)
 > - New Architecture enabled (default in Expo SDK 53)
@@ -20,8 +20,8 @@ yarn remove react-native-crisp-chat-sdk
 # or: npm uninstall react-native-crisp-chat-sdk
 
 # Install the new SDK
-npx expo install expo-crisp-sdk
-# or: yarn add expo-crisp-sdk
+npx expo install crisp-sdk-react-native
+# or: yarn add crisp-sdk-react-native
 ```
 
 > **Note:** Keep `expo-build-properties` — it's still needed to set the iOS deployment target to 15.1+.
@@ -61,7 +61,7 @@ Replace the plugin name:
     "plugins": [
       ["expo-build-properties", { "ios": { "deploymentTarget": "15.1" } }],
       [
-        "expo-crisp-sdk",
+        "crisp-sdk-react-native",
         {
           "websiteId": "YOUR_WEBSITE_ID",
           "notifications": {
@@ -101,7 +101,7 @@ import CrispChat, {
   setUserEmail,
   show,
   // ... other imports
-} from "expo-crisp-sdk";
+} from "crisp-sdk-react-native";
 ```
 
 All existing imports — including the `CrispChat` default export — work exactly the same.
@@ -123,7 +123,7 @@ That's it! Your app should work exactly as before.
 
 ---
 
-## New Features in `expo-crisp-sdk`
+## New Features in `crisp-sdk-react-native`
 
 The new SDK includes features that were not available in the legacy SDK:
 
@@ -132,7 +132,7 @@ The new SDK includes features that were not available in the legacy SDK:
 Subscribe to chat events with the `useCrispEvents` hook:
 
 ```typescript
-import { useCrispEvents } from "expo-crisp-sdk";
+import { useCrispEvents } from "crisp-sdk-react-native";
 
 useCrispEvents({
   onSessionLoaded: (sessionId) => console.log("Session:", sessionId),
@@ -148,7 +148,7 @@ useCrispEvents({
 Display messages programmatically as operator in the chatbox:
 
 ```typescript
-import { showMessage } from "expo-crisp-sdk";
+import { showMessage } from "crisp-sdk-react-native";
 
 showMessage({ type: "text", text: "Hello! How can I help?" });
 showMessage({
@@ -168,7 +168,7 @@ showMessage({
 Enable native SDK logging for debugging:
 
 ```typescript
-import { setLogLevel, CrispLogLevel, useCrispEvents } from "expo-crisp-sdk";
+import { setLogLevel, CrispLogLevel, useCrispEvents } from "crisp-sdk-react-native";
 
 setLogLevel(CrispLogLevel.DEBUG);
 
@@ -184,7 +184,7 @@ useCrispEvents({
 If your app uses another push notification system alongside Crisp:
 
 ```typescript
-import { registerPushToken, isCrispPushNotification } from "expo-crisp-sdk";
+import { registerPushToken, isCrispPushNotification } from "crisp-sdk-react-native";
 
 // Register a token from your notification system
 registerPushToken(expoPushToken);
@@ -215,7 +215,7 @@ npx expo prebuild --clean
 
 ## Need Help?
 
-- [expo-crisp-sdk README](./README.md) — Full API reference and usage examples
+- [crisp-sdk-react-native README](./README.md) — Full API reference and usage examples
 - [Push Notifications Guide](./docs/PUSH_NOTIFICATIONS.md) — Detailed push notification setup
 - [Crisp Developer Documentation](https://docs.crisp.chat/) — Official Crisp docs
 - [GitHub Issues](https://github.com/crisp-im/crisp-sdk-react-native/issues) — Report bugs or ask questions

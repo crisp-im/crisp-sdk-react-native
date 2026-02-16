@@ -113,7 +113,7 @@ After running `npx expo prebuild`, open your project in Xcode and verify:
    - **Background Modes** with **Remote notifications** checked
 
 > [!NOTE]
-> The expo-crisp-sdk config plugin automatically adds these capabilities when `notifications.enabled` is `true`.
+> The crisp-sdk-react-native config plugin automatically adds these capabilities when `notifications.enabled` is `true`.
 
 <img width="1907" height="774" alt="Xcode-APNs-Key" src="https://github.com/user-attachments/assets/115cae98-ef02-489e-b5d9-16bc493e996c" />
 
@@ -203,7 +203,7 @@ Let's start with Firebase.
    }
    ```
 
-4. **Skip** the "Add Firebase SDK" step in Firebase Console - the expo-crisp-sdk plugin handles this automatically
+4. **Skip** the "Add Firebase SDK" step in Firebase Console - the crisp-sdk-react-native plugin handles this automatically
 
 5. Click **Continue to console**
 
@@ -280,7 +280,7 @@ The final step is to add the Firebase configuration to your project. Choose the 
      "expo": {
        "plugins": [
          [
-           "expo-crisp-sdk",
+           "crisp-sdk-react-native",
            {
              "websiteId": "YOUR_WEBSITE_ID",
              "notifications": {
@@ -305,7 +305,7 @@ The final step is to add the Firebase configuration to your project. Choose the 
    ```
 
 > [!NOTE]
-> The expo-crisp-sdk config plugin automatically adds Firebase Messaging dependencies and configures the native Android project when `notifications.enabled` is `true`.
+> The crisp-sdk-react-native config plugin automatically adds Firebase Messaging dependencies and configures the native Android project when `notifications.enabled` is `true`.
 
 #### React Native CLI
 

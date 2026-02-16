@@ -61,7 +61,7 @@ const withExpoCrisp: ConfigPlugin<ExpoCrispPluginProps> = (
 
   if (!websiteId) {
     throw new Error(
-      "[expo-crisp-sdk] websiteId is required when notifications are enabled. " +
+      "[crisp-sdk-react-native] websiteId is required when notifications are enabled. " +
         "Add it to your app.json plugin configuration.",
     );
   }
@@ -70,7 +70,7 @@ const withExpoCrisp: ConfigPlugin<ExpoCrispPluginProps> = (
 
   if (!VALID_MODES.includes(mode)) {
     throw new Error(
-      `[expo-crisp-sdk] Invalid notifications.mode "${mode}". ` +
+      `[crisp-sdk-react-native] Invalid notifications.mode "${mode}". ` +
         `Accepted values: ${VALID_MODES.map((m) => `"${m}"`).join(", ")}.`,
     );
   }

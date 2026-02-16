@@ -9,7 +9,7 @@ import ExpoCrispSdk from "./ExpoCrispSdkModule";
  *
  * @example
  * ```typescript
- * import { useCrispEvents } from "expo-crisp-sdk";
+ * import { useCrispEvents } from "crisp-sdk-react-native";
  *
  * function ChatScreen() {
  *   useCrispEvents({
@@ -82,7 +82,7 @@ export interface CrispEventCallbacks {
  *
  * @example
  * ```typescript
- * import { useCrispEvents } from "expo-crisp-sdk";
+ * import { useCrispEvents } from "crisp-sdk-react-native";
  *
  * function App() {
  *   const [unreadCount, setUnreadCount] = useState(0);

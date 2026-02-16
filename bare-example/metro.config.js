@@ -17,7 +17,7 @@ const config = {
       path.resolve(__dirname, '../node_modules'),
     ],
     extraNodeModules: {
-      'expo-crisp-sdk': path.resolve(__dirname, '..'),
+      'crisp-sdk-react-native': path.resolve(__dirname, '..'),
     },
   },
   transformer: {

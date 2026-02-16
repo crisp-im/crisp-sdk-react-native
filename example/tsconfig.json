@@ -3,8 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "expo-crisp-sdk": ["../src/index"],
-      "expo-crisp-sdk/*": ["../src/*"]
+      "crisp-sdk-react-native": ["../src/index"],
+      "crisp-sdk-react-native/*": ["../src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
