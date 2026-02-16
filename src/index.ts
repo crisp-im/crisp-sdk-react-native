@@ -1,3 +1,5 @@
+import { createElement, useEffect } from "react";
+import { View } from "react-native";
 import type {
   Company,
   CrispLogLevel,
@@ -13,6 +15,34 @@ export * from "./ExpoCrispSdk.types";
 export type { CrispEventCallbacks } from "./useCrispEvents";
 export { useCrispEvents } from "./useCrispEvents";
 export { getSDKVersion } from "./version";
+
+// ============================================================================
+// Legacy Compatibility
+// ============================================================================
+
+/**
+ * Legacy React component that opens the Crisp chat on mount.
+ *
+ * @deprecated Use `show()` directly instead. This component will be removed in a future version.
+ *
+ * @example
+ * // Before (deprecated)
+ * import CrispChat from "expo-crisp-sdk";
+ * <CrispChat />
+ *
+ * // After (recommended)
+ * import { show } from "expo-crisp-sdk";
+ * show();
+ */
+const CrispChat = () => {
+  useEffect(() => {
+    ExpoCrispSdkModule.show();
+  }, []);
+
+  return createElement(View);
+};
+
+export default CrispChat;
 
 // ============================================================================
 // Configuration
@@ -212,23 +242,43 @@ export function show(): void {
 
 /**
  * Open the helpdesk search interface.
+ * Automatically opens the chat widget after searching.
  */
 export function searchHelpdesk(): void {
   ExpoCrispSdkModule.searchHelpdesk();
+  ExpoCrispSdkModule.show();
 }
 
 /**
  * Open a specific helpdesk article.
+ * Automatically opens the chat widget after opening the article.
  *
- * @param options - Article options including id, locale, and optional title/category
+ * Accepts both the new object format and the legacy positional arguments:
+ *
+ * @example
+ * // New format (recommended)
+ * openHelpdeskArticle({ id: "slug", locale: "en", title: "Title", category: "Cat" });
+ *
+ * // Legacy format (deprecated, for backward compatibility)
+ * openHelpdeskArticle("slug", "en", "Title", "Cat");
  */
-export function openHelpdeskArticle(options: HelpdeskArticleOptions): void {
-  ExpoCrispSdkModule.openHelpdeskArticle(
-    options.id,
-    options.locale,
-    options.title,
-    options.category,
-  );
+export function openHelpdeskArticle(
+  optionsOrId: HelpdeskArticleOptions | string,
+  locale?: string,
+  title?: string | null,
+  category?: string | null,
+): void {
+  if (typeof optionsOrId === "string") {
+    ExpoCrispSdkModule.openHelpdeskArticle(optionsOrId, locale!, title, category);
+  } else {
+    ExpoCrispSdkModule.openHelpdeskArticle(
+      optionsOrId.id,
+      optionsOrId.locale,
+      optionsOrId.title,
+      optionsOrId.category,
+    );
+  }
+  ExpoCrispSdkModule.show();
 }
 
 /**

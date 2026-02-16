@@ -550,10 +550,10 @@ Access your knowledge base:
 ```typescript
 import { searchHelpdesk, openHelpdeskArticle } from "expo-crisp-sdk";
 
-// Open helpdesk search
+// Open helpdesk search (automatically opens the chat)
 searchHelpdesk();
 
-// Open a specific article
+// Open a specific article (automatically opens the chat)
 openHelpdeskArticle({
   id: "getting-started",
   locale: "en",
@@ -661,8 +661,8 @@ Available log levels (from most to least verbose):
 | Method                                               | Description                         | Parameters                                                                      | Return |
 | ---------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------- | ------ |
 | `show()`                                             | Open the Crisp chat widget.         | -                                                                               | `void` |
-| `searchHelpdesk()`                                   | Open the helpdesk search interface. | -                                                                               | `void` |
-| `openHelpdeskArticle(options)` | Open a specific helpdesk article.   | `options: HelpdeskArticleOptions` | `void` |
+| `searchHelpdesk()`                                   | Open the helpdesk search interface and the chat widget. | -                                                                               | `void` |
+| `openHelpdeskArticle(options)` | Open a specific helpdesk article and the chat widget.   | `options: HelpdeskArticleOptions` | `void` |
 | `runBotScenario(scenarioId)`                         | Trigger an automated bot scenario.  | `scenarioId: string`                                                            | `void` |
 
 ### Push Notification Methods (Coexistence Mode)

@@ -30,7 +30,7 @@ npx expo install expo-crisp-sdk
 
 ## Step 2: Update `app.json` / `app.config.js`
 
-Replace the plugin entry:
+Replace the plugin name:
 
 **Before:**
 
@@ -65,8 +65,7 @@ Replace the plugin entry:
         {
           "websiteId": "YOUR_WEBSITE_ID",
           "notifications": {
-            "enabled": true,
-            "mode": "sdk-managed"
+            "enabled": true
           }
         }
       ]
@@ -75,178 +74,41 @@ Replace the plugin entry:
 }
 ```
 
-**What changed:**
-
-| | Before | After |
-|---|---|---|
-| Plugin name | `"react-native-crisp-chat-sdk"` | `"expo-crisp-sdk"` |
-| Notification mode | _(not available)_ | `"sdk-managed"` or `"coexistence"` |
-
-> **Tip:** If your app uses another push notification system (e.g., `expo-notifications`, Firebase, OneSignal), use `"coexistence"` mode instead. See the [Push Notifications docs](./docs/PUSH_NOTIFICATIONS.md) for details.
+> **Tip:** If your app uses another push notification system (e.g., `expo-notifications`, Firebase, OneSignal), you can now use `"mode": "coexistence"` in the notifications config. See the [Push Notifications docs](./docs/PUSH_NOTIFICATIONS.md) for details.
 
 ---
 
 ## Step 3: Update Imports
+
+Replace the package name in your imports:
 
 **Before:**
 
 ```typescript
 import CrispChat, {
   configure,
-  setTokenId,
   setUserEmail,
-  setUserNickname,
-  setUserPhone,
-  setUserAvatar,
-  setUserCompany,
-  setSessionSegment,
-  setSessionSegments,
-  setSessionString,
-  setSessionBool,
-  setSessionInt,
-  getSessionIdentifier,
-  pushSessionEvent,
-  pushSessionEvents,
-  resetSession,
   show,
-  searchHelpdesk,
-  openHelpdeskArticle,
-  runBotScenario,
-  CrispSessionEventColors,
+  // ... other imports
 } from "react-native-crisp-chat-sdk";
 ```
 
 **After:**
 
 ```typescript
-import {
+import CrispChat, {
   configure,
-  setTokenId,
   setUserEmail,
-  setUserNickname,
-  setUserPhone,
-  setUserAvatar,
-  setUserCompany,
-  setSessionSegment,
-  setSessionSegments,
-  setSessionString,
-  setSessionBool,
-  setSessionInt,
-  getSessionIdentifier,
-  pushSessionEvent,
-  pushSessionEvents,
-  resetSession,
   show,
-  searchHelpdesk,
-  openHelpdeskArticle,
-  runBotScenario,
-  CrispSessionEventColors,
+  // ... other imports
 } from "expo-crisp-sdk";
 ```
 
-**What changed:**
-
-- Package name: `"react-native-crisp-chat-sdk"` → `"expo-crisp-sdk"`
-- No more default export: `CrispChat` component is removed (see Step 4)
+All existing imports — including the `CrispChat` default export — work exactly the same.
 
 ---
 
-## Step 4: Remove the `<CrispChat />` Component
-
-The old SDK exported a `<CrispChat />` React component that called `show()` on mount. The new SDK removes this component — call `show()` directly instead.
-
-**Before:**
-
-```tsx
-import CrispChat, { configure } from "react-native-crisp-chat-sdk";
-
-export default function App() {
-  configure("YOUR_WEBSITE_ID");
-  return <CrispChat />;
-}
-```
-
-**After:**
-
-```tsx
-import { useEffect } from "react";
-import { Button, View } from "react-native";
-import { configure, show } from "expo-crisp-sdk";
-
-export default function App() {
-  useEffect(() => {
-    configure("YOUR_WEBSITE_ID");
-  }, []);
-
-  return (
-    <View>
-      <Button title="Chat with us" onPress={() => show()} />
-    </View>
-  );
-}
-```
-
----
-
-## Step 5: Update Changed Method Signatures
-
-Most methods are **identical** between the two SDKs. Only three methods have changed:
-
-### `openHelpdeskArticle` — Now takes an options object
-
-**Before:**
-
-```typescript
-openHelpdeskArticle("article-slug", "en", "Getting Started", "Guides");
-```
-
-**After:**
-
-```typescript
-openHelpdeskArticle({
-  id: "article-slug",
-  locale: "en",
-  title: "Getting Started",   // optional
-  category: "Guides",         // optional
-});
-```
-
-### `setUserEmail` — Signature parameter is now optional
-
-**Before:**
-
-```typescript
-// Without verification — had to pass null explicitly
-setUserEmail("user@example.com", null);
-
-// With verification
-setUserEmail("user@example.com", "hmac-signature");
-```
-
-**After:**
-
-```typescript
-// Without verification — just omit the second argument
-setUserEmail("user@example.com");
-
-// With verification — same as before
-setUserEmail("user@example.com", "hmac-signature");
-```
-
-### `searchHelpdesk` — No longer auto-opens the chat
-
-**Before:** `searchHelpdesk()` automatically called `show()` internally.
-
-**After:** `searchHelpdesk()` only opens the helpdesk search. If the chat is not already visible, call `show()` yourself:
-
-```typescript
-searchHelpdesk();
-show(); // Add this if you need the chat to open
-```
-
----
-
-## Step 6: Rebuild Your App
+## Step 4: Rebuild Your App
 
 After making all changes, rebuild your native projects:
 
@@ -257,33 +119,7 @@ npx expo run:ios
 npx expo run:android
 ```
 
----
-
-## Step 7: Unchanged Methods (No Action Needed)
-
-These methods work exactly the same in both SDKs — no changes required:
-
-| Method | Signature |
-|---|---|
-| `configure` | `(websiteId: string) => void` |
-| `setTokenId` | `(tokenId: string \| null) => void` |
-| `setUserNickname` | `(name: string) => void` |
-| `setUserPhone` | `(phone: string) => void` |
-| `setUserAvatar` | `(url: string) => void` |
-| `setUserCompany` | `(company: Company) => void` |
-| `setSessionSegment` | `(segment: string) => void` |
-| `setSessionSegments` | `(segments: string[], overwrite?: boolean) => void` |
-| `setSessionString` | `(key: string, value: string) => void` |
-| `setSessionBool` | `(key: string, value: boolean) => void` |
-| `setSessionInt` | `(key: string, value: number) => void` |
-| `getSessionIdentifier` | `() => Promise<string \| null>` |
-| `pushSessionEvent` | `(name: string, color: CrispSessionEventColors) => void` |
-| `pushSessionEvents` | `(events: SessionEvent[]) => void` |
-| `resetSession` | `() => void` |
-| `show` | `() => void` |
-| `runBotScenario` | `(scenarioId: string) => void` |
-
-The `Company`, `Employment`, `Geolocation`, and `CrispSessionEventColors` types are also identical.
+That's it! Your app should work exactly as before.
 
 ---
 
@@ -359,97 +195,6 @@ const isCrisp = isCrispPushNotification(notificationData);
 
 ---
 
-## Complete Before/After Example
-
-### Before (legacy SDK)
-
-```tsx
-import CrispChat, {
-  configure,
-  setTokenId,
-  setUserEmail,
-  setUserNickname,
-  resetSession,
-  CrispSessionEventColors,
-  pushSessionEvent,
-  searchHelpdesk,
-  openHelpdeskArticle,
-} from "react-native-crisp-chat-sdk";
-
-export default function App() {
-  configure("YOUR_WEBSITE_ID");
-  setTokenId("user-123");
-  setUserEmail("user@example.com", null);
-  setUserNickname("John Doe");
-  pushSessionEvent("App opened", CrispSessionEventColors.BLUE);
-
-  const openHelp = () => {
-    openHelpdeskArticle("getting-started", "en", "Getting Started", null);
-  };
-
-  const onLogout = () => {
-    setTokenId(null);
-    resetSession();
-  };
-
-  return <CrispChat />;
-}
-```
-
-### After (new SDK)
-
-```tsx
-import { useEffect } from "react";
-import { Button, View } from "react-native";
-import {
-  configure,
-  setTokenId,
-  setUserEmail,
-  setUserNickname,
-  resetSession,
-  show,
-  CrispSessionEventColors,
-  pushSessionEvent,
-  searchHelpdesk,
-  openHelpdeskArticle,
-  useCrispEvents,
-} from "expo-crisp-sdk";
-
-export default function App() {
-  useEffect(() => {
-    configure("YOUR_WEBSITE_ID");
-    setTokenId("user-123");
-    setUserEmail("user@example.com");
-    setUserNickname("John Doe");
-    pushSessionEvent("App opened", CrispSessionEventColors.BLUE);
-  }, []);
-
-  useCrispEvents({
-    onMessageReceived: (message) => {
-      console.log("New message:", message.content);
-    },
-  });
-
-  const openHelp = () => {
-    openHelpdeskArticle({ id: "getting-started", locale: "en", title: "Getting Started" });
-  };
-
-  const onLogout = () => {
-    setTokenId(null);
-    resetSession();
-  };
-
-  return (
-    <View>
-      <Button title="Chat with us" onPress={() => show()} />
-      <Button title="Help Center" onPress={openHelp} />
-    </View>
-  );
-}
-```
-
----
-
 ## Troubleshooting
 
 ### Build fails after migration
@@ -460,19 +205,11 @@ Run a clean prebuild to regenerate native projects:
 npx expo prebuild --clean
 ```
 
-### `CrispChat` is not exported
-
-The `<CrispChat />` component has been removed. Use `show()` to open the chat instead. See [Step 4](#step-4-remove-the-crispchat--component).
-
 ### Push notifications stopped working
 
 1. Make sure the plugin name is updated in `app.json` (Step 2)
 2. Rebuild with `npx expo prebuild --clean`
 3. Verify your Crisp Dashboard push notification settings are still configured
-
-### `openHelpdeskArticle` type error
-
-The method now takes an options object instead of positional arguments. See [Step 5](#step-5-update-changed-method-signatures).
 
 ---
 
