@@ -1,19 +1,36 @@
 <p align="center">
-  <img width="659" alt="crisp-banner" src="https://github.com/user-attachments/assets/ac273b9a-5713-4fb6-ab1e-7214a018731e" />
+  <a href="https://crisp.chat/en/sdk/react-native/">
+    <img width="659" alt="crisp-banner" src="https://github.com/user-attachments/assets/ac273b9a-5713-4fb6-ab1e-7214a018731e" />
+  </a>
   <br />
   <h3 align="center">crisp-sdk-react-native</h3>
-  <p align="center">Expo Module for Crisp Chat - Add live chat to your React Native app</p>
+  <p align="center">The official Crisp SDK for React Native &mdash; Add live chat to your Expo & React Native apps</p>
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/crisp-sdk-react-native">
     <img src="https://img.shields.io/npm/v/crisp-sdk-react-native.svg" alt="npm version" />
   </a>
-  <a href="https://github.com/VirtuozTM/crisp-sdk-react-native/blob/main/LICENSE">
+  <a href="https://github.com/crisp-im/crisp-sdk-react-native/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/crisp-sdk-react-native.svg" alt="license" />
   </a>
   <img src="https://img.shields.io/badge/Expo%20SDK-53%2B-blue" alt="Expo SDK 53+" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="platforms" />
+</p>
+
+<p align="center">
+  <a href="https://crisp.chat/en/sdk/"><b>All Crisp SDKs</b></a> &nbsp;&bull;&nbsp;
+  <a href="https://crisp.chat/en/sdk/react-native/"><b>React Native SDK Page</b></a> &nbsp;&bull;&nbsp;
+  <a href="https://docs.crisp.chat/guides/chatbox-sdks/react-native-sdk/"><b>Developer Docs</b></a>
+</p>
+
+---
+
+### Trusted by
+
+<p>
+  <b>Fruitz</b> &nbsp;&bull;&nbsp;
+  and many more companies rely on Crisp to power their in-app customer support.
 </p>
 
 ---
@@ -212,11 +229,11 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 
 #### Plugin Options
 
-| Option                  | Type                              | Default          | Description                                                                    |
-| ----------------------- | --------------------------------- | ---------------- | ------------------------------------------------------------------------------ |
-| `websiteId`             | `string`                          | -                | Your Crisp Website ID. **Required** when notifications are enabled.            |
-| `notifications.enabled` | `boolean`                         | `false`          | Enable push notifications for Crisp Chat.                                      |
-| `notifications.mode`    | `"sdk-managed" \| "coexistence"` | `"sdk-managed"` | Notification handling mode. See [Coexistence Mode](#coexistence-mode) below.   |
+| Option                  | Type                             | Default         | Description                                                                  |
+| ----------------------- | -------------------------------- | --------------- | ---------------------------------------------------------------------------- |
+| `websiteId`             | `string`                         | -               | Your Crisp Website ID. **Required** when notifications are enabled.          |
+| `notifications.enabled` | `boolean`                        | `false`         | Enable push notifications for Crisp Chat.                                    |
+| `notifications.mode`    | `"sdk-managed" \| "coexistence"` | `"sdk-managed"` | Notification handling mode. See [Coexistence Mode](#coexistence-mode) below. |
 
 > [!IMPORTANT]
 > The `websiteId` is **required** when `notifications.enabled` is `true`. The plugin will throw an error if it's missing.
@@ -276,7 +293,11 @@ In coexistence mode, the plugin:
 **JS API for coexistence mode:**
 
 ```typescript
-import { registerPushToken, isCrispPushNotification, setShouldPromptForNotificationPermission } from "crisp-sdk-react-native";
+import {
+  registerPushToken,
+  isCrispPushNotification,
+  setShouldPromptForNotificationPermission,
+} from "crisp-sdk-react-native";
 
 // Register a push token obtained from your notification system
 registerPushToken(expoPushToken);
@@ -333,8 +354,13 @@ Set user information to personalize the chat experience:
 
 ```typescript
 import {
-  setUserEmail, setUserNickname, setUserPhone, setUserAvatar,
-  setUserCompany, setTokenId, resetSession,
+  setUserEmail,
+  setUserNickname,
+  setUserPhone,
+  setUserAvatar,
+  setUserCompany,
+  setTokenId,
+  resetSession,
 } from "crisp-sdk-react-native";
 
 // After user logs in
@@ -377,8 +403,12 @@ Store custom data visible to operators in the Crisp dashboard:
 
 ```typescript
 import {
-  setSessionString, setSessionBool, setSessionInt,
-  setSessionSegment, setSessionSegments, getSessionIdentifier,
+  setSessionString,
+  setSessionBool,
+  setSessionInt,
+  setSessionSegment,
+  setSessionSegments,
+  getSessionIdentifier,
 } from "crisp-sdk-react-native";
 
 // Store different data types
@@ -405,7 +435,11 @@ console.log("Session ID:", sessionId);
 Track user actions in the chat timeline:
 
 ```typescript
-import { pushSessionEvent, pushSessionEvents, CrispSessionEventColors } from "crisp-sdk-react-native";
+import {
+  pushSessionEvent,
+  pushSessionEvents,
+  CrispSessionEventColors,
+} from "crisp-sdk-react-native";
 
 // Track a single event
 pushSessionEvent("Purchase completed", CrispSessionEventColors.GREEN);
@@ -455,10 +489,7 @@ function ChatScreen() {
 
   return (
     <View>
-      <Button
-        title={`Open Chat (${unreadCount})`}
-        onPress={() => show()}
-      />
+      <Button title={`Open Chat (${unreadCount})`} onPress={() => show()} />
     </View>
   );
 }
@@ -556,8 +587,8 @@ searchHelpdesk();
 openHelpdeskArticle({
   id: "getting-started",
   locale: "en",
-  title: "Getting Started",    // Optional
-  category: "Onboarding",      // Optional
+  title: "Getting Started", // Optional
+  category: "Onboarding", // Optional
 });
 ```
 
@@ -577,7 +608,11 @@ runBotScenario("welcome-flow");
 Enable native SDK logging to help debug integration issues:
 
 ```typescript
-import { setLogLevel, CrispLogLevel, useCrispEvents } from "crisp-sdk-react-native";
+import {
+  setLogLevel,
+  CrispLogLevel,
+  useCrispEvents,
+} from "crisp-sdk-react-native";
 
 // Set the minimum log level (default: WARN)
 setLogLevel(CrispLogLevel.DEBUG);
@@ -617,8 +652,8 @@ Available log levels (from most to least verbose):
 
 ### Logger Methods
 
-| Method              | Description                                                                 | Parameters              | Return |
-| ------------------- | --------------------------------------------------------------------------- | ----------------------- | ------ |
+| Method               | Description                                                                                                    | Parameters             | Return |
+| -------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------- | ------ |
 | `setLogLevel(level)` | Set the minimum log level for native SDK logging. Logs at or above this level are emitted via `onLogReceived`. | `level: CrispLogLevel` | `void` |
 
 ### User Information Methods
@@ -657,20 +692,20 @@ Available log levels (from most to least verbose):
 
 ### UI Methods
 
-| Method                                               | Description                         | Parameters                                                                      | Return |
-| ---------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------- | ------ |
-| `show()`                                             | Open the Crisp chat widget.         | -                                                                               | `void` |
-| `searchHelpdesk()`                                   | Open the helpdesk search interface and the chat widget. | -                                                                               | `void` |
+| Method                         | Description                                             | Parameters                        | Return |
+| ------------------------------ | ------------------------------------------------------- | --------------------------------- | ------ |
+| `show()`                       | Open the Crisp chat widget.                             | -                                 | `void` |
+| `searchHelpdesk()`             | Open the helpdesk search interface and the chat widget. | -                                 | `void` |
 | `openHelpdeskArticle(options)` | Open a specific helpdesk article and the chat widget.   | `options: HelpdeskArticleOptions` | `void` |
-| `runBotScenario(scenarioId)`                         | Trigger an automated bot scenario.  | `scenarioId: string`                                                            | `void` |
+| `runBotScenario(scenarioId)`   | Trigger an automated bot scenario.                      | `scenarioId: string`              | `void` |
 
 ### Push Notification Methods (Coexistence Mode)
 
-| Method                                            | Description                                                                    | Parameters                       | Return    |
-| ------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------- | --------- |
-| `registerPushToken(token)`                        | Register a push token (FCM/APNs) with Crisp.                                  | `token: string`                  | `void`    |
-| `isCrispPushNotification(data)`                   | Check if a notification payload is from Crisp.                                 | `data: Record<string, string>`   | `boolean` |
-| `setShouldPromptForNotificationPermission(enabled)` | Control auto-prompting for notification permissions (iOS only, no-op on Android). | `enabled: boolean`               | `void`    |
+| Method                                              | Description                                                                       | Parameters                     | Return    |
+| --------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------ | --------- |
+| `registerPushToken(token)`                          | Register a push token (FCM/APNs) with Crisp.                                      | `token: string`                | `void`    |
+| `isCrispPushNotification(data)`                     | Check if a notification payload is from Crisp.                                    | `data: Record<string, string>` | `boolean` |
+| `setShouldPromptForNotificationPermission(enabled)` | Control auto-prompting for notification permissions (iOS only, no-op on Android). | `enabled: boolean`             | `void`    |
 
 ### Message Methods
 
@@ -686,8 +721,8 @@ Available log levels (from most to least verbose):
 
 ### Utility Functions
 
-| Function          | Description                            | Parameters | Return   |
-| ----------------- | -------------------------------------- | ---------- | -------- |
+| Function          | Description                                    | Parameters | Return   |
+| ----------------- | ---------------------------------------------- | ---------- | -------- |
 | `getSDKVersion()` | Get the crisp-sdk-react-native version string. | -          | `string` |
 
 ---
@@ -915,14 +950,14 @@ interface CarouselTarget {
 
 #### CrispLogLevel
 
-| Value          | Description                              |
-| -------------- | ---------------------------------------- |
-| `VERBOSE` (0)  | Most verbose; includes all log messages  |
-| `DEBUG` (1)    | Debug information for development        |
-| `INFO` (2)     | Informational messages                   |
-| `WARN` (3)     | Warnings (default level)                 |
-| `ERROR` (4)    | Error messages only                      |
-| `ASSERT` (5)   | Critical assertion failures              |
+| Value         | Description                             |
+| ------------- | --------------------------------------- |
+| `VERBOSE` (0) | Most verbose; includes all log messages |
+| `DEBUG` (1)   | Debug information for development       |
+| `INFO` (2)    | Informational messages                  |
+| `WARN` (3)    | Warnings (default level)                |
+| `ERROR` (4)   | Error messages only                     |
+| `ASSERT` (5)  | Critical assertion failures             |
 
 ---
 
@@ -960,10 +995,10 @@ Use `setTokenId()` with a unique user identifier to enable session persistence a
 
 Two fully functional example apps are included in the repository to help you get started:
 
-| App | Directory | Description |
-|-----|-----------|-------------|
-| **Expo** | [`/example`](./example) | Expo Router app with push notifications (coexistence mode with `expo-notifications`), event listeners, and all SDK features |
-| **Bare React Native** | [`/bare-example`](./bare-example) | Bare React Native CLI app demonstrating integration without the Expo managed workflow |
+| App                   | Directory                         | Description                                                                                                                 |
+| --------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Expo**              | [`/example`](./example)           | Expo Router app with push notifications (coexistence mode with `expo-notifications`), event listeners, and all SDK features |
+| **Bare React Native** | [`/bare-example`](./bare-example) | Bare React Native CLI app demonstrating integration without the Expo managed workflow                                       |
 
 Both apps are pre-configured and ready to run — just add your Website ID and follow the setup instructions in each directory.
 
@@ -971,6 +1006,8 @@ Both apps are pre-configured and ready to run — just add your Website ID and f
 
 ## Resources
 
+- [Crisp SDK Overview](https://crisp.chat/en/sdk/) — All available Crisp SDKs
+- [React Native SDK Page](https://crisp.chat/en/sdk/react-native/) — Product page for this SDK
 - [Crisp Help Center](https://help.crisp.chat/)
 - [Crisp Developer Documentation](https://docs.crisp.chat/)
 - [iOS SDK Documentation](https://docs.crisp.chat/guides/chatbox-sdks/ios-sdk/)
@@ -978,7 +1015,7 @@ Both apps are pre-configured and ready to run — just add your Website ID and f
 
 ## Contributing
 
-Issues and pull requests are welcome on [GitHub](https://github.com/VirtuozTM/crisp-sdk-react-native/issues).
+Issues and pull requests are welcome on [GitHub](https://github.com/crisp-im/crisp-sdk-react-native/issues).
 
 ## License
 
