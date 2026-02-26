@@ -4,14 +4,10 @@ name: Test and Build
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
+        uses: actions/checkout@v4
 
       - name: Install NodeJS
         uses: actions/setup-node@v4
