@@ -26,12 +26,15 @@
 
 ---
 
-### Trusted by
+<p align="center"><b>Trusted by</b></p>
 
-<p>
-  <b>Fruitz</b> &nbsp;&bull;&nbsp;
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/4b824e2a-018f-42a5-850e-34cb588adeb2" alt="Fruitz" height="40" align="center" />
+  <b>Fruitz</b>
+  &nbsp;&middot;&nbsp;
   and many more companies rely on Crisp to power their in-app customer support.
 </p>
+
 
 ---
 
