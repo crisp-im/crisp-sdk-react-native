@@ -34,5 +34,8 @@ jobs:
       - name: Build package
         run: yarn build
 
+      - name: Build plugin
+        run: yarn build:plugin
+
       - name: Release package
         run: npm publish --ignore-scripts --provenance
