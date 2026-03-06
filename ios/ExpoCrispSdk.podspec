@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.dependency 'Crisp', '~> 2.12.0'
+  s.dependency 'Crisp', '~> 2.13.0'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
