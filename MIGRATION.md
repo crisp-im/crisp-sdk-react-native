@@ -4,7 +4,8 @@ This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](htt
 
 > **Requirements for `crisp-sdk-react-native`:**
 >
-> - Expo SDK 53+ (or React Native 0.79+ with Expo Modules)
+> - Expo SDK 51+ (or React Native 0.76+ with Expo Modules)
+> - **Note:** Version 0.1.5+ requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
 > - New Architecture enabled (default in Expo SDK 53)
 > - Expo Go is **not** supported — use a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 
@@ -24,13 +25,13 @@ npx expo install crisp-sdk-react-native
 # or: yarn add crisp-sdk-react-native
 ```
 
-> **Note:** Keep `expo-build-properties` — it's still needed to set the iOS deployment target to 15.1+.
+> **Note:** `expo-build-properties` is no longer required — you can remove it if it was only used for Crisp.
 
 ---
 
 ## Step 2: Update `app.json` / `app.config.js`
 
-Replace the plugin name:
+Replace the plugin name and remove `expo-build-properties` if no longer needed:
 
 **Before:**
 
@@ -59,7 +60,6 @@ Replace the plugin name:
 {
   "expo": {
     "plugins": [
-      ["expo-build-properties", { "ios": { "deploymentTarget": "15.1" } }],
       [
         "crisp-sdk-react-native",
         {

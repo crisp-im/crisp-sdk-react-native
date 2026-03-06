@@ -14,7 +14,7 @@
   <a href="https://github.com/crisp-im/crisp-sdk-react-native/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/crisp-sdk-react-native.svg" alt="license" />
   </a>
-  <img src="https://img.shields.io/badge/Expo%20SDK-53%2B-blue" alt="Expo SDK 53+" />
+  <img src="https://img.shields.io/badge/Expo%20SDK-51%2B-blue" alt="Expo SDK 51+" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="platforms" />
 </p>
 
@@ -38,9 +38,17 @@
 ---
 
 > [!WARNING]
-> **Expo SDK 53+ Required**
+> **Minimum Expo SDK version**
 >
-> This SDK is exclusively compatible with Expo SDK version 53 and newer. For projects using older Expo versions, please use the [legacy React Native SDK](https://github.com/walterholohan/react-native-crisp-chat-sdk). If you're migrating from the legacy SDK, see the [Migration Guide](./MIGRATION.md).
+> | SDK Version | Expo Compatibility |
+> |---|---|
+> | **0.1.5+** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
+> | **0.1.4** | Expo SDK 51+ |
+>
+> If you are on Expo 53 or older, pin to version 0.1.4:
+> ```bash
+> npx expo install crisp-sdk-react-native@0.1.4
+> ```
 
 > [!WARNING]
 > **Expo Go is Not Supported**
@@ -75,37 +83,6 @@ npx expo install crisp-sdk-react-native
 yarn dlx expo install crisp-sdk-react-native
 ```
 
-### Version Targeting
-
-The Crisp SDK requires minimum OS versions to function properly. Install `expo-build-properties` and configure your `app.json`:
-
-```bash
-npx expo install expo-build-properties
-```
-
-```json
-{
-  "expo": {
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.1"
-          },
-          "android": {
-            "minSdkVersion": 21
-          }
-        }
-      ]
-    ]
-  }
-}
-```
-
-> [!NOTE]
-> This ensures your project targets iOS 15.1+ and Android SDK 21+, which are required by the native Crisp SDKs.
-
 ### For Bare React Native Apps
 
 This guide is for React Native developers who want to integrate Crisp using the Expo SDK in a project that doesn't use Expo as its development framework.
@@ -114,9 +91,9 @@ This guide is for React Native developers who want to integrate Crisp using the 
 
 Before starting, ensure you have:
 
-- React Native 0.79+
+- React Native 0.74+
 - iOS deployment target 15.1+
-- Android minSdkVersion 21+
+- Android minSdkVersion 24+
 - Node.js 18+
 
 #### Step 1: Install Expo Modules
@@ -162,11 +139,11 @@ Ensure your `android/app/build.gradle` has:
 
 ```gradle
 android {
-    compileSdkVersion 34
+    compileSdkVersion 36
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 34
+        minSdkVersion 24
+        targetSdkVersion 36
     }
 }
 ```

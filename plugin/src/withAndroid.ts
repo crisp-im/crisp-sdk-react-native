@@ -276,7 +276,7 @@ const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config,
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies\s*\{/,
         `dependencies {
-    implementation 'im.crisp:crisp-sdk:2.0.15'`,
+    implementation 'im.crisp:crisp-sdk:2.0.18'`,
       );
     }
     return config;
