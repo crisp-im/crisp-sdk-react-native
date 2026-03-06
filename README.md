@@ -348,6 +348,9 @@ show();
 openChat();
 ```
 
+> [!NOTE]
+> `openChat()` forces the Chat tab on **iOS only**. On Android, the native SDK always opens on the Chat tab by default, so `openChat()` and `show()` behave the same way.
+
 ### User Identification
 
 Set user information to personalize the chat experience:
@@ -695,7 +698,7 @@ Available log levels (from most to least verbose):
 | Method                         | Description                                             | Parameters                        | Return |
 | ------------------------------ | ------------------------------------------------------- | --------------------------------- | ------ |
 | `show()`                       | Open the Crisp chat widget (last active tab).           | -                                 | `void` |
-| `openChat()`                   | Open the Crisp chat widget always on the Chat tab.      | -                                 | `void` |
+| `openChat()`                   | Open the Crisp chat widget always on the Chat tab (iOS only, see note below). | -                | `void` |
 | `searchHelpdesk()`             | Open the helpdesk search interface and the chat widget. | -                                 | `void` |
 | `openHelpdeskArticle(options)` | Open a specific helpdesk article and the chat widget.   | `options: HelpdeskArticleOptions` | `void` |
 | `runBotScenario(scenarioId)`   | Trigger an automated bot scenario.                      | `scenarioId: string`              | `void` |
