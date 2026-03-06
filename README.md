@@ -42,7 +42,7 @@
 >
 > | SDK Version | Expo Compatibility |
 > |---|---|
-> | **0.1.5+** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
+> | **0.2.0+** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
 > | **0.1.4** | Expo SDK 51+ |
 >
 > If you are on Expo 53 or older, pin to version 0.1.4:
