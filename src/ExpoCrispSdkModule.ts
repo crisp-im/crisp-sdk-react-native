@@ -272,6 +272,11 @@ declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
   show(): void;
 
   /**
+   * Open the Crisp chat widget directly on the Chat tab.
+   */
+  openChat(): void;
+
+  /**
    * Open the helpdesk search interface.
    * Allows users to search through your knowledge base articles.
    */

@@ -3,8 +3,10 @@ import {
   CrispLogLevel,
   configure,
   getSDKVersion,
+  openChat,
   type PushNotificationPayload,
   resetSession,
+  searchHelpdesk,
   setLogLevel,
   setShouldPromptForNotificationPermission,
   setTokenId,
@@ -158,11 +160,41 @@ function HomeScreen() {
             : "Login to set user information, then open the chat."}
         </Text>
 
-        {/* Open Chat */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Chat</Text>
-        <Pressable style={[styles.button, styles.chatButton]} onPress={() => show()}>
-          <Text style={styles.buttonText}>Open Chat</Text>
-        </Pressable>
+        {/* Navigation */}
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Navigation Test</Text>
+        <View style={styles.messageButtons}>
+          <Pressable
+            style={[styles.button, styles.messageButton]}
+            onPress={() => {
+              searchHelpdesk();
+              console.log("[Crisp] Opened helpdesk");
+            }}
+          >
+            <Text style={styles.buttonText}>Open Helpdesk</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, styles.chatButton]}
+            onPress={() => {
+              openChat();
+              console.log("[Crisp] Opened chat via openChat()");
+            }}
+          >
+            <Text style={styles.buttonText}>Open Chat (openChat)</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button]}
+            onPress={() => {
+              show();
+              console.log("[Crisp] Opened chat via show()");
+            }}
+          >
+            <Text style={styles.buttonText}>Open Widget (show)</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.hint}>
+          Tap "Open Helpdesk" first, close the widget, then tap "Open Chat (openChat)". It should
+          open on the Chat tab, not Helpdesk.
+        </Text>
 
         {/* Events */}
         <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Events Callbacks</Text>

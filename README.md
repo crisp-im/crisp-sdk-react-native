@@ -339,15 +339,13 @@ useCrispEvents({
 Display the Crisp chat widget:
 
 ```typescript
-import { show } from "crisp-sdk-react-native";
+import { show, openChat } from "crisp-sdk-react-native";
 
-function ChatButton() {
-  const openChat = () => {
-    show();
-  };
+// Opens the widget (remembers the last active tab)
+show();
 
-  return <Button title="Chat with us" onPress={openChat} />;
-}
+// Always opens on the Chat tab, regardless of the last active tab
+openChat();
 ```
 
 ### User Identification
@@ -696,7 +694,8 @@ Available log levels (from most to least verbose):
 
 | Method                         | Description                                             | Parameters                        | Return |
 | ------------------------------ | ------------------------------------------------------- | --------------------------------- | ------ |
-| `show()`                       | Open the Crisp chat widget.                             | -                                 | `void` |
+| `show()`                       | Open the Crisp chat widget (last active tab).           | -                                 | `void` |
+| `openChat()`                   | Open the Crisp chat widget always on the Chat tab.      | -                                 | `void` |
 | `searchHelpdesk()`             | Open the helpdesk search interface and the chat widget. | -                                 | `void` |
 | `openHelpdeskArticle(options)` | Open a specific helpdesk article and the chat widget.   | `options: HelpdeskArticleOptions` | `void` |
 | `runBotScenario(scenarioId)`   | Trigger an automated bot scenario.                      | `scenarioId: string`              | `void` |

@@ -146,6 +146,11 @@ class ExpoCrispSdkModule : Module() {
       context.startActivity(crispIntent)
     }
 
+    Function("openChat") {
+      // No-op on Android: ChatActivity always opens on the Chat tab.
+      Unit
+    }
+
     Function("searchHelpdesk") {
       Crisp.searchHelpdesk(context)
     }

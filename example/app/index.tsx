@@ -3,8 +3,10 @@ import {
   CrispLogLevel,
   configure,
   getSDKVersion,
+  openChat,
   type PushNotificationPayload,
   resetSession,
+  searchHelpdesk,
   setLogLevel,
   setShouldPromptForNotificationPermission,
   setTokenId,
@@ -199,6 +201,32 @@ export default function HomeScreen() {
         </View>
         <Text style={styles.hint}>
           Open/close the chat to see events fire. Check console for message events.
+        </Text>
+
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Navigation Test</Text>
+        <View style={styles.messageButtons}>
+          <Pressable
+            style={[styles.button, styles.messageButton]}
+            onPress={() => {
+              searchHelpdesk();
+              console.log("[Crisp] Opened helpdesk");
+            }}
+          >
+            <Text style={styles.buttonText}>Open Helpdesk</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button]}
+            onPress={() => {
+              openChat();
+              console.log("[Crisp] Opened chat via openChat()");
+            }}
+          >
+            <Text style={styles.buttonText}>Open Chat (openChat)</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.hint}>
+          Tap "Open Helpdesk" first, close the widget, then tap "Open Chat (show)". It should open on
+          the Chat tab, not Helpdesk.
         </Text>
 
         <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Show Message Test</Text>

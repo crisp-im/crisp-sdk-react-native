@@ -139,6 +139,10 @@ public class ExpoCrispSdkModule: Module {
       }
     }
 
+    Function("openChat") {
+      CrispSDK.openChat()
+    }
+
     Function("searchHelpdesk") {
       CrispSDK.searchHelpdesk()
     }

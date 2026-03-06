@@ -175,7 +175,10 @@ export function setSessionSegment(segment: string): void {
  * @param segments - Array of segment names
  * @param overwrite - If true, replaces existing segments; if false, appends
  */
-export function setSessionSegments(segments: string[], overwrite?: boolean): void {
+export function setSessionSegments(
+  segments: string[],
+  overwrite?: boolean,
+): void {
   ExpoCrispSdkModule.setSessionSegments(segments, overwrite ?? false);
 }
 
@@ -204,7 +207,10 @@ export function getSessionIdentifier(): Promise<string | null> {
  * @param name - Event name (e.g., "Purchase completed")
  * @param color - Event color for visual categorization
  */
-export function pushSessionEvent(name: string, color: CrispSessionEventColors): void {
+export function pushSessionEvent(
+  name: string,
+  color: CrispSessionEventColors,
+): void {
   ExpoCrispSdkModule.pushSessionEvent(name, color);
 }
 
@@ -241,6 +247,15 @@ export function show(): void {
 }
 
 /**
+ * Open the Crisp chat widget directly on the Chat tab.
+ * Unlike `show()`, this always opens on the Chat tab regardless of the last active tab.
+ */
+export function openChat(): void {
+  ExpoCrispSdkModule.openChat();
+  ExpoCrispSdkModule.show();
+}
+
+/**
  * Open the helpdesk search interface.
  * Automatically opens the chat widget after searching.
  */
@@ -269,7 +284,12 @@ export function openHelpdeskArticle(
   category?: string | null,
 ): void {
   if (typeof optionsOrId === "string") {
-    ExpoCrispSdkModule.openHelpdeskArticle(optionsOrId, locale!, title, category);
+    ExpoCrispSdkModule.openHelpdeskArticle(
+      optionsOrId,
+      locale!,
+      title,
+      category,
+    );
   } else {
     ExpoCrispSdkModule.openHelpdeskArticle(
       optionsOrId.id,
@@ -319,7 +339,9 @@ export function isCrispPushNotification(data: Record<string, string>): boolean {
  *
  * @param enabled - `true` to allow auto-prompting, `false` to disable
  */
-export function setShouldPromptForNotificationPermission(enabled: boolean): void {
+export function setShouldPromptForNotificationPermission(
+  enabled: boolean,
+): void {
   ExpoCrispSdkModule.setShouldPromptForNotificationPermission(enabled);
 }
 
