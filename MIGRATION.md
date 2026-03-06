@@ -5,7 +5,7 @@ This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](htt
 > **Requirements for `crisp-sdk-react-native`:**
 >
 > - Expo SDK 51+ (or React Native 0.76+ with Expo Modules)
-> - **Note:** Version 0.1.5+ requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
+> - **Note:** Version 0.2.0+ requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
 > - New Architecture enabled (default in Expo SDK 53)
 > - Expo Go is **not** supported — use a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 
