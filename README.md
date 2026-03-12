@@ -37,6 +37,17 @@
 
 ---
 
+<p align="center">
+  <b>Demo</b>
+</p>
+
+<!-- TODO: Upload docs/Demo-Crisp-React-Native.mp4 via GitHub's web editor (drag-and-drop) and replace the src below with the generated URL -->
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/REPLACE_WITH_UPLOADED_VIDEO_UUID" controls width="300"></video>
+</p>
+
+---
+
 > [!WARNING]
 > **Minimum Expo SDK version**
 >
