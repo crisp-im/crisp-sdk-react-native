@@ -205,6 +205,20 @@ Run a clean prebuild to regenerate native projects:
 npx expo prebuild --clean
 ```
 
+### iOS build fails locally with missing `CrispSDK.session.*` symbols
+
+If your local iOS build fails with errors about missing `CrispSDK.session.*` members (while the same build passes in CI), Xcode's `DerivedData` cache is likely holding a stale copy of the old SDK, which did not expose the `session` namespace.
+
+Clear `DerivedData` and rebuild:
+
+```bash
+rm -rf ~/Library/Developer/Xcode/DerivedData
+npx expo prebuild --clean
+npx expo run:ios
+```
+
+> Thanks to [@Martinocom-Switcho](https://github.com/crisp-im/crisp-sdk-react-native/issues/27) for documenting this.
+
 ### Push notifications stopped working
 
 1. Make sure the plugin name is updated in `app.json` (Step 2)
