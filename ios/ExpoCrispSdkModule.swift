@@ -158,15 +158,36 @@ public class ExpoCrispSdkModule: Module {
     // MARK: - Push Notifications (Coexistence Mode)
 
     Function("registerPushToken") { (token: String) in
-      guard !token.isEmpty else { return }
-      // Convert hex string to Data
-      var data = Data()
-      var index = token.startIndex
-      while index < token.endIndex {
-        let nextIndex = token.index(index, offsetBy: 2, limitedBy: token.endIndex) ?? token.endIndex
-        if let byte = UInt8(token[index..<nextIndex], radix: 16) {
-          data.append(byte)
+      // An empty token means "unregister": clear the device token so Crisp
+      // stops routing pushes to this device. Previously this early-returned,
+      // leaving callers no way to unregister a token through the wrapper.
+      let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+      if trimmed.isEmpty {
+        CrispSDK.setDeviceToken(Data())
+        return
+      }
+
+      // Parse the hex APNs token strictly. The previous parser silently
+      // skipped invalid bytes and accepted odd-length input, which would hand
+      // Crisp a truncated/garbage token with no error surfaced to the caller.
+      guard trimmed.count % 2 == 0 else {
+        throw NSError(
+          domain: "ExpoCrispSdk", code: 100,
+          userInfo: [NSLocalizedDescriptionKey: "registerPushToken: hex token has odd length (\(trimmed.count))"]
+        )
+      }
+      var data = Data(capacity: trimmed.count / 2)
+      var index = trimmed.startIndex
+      while index < trimmed.endIndex {
+        let nextIndex = trimmed.index(index, offsetBy: 2)
+        let byteString = trimmed[index..<nextIndex]
+        guard let byte = UInt8(byteString, radix: 16) else {
+          throw NSError(
+            domain: "ExpoCrispSdk", code: 101,
+            userInfo: [NSLocalizedDescriptionKey: "registerPushToken: invalid hex byte \"\(byteString)\""]
+          )
         }
+        data.append(byte)
         index = nextIndex
       }
       CrispSDK.setDeviceToken(data)
