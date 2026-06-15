@@ -20,14 +20,6 @@ const config = {
       'crisp-sdk-react-native': path.resolve(__dirname, '..'),
     },
   },
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
-  },
 };
 
 module.exports = mergeConfig(defaultConfig, config);

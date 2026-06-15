@@ -88,7 +88,7 @@ function HomeScreen() {
     if (!WEBSITE_ID || WEBSITE_ID === "YOUR_WEBSITE_ID") {
       Alert.alert(
         "Configuration Required",
-        "Please set your Crisp Website ID in App.tsx (WEBSITE_ID constant)",
+        "Please set EXPO_PUBLIC_CRISP_WEBSITE_ID in bare-example/.env",
       );
       return;
     }
