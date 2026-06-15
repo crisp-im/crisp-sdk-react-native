@@ -4,6 +4,12 @@
 
 # VSCode
 .vscode/
+!.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+!example/.vscode/
+!example/.vscode/settings.json
+!example/.vscode/extensions.json
 jsconfig.json
 
 # Xcode
