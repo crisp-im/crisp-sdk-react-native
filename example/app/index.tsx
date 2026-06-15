@@ -225,8 +225,8 @@ export default function HomeScreen() {
           </Pressable>
         </View>
         <Text style={styles.hint}>
-          Tap "Open Helpdesk" first, close the widget, then tap "Open Chat (show)". It should open on
-          the Chat tab, not Helpdesk.
+          Tap "Open Helpdesk" first, close the widget, then tap "Open Chat (show)". It should open
+          on the Chat tab, not Helpdesk.
         </Text>
 
         <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Show Message Test</Text>
