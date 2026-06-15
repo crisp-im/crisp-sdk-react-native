@@ -1,6 +1,6 @@
 {
   "name": "crisp-sdk-react-native",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Expo Module bridge for Crisp Chat iOS and Android SDK",
   "keywords": [
     "crisp",
@@ -38,7 +38,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "version": "changeset version",
-    "release": "yarn build && changeset publish"
+    "release": "EXPO_NONINTERACTIVE=1 yarn build && changeset publish"
   },
   "bugs": {
     "url": "https://github.com/crisp-im/crisp-sdk-react-native/issues"
