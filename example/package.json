@@ -10,30 +10,35 @@
     "format": "biome format --write ."
   },
   "dependencies": {
-    "expo": "^54.0.33",
-    "expo-constants": "~18.0.13",
-    "expo-device": "~8.0.10",
-    "expo-linking": "~8.0.11",
-    "expo-notifications": "~0.32.16",
-    "expo-router": "~6.0.23",
-    "expo-status-bar": "~3.0.9",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0"
+    "expo": "~56.0.11",
+    "expo-constants": "~56.0.18",
+    "expo-device": "~56.0.4",
+    "expo-linking": "~56.0.14",
+    "expo-notifications": "~56.0.17",
+    "expo-router": "~56.2.10",
+    "expo-status-bar": "~56.0.4",
+    "expo-system-ui": "^56.0.5",
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.25.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.27.1",
-    "@biomejs/biome": "^2.3.8",
-    "@types/react": "~19.1.10",
-    "eslint": "^9.27.0",
-    "eslint-config-expo": "~10.0.0",
-    "typescript": "~5.9.2"
+    "@babel/core": "^7.29.7",
+    "@biomejs/biome": "^2.5.0",
+    "@types/react": "~19.2.17",
+    "baseline-browser-mapping": "^2.10.37",
+    "eslint": "^10.5.0",
+    "eslint-config-expo": "~56.0.4",
+    "typescript": "~6.0.3"
   },
   "expo": {
     "autolinking": {
       "nativeModulesDir": ".."
     }
+  },
+  "overrides": {
+    "baseline-browser-mapping": "^2.10.37"
   },
   "private": true
 }

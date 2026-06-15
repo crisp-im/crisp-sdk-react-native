@@ -1,17 +1,16 @@
 import UIKit
-import Expo
+internal import Expo
 import React
-import React_RCTAppDelegate
 import ReactAppDependencyProvider
 
 @main
 class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
 
-  var reactNativeDelegate: ReactNativeDelegate?
+  var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
 
-  override func application(
+  public override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
@@ -21,15 +20,14 @@ class AppDelegate: ExpoAppDelegate {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
 
+#if os(iOS) || os(tvOS)
     window = UIWindow(frame: UIScreen.main.bounds)
-
     factory.startReactNative(
       withModuleName: "BareExample",
       in: window,
-      launchOptions: launchOptions
-    )
+      launchOptions: launchOptions)
+#endif
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

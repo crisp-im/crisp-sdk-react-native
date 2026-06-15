@@ -15,7 +15,6 @@ const config: ExpoConfig = {
   orientation: "portrait",
   scheme: "expo-crisp-sdk-example",
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.expo.crisp.sdk",
@@ -28,7 +27,6 @@ const config: ExpoConfig = {
     adaptiveIcon: {
       backgroundColor: "#ffffff",
     },
-    edgeToEdgeEnabled: true,
     googleServicesFile: "./google-services.json",
     package: "com.expo.crisp.sdk",
   },
