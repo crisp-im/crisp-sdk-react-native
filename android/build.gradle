@@ -14,5 +14,8 @@ android {
 }
 
 dependencies {
-  implementation "im.crisp:crisp-sdk:2.0.21"
+  implementation("im.crisp:crisp-sdk:2.0.21") {
+    exclude group: "com.atlassian.commonmark", module: "commonmark"
+  }
+  implementation "org.commonmark:commonmark:0.21.0"
 }

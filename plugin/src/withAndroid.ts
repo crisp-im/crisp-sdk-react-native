@@ -15,6 +15,44 @@ type AndroidNotificationConfig = {
   mode: NotificationMode;
 };
 
+const CRISP_ANDROID_SDK_DEPENDENCY = `implementation('im.crisp:crisp-sdk:2.0.21') {
+        exclude group: 'com.atlassian.commonmark', module: 'commonmark'
+    }`;
+const COMMONMARK_ANDROID_DEPENDENCY = "implementation 'org.commonmark:commonmark:0.21.0'";
+const CRISP_COMMONMARK_EXCLUSION =
+  "exclude group: 'com.atlassian.commonmark', module: 'commonmark'";
+
+function addCrispAndroidSdkDependency(contents: string): string {
+  if (!contents.includes("im.crisp:crisp-sdk")) {
+    return contents.replace(
+      /dependencies\s*\{/,
+      `dependencies {
+    ${CRISP_ANDROID_SDK_DEPENDENCY}`,
+    );
+  }
+
+  if (contents.includes(CRISP_COMMONMARK_EXCLUSION)) {
+    return contents;
+  }
+
+  return contents.replace(
+    /implementation\s+['"]im\.crisp:crisp-sdk:2\.0\.21['"]/,
+    CRISP_ANDROID_SDK_DEPENDENCY,
+  );
+}
+
+function addCommonmarkAndroidDependency(contents: string): string {
+  if (contents.includes("org.commonmark:commonmark")) {
+    return contents;
+  }
+
+  return contents.replace(
+    /dependencies\s*\{/,
+    `dependencies {
+    ${COMMONMARK_ANDROID_DEPENDENCY}`,
+  );
+}
+
 export const withAndroidNotifications: ConfigPlugin<[string, NotificationMode]> = (
   config,
   [websiteId, mode],
@@ -284,13 +322,8 @@ const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config,
     implementation 'com.google.firebase:firebase-messaging'`,
       );
     }
-    if (!config.modResults.contents.includes("im.crisp:crisp-sdk")) {
-      config.modResults.contents = config.modResults.contents.replace(
-        /dependencies\s*\{/,
-        `dependencies {
-    implementation 'im.crisp:crisp-sdk:2.0.21'`,
-      );
-    }
+    config.modResults.contents = addCrispAndroidSdkDependency(config.modResults.contents);
+    config.modResults.contents = addCommonmarkAndroidDependency(config.modResults.contents);
     return config;
   });
 
