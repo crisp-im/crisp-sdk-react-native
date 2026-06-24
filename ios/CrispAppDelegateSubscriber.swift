@@ -63,7 +63,9 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
   // MARK: - Chatbox Presentation (notification tap)
 
   /// Presents the Crisp chatbox modally on the top-most view controller —
-  /// the same `ChatViewController` the module's `show()` function uses.
+  /// the same `ChatViewController` the module's `show()` function uses —
+  /// after selecting the "Chat" tab via `CrispSDK.openChat()` so the tapped
+  /// notification lands on the conversation.
   /// Walks the `presentedViewController` chain so it works even when another
   /// modal is already on screen, and no-ops if a chatbox is anywhere in the
   /// chain (the chat may itself have presented a child controller, e.g. an
@@ -79,6 +81,11 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
       }
       // Don't present onto a controller mid-transition — UIKit would drop it.
       guard !topViewController.isBeingPresented, !topViewController.isBeingDismissed else { return }
+      // Select the "Chat" tab before presenting so the tapped notification opens
+      // on the conversation rather than the Helpdesk tab. `openChat()` only sets
+      // the active tab for the next presentation — it does not present anything
+      // itself — so the explicit `present` below is still required.
+      CrispSDK.openChat()
       topViewController.present(ChatViewController(), animated: true)
     }
   }
