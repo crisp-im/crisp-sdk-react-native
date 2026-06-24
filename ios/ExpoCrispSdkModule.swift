@@ -27,9 +27,12 @@ public class ExpoCrispSdkModule: Module {
     )
 
     OnCreate {
-      self.setupCallbacks()
-      self.setupLogHandler()
       self.setupNotificationEventEmitter()
+      DispatchQueue.main.async { [weak self] in
+        guard let self = self else { return }
+        self.setupCallbacks()
+        self.setupLogHandler()
+      }
     }
 
     OnDestroy {
@@ -333,4 +336,3 @@ public class ExpoCrispSdkModule: Module {
     }
   }
 }
-
