@@ -68,3 +68,5 @@ CLAUDE.MD
 .context
 google-services.json
 AGENTS.md
+
+.vscode/
