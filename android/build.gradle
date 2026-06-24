@@ -13,16 +13,6 @@ android {
   }
 }
 
-repositories {
-  maven {
-    name = 'Central Portal Snapshots'
-    url = uri('https://central.sonatype.com/repository/maven-snapshots/')
-    content {
-      includeModule("im.crisp", "crisp-sdk")
-    }
-  }
-}
-
 dependencies {
-  implementation "im.crisp:crisp-sdk:2.0.22-SNAPSHOT"
+  implementation "im.crisp:crisp-sdk:2.0.22"
 }
