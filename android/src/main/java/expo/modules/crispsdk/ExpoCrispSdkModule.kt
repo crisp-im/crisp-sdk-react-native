@@ -43,9 +43,8 @@ class ExpoCrispSdkModule : Module() {
     OnCreate {
       registerEventsCallback()
       registerLogger()
-      // Wire the push-event singleton so the generated FCM service
-      // (coexistence mode) can emit onPushNotificationReceived to JS.
-      // Mirrors iOS's setupNotificationEventEmitter().
+      // Keep the legacy push-event singleton wired for any already generated
+      // coexistence services. New generated services emit through EventsCallback.
       CrispPushEventEmitter.sendEvent = { eventName, data ->
         this@ExpoCrispSdkModule.sendEvent(eventName, data)
       }

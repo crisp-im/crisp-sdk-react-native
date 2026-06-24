@@ -34,4 +34,11 @@ class CrispEventsBridge(
     override fun onMessageReceived(message: Message) {
         onEvent("onMessageReceived", mapOf("message" to MessageParser.toMap(message)))
     }
+
+    override fun onNotificationReceived(data: Map<String, String>) {
+        onEvent("onPushNotificationReceived", mapOf(
+            "title" to (data["title"] ?: ""),
+            "body" to (data["body"] ?: "")
+        ))
+    }
 }

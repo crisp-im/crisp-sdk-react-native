@@ -313,7 +313,7 @@ useCrispEvents({
 ```
 
 > [!NOTE]
-> `onPushNotificationReceived` fires on iOS in both notification modes, and on Android only in **coexistence mode**. In Android `sdk-managed` mode, notifications are handled inside the Crisp Android library's own `FirebaseMessagingService`, which has no hook for emitting JS events.
+> `onPushNotificationReceived` fires on iOS in both notification modes, and on Android in both notification modes with Crisp Android SDK 2.0.22 or newer.
 
 > [!NOTE]
 > In coexistence mode, the native routing is automatic — you don't need to write JS filtering code. The JS API methods (`registerPushToken`, `isCrispPushNotification`) are optional utilities for advanced use cases.
