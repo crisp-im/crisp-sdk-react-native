@@ -246,6 +246,14 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 > [!NOTE]
 > After enabling notifications, rebuild your app with `npx expo prebuild --clean` followed by `npx expo run:ios` or `npx expo run:android`.
 
+> [!NOTE]
+> On iOS, tapping a Crisp push notification opens the chatbox: the
+> notification-tap delegate presents `ChatViewController` (in both notification
+> modes). Previously the tap brought the app to the foreground but left the
+> message hidden in the closed chatbox. On Android this already works out of the
+> box — the Crisp SDK's notification opens `ChatActivity` directly via its own
+> back-stacked intent — so no extra handling is required.
+
 #### Crisp Dashboard Configuration
 
 Push notifications require additional setup in your Crisp Dashboard (APNs for iOS, Firebase for Android).
