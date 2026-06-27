@@ -133,24 +133,12 @@ function generateFirebaseMessagingService(packageName: string): string {
 
 import com.google.firebase.messaging.RemoteMessage
 import im.crisp.client.external.notification.CrispNotificationClient
-import expo.modules.crispsdk.CrispPushEventEmitter
 
 class ExpoCrispFirebaseMessagingService : ${baseClass}() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         if (CrispNotificationClient.isCrispNotification(message)) {
             CrispNotificationClient.handleNotification(this, message)
-            // Forward title/body to JS for parity with iOS's
-            // onPushNotificationReceived. Falls back through the
-            // data payload (Crisp uses data-only pushes) then the
-            // FCM notification block, then empty.
-            val title = message.data["title"]
-                ?: message.notification?.title
-                ?: ""
-            val body = message.data["body"]
-                ?: message.notification?.body
-                ?: ""
-            CrispPushEventEmitter.emitPushNotificationReceived(title, body)
         } else {
             super.onMessageReceived(message)
         }
@@ -288,7 +276,7 @@ const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config,
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies\s*\{/,
         `dependencies {
-    implementation 'im.crisp:crisp-sdk:2.0.21'`,
+    implementation 'im.crisp:crisp-sdk:2.0.22'`,
       );
     }
     return config;

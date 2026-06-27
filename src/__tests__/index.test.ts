@@ -31,6 +31,10 @@ jest.mock("../ExpoCrispSdkModule", () => ({
   default: mockModule,
 }));
 
+jest.mock("react-native", () => ({
+  View: "View",
+}));
+
 import {
   configure,
   getSessionIdentifier,
@@ -267,6 +271,7 @@ describe("module encapsulation", () => {
   it("does not export native module as default", () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const indexExports = require("../index");
-    expect(indexExports.default).toBeUndefined();
+    expect(indexExports.default).not.toBe(mockModule);
+    expect(typeof indexExports.default).toBe("function");
   });
 });

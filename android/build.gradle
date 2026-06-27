@@ -14,5 +14,5 @@ android {
 }
 
 dependencies {
-  implementation "im.crisp:crisp-sdk:2.0.21"
+  implementation "im.crisp:crisp-sdk:2.0.22"
 }
