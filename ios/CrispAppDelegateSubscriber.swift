@@ -15,20 +15,20 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     if let websiteId = Bundle.main.object(forInfoDictionaryKey: "CrispWebsiteId") as? String {
-      CrispSDK.configure(websiteID: websiteId)
+      DispatchQueue.main.async {
+        CrispSDK.configure(websiteID: websiteId)
 
-      if let notificationsEnabled = Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool,
-        notificationsEnabled
-      {
-        // Always register for remote notifications to obtain the APNs device token.
-        // This does NOT prompt the user for permission (that's requestAuthorization).
-        DispatchQueue.main.async {
+        if let notificationsEnabled = Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool,
+          notificationsEnabled
+        {
+          // Always register for remote notifications to obtain the APNs device token.
+          // This does NOT prompt the user for permission (that's requestAuthorization).
           application.registerForRemoteNotifications()
-        }
 
-        // Always set up UNUserNotificationCenterDelegate for foreground notification handling.
-        // Without this, iOS silently drops notifications received while the app is in foreground.
-        setupNotificationDelegate()
+          // Always set up UNUserNotificationCenterDelegate for foreground notification handling.
+          // Without this, iOS silently drops notifications received while the app is in foreground.
+          self.setupNotificationDelegate()
+        }
       }
     }
     return true
@@ -58,6 +58,43 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
 
     // Set ourselves as the delegate
     center.delegate = self
+  }
+
+  // MARK: - Chatbox Presentation (notification tap)
+
+  /// Presents the Crisp chatbox modally on the top-most view controller —
+  /// the same `ChatViewController` the module's `show()` function uses —
+  /// after selecting the "Chat" tab via `CrispSDK.openChat()` so the tapped
+  /// notification lands on the conversation.
+  /// Walks the `presentedViewController` chain so it works even when another
+  /// modal is already on screen, and no-ops if a chatbox is anywhere in the
+  /// chain (the chat may itself have presented a child controller, e.g. an
+  /// image/attachment preview) or if a transition is in flight.
+  fileprivate static func presentChatbox() {
+    DispatchQueue.main.async {
+      guard var topViewController = keyWindow()?.rootViewController else { return }
+      // No-op if a Crisp chatbox is already anywhere in the presentation chain.
+      if topViewController is ChatViewController { return }
+      while let presented = topViewController.presentedViewController {
+        if presented is ChatViewController { return }
+        topViewController = presented
+      }
+      // Don't present onto a controller mid-transition — UIKit would drop it.
+      guard !topViewController.isBeingPresented, !topViewController.isBeingDismissed else { return }
+      // Select the "Chat" tab before presenting so the tapped notification opens
+      // on the conversation rather than the Helpdesk tab. `openChat()` only sets
+      // the active tab for the next presentation — it does not present anything
+      // itself — so the explicit `present` below is still required.
+      CrispSDK.openChat()
+      topViewController.present(ChatViewController(), animated: true)
+    }
+  }
+
+  private static func keyWindow() -> UIWindow? {
+    return UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .flatMap { $0.windows }
+      .first { $0.isKeyWindow }
   }
 }
 
@@ -100,6 +137,13 @@ extension CrispAppDelegateSubscriber: UNUserNotificationCenterDelegate {
     if CrispSDK.isCrispPushNotification(notification) {
       // Handle Crisp notification tap (both modes)
       CrispSDK.handlePushNotification(notification)
+
+      // Open the chatbox so the tapped conversation is actually shown.
+      // `handlePushNotification` only performs SDK bookkeeping; without an
+      // explicit present, tapping a Crisp notification brings the app to the
+      // foreground but leaves the message hidden in the closed chatbox.
+      Self.presentChatbox()
+
       completionHandler()
     } else if isCoexistenceMode, let previous = previousDelegate {
       // In coexistence mode, forward non-Crisp notification taps to the previous delegate

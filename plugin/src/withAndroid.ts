@@ -15,7 +15,7 @@ type AndroidNotificationConfig = {
   mode: NotificationMode;
 };
 
-const CRISP_ANDROID_SDK_DEPENDENCY = `implementation('im.crisp:crisp-sdk:2.0.21') {
+const CRISP_ANDROID_SDK_DEPENDENCY = `implementation('im.crisp:crisp-sdk:2.0.22') {
         exclude group: 'com.atlassian.commonmark', module: 'commonmark'
     }`;
 const COMMONMARK_ANDROID_DEPENDENCY = "implementation 'org.commonmark:commonmark:0.21.0'";
@@ -36,7 +36,7 @@ function addCrispAndroidSdkDependency(contents: string): string {
   }
 
   return contents.replace(
-    /implementation\s+['"]im\.crisp:crisp-sdk:2\.0\.21['"]/,
+    /implementation\s+['"]im\.crisp:crisp-sdk:[^'"]+['"]/,
     CRISP_ANDROID_SDK_DEPENDENCY,
   );
 }
@@ -171,24 +171,12 @@ function generateFirebaseMessagingService(packageName: string): string {
 
 import com.google.firebase.messaging.RemoteMessage
 import im.crisp.client.external.notification.CrispNotificationClient
-import expo.modules.crispsdk.CrispPushEventEmitter
 
 class ExpoCrispFirebaseMessagingService : ${baseClass}() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         if (CrispNotificationClient.isCrispNotification(message)) {
             CrispNotificationClient.handleNotification(this, message)
-            // Forward title/body to JS for parity with iOS's
-            // onPushNotificationReceived. Falls back through the
-            // data payload (Crisp uses data-only pushes) then the
-            // FCM notification block, then empty.
-            val title = message.data["title"]
-                ?: message.notification?.title
-                ?: ""
-            val body = message.data["body"]
-                ?: message.notification?.body
-                ?: ""
-            CrispPushEventEmitter.emitPushNotificationReceived(title, body)
         } else {
             super.onMessageReceived(message)
         }
