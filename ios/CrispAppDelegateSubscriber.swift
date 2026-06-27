@@ -15,20 +15,20 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     if let websiteId = Bundle.main.object(forInfoDictionaryKey: "CrispWebsiteId") as? String {
-      CrispSDK.configure(websiteID: websiteId)
+      DispatchQueue.main.async {
+        CrispSDK.configure(websiteID: websiteId)
 
-      if let notificationsEnabled = Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool,
-        notificationsEnabled
-      {
-        // Always register for remote notifications to obtain the APNs device token.
-        // This does NOT prompt the user for permission (that's requestAuthorization).
-        DispatchQueue.main.async {
+        if let notificationsEnabled = Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool,
+          notificationsEnabled
+        {
+          // Always register for remote notifications to obtain the APNs device token.
+          // This does NOT prompt the user for permission (that's requestAuthorization).
           application.registerForRemoteNotifications()
-        }
 
-        // Always set up UNUserNotificationCenterDelegate for foreground notification handling.
-        // Without this, iOS silently drops notifications received while the app is in foreground.
-        setupNotificationDelegate()
+          // Always set up UNUserNotificationCenterDelegate for foreground notification handling.
+          // Without this, iOS silently drops notifications received while the app is in foreground.
+          self.setupNotificationDelegate()
+        }
       }
     }
     return true
