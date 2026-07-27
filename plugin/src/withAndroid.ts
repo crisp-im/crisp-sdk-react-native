@@ -15,7 +15,7 @@ type AndroidNotificationConfig = {
   mode: NotificationMode;
 };
 
-const CRISP_ANDROID_SDK_DEPENDENCY = `implementation('im.crisp:crisp-sdk:2.0.22') {
+const CRISP_ANDROID_SDK_DEPENDENCY = `implementation('im.crisp:crisp-sdk:2.0.23') {
         exclude group: 'com.atlassian.commonmark', module: 'commonmark'
     }`;
 const COMMONMARK_ANDROID_DEPENDENCY = "implementation 'org.commonmark:commonmark:0.21.0'";
