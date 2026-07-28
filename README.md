@@ -1017,6 +1017,61 @@ Both apps are pre-configured and ready to run — just add your Website ID and f
 
 Issues and pull requests are welcome on [GitHub](https://github.com/crisp-im/crisp-sdk-react-native/issues).
 
+### Set up the repository
+
+This project uses Yarn 4.7.0 through Corepack. Do not run `npm install` at the repository root, as it can replace the Yarn lockfile with an incompatible format.
+
+```bash
+git clone https://github.com/crisp-im/crisp-sdk-react-native.git
+cd crisp-sdk-react-native
+corepack enable
+corepack prepare yarn@4.7.0 --activate
+yarn install --immutable
+```
+
+Create a dedicated branch for your change before starting development.
+
+### Add a changeset
+
+Changes that affect the published package, such as fixes, features, or dependency updates, must include a changeset:
+
+```bash
+yarn changeset
+```
+
+Select the appropriate version bump:
+
+- `patch` for bug fixes and compatible dependency updates
+- `minor` for backward-compatible features
+- `major` for breaking changes
+
+Commit the generated `.changeset/*.md` file with your changes. Documentation, tests, and internal maintenance that do not affect the published package do not require a changeset.
+
+Do not update the package version, changelog, or Git tags manually, and do not run the release command. Maintainers handle versioning and publication.
+
+### Validate your changes
+
+Run the relevant checks before opening a pull request:
+
+```bash
+yarn format
+yarn lint
+yarn test
+yarn build
+yarn build:plugin
+```
+
+For native changes, also test the primary Expo example app on the affected platforms:
+
+```bash
+cd example
+yarn install
+npx expo prebuild --clean
+npx expo run:android
+# or
+npx expo run:ios
+```
+
 ## License
 
 MIT - See [LICENSE](./LICENSE) for details.
