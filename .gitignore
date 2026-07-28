@@ -56,6 +56,9 @@ example/vendor/
 #
 node_modules/
 npm-debug.log
+
+# Yarn
+.yarn/*
 yarn-debug.log
 yarn-error.log
 
