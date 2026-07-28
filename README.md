@@ -1072,6 +1072,41 @@ npx expo run:android
 npx expo run:ios
 ```
 
+### Publish a release (maintainers only)
+
+Releases are prepared with Changesets and published to npm by GitHub Actions. Start from a dedicated release branch based on the latest `master`:
+
+```bash
+git switch master
+git pull --ff-only origin master
+corepack enable
+corepack prepare yarn@4.7.0 --activate
+yarn install --immutable
+yarn changeset status
+yarn version
+```
+
+The version command consumes the pending changesets, updates `package.json` and `CHANGELOG.md`, and removes the consumed `.changeset/*.md` files. Review these changes, run the validation commands above, and merge them through a release pull request.
+
+After the release pull request is merged, tag the resulting commit on `master`:
+
+```bash
+git switch master
+git pull --ff-only origin master
+VERSION=$(node -p "require('./package.json').version")
+git status --short
+git tag -a "v${VERSION}" -m "v${VERSION}"
+git push origin "v${VERSION}"
+```
+
+Only create the tag when the working tree is clean and the version does not already exist on npm. Pushing the tag triggers the `Build and Release` GitHub Actions workflow, which builds the package and plugin before publishing with npm provenance. Do not run `npm publish` locally.
+
+Once the workflow succeeds, verify the published version:
+
+```bash
+npm view "crisp-sdk-react-native@${VERSION}" version
+```
+
 ## License
 
 MIT - See [LICENSE](./LICENSE) for details.
