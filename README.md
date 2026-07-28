@@ -1017,6 +1017,96 @@ Both apps are pre-configured and ready to run — just add your Website ID and f
 
 Issues and pull requests are welcome on [GitHub](https://github.com/crisp-im/crisp-sdk-react-native/issues).
 
+### Set up the repository
+
+This project uses Yarn 4.7.0 through Corepack. Do not run `npm install` at the repository root, as it can replace the Yarn lockfile with an incompatible format.
+
+```bash
+git clone https://github.com/crisp-im/crisp-sdk-react-native.git
+cd crisp-sdk-react-native
+corepack enable
+corepack prepare yarn@4.7.0 --activate
+yarn install --immutable
+```
+
+Create a dedicated branch for your change before starting development.
+
+### Add a changeset
+
+Changes that affect the published package, such as fixes, features, or dependency updates, must include a changeset:
+
+```bash
+yarn changeset
+```
+
+Select the appropriate version bump:
+
+- `patch` for bug fixes and compatible dependency updates
+- `minor` for backward-compatible features
+- `major` for breaking changes
+
+Commit the generated `.changeset/*.md` file with your changes. Documentation, tests, and internal maintenance that do not affect the published package do not require a changeset.
+
+Do not update the package version, changelog, or Git tags manually, and do not run the release command. Maintainers handle versioning and publication.
+
+### Validate your changes
+
+Run the relevant checks before opening a pull request:
+
+```bash
+yarn format
+yarn lint
+yarn test
+yarn build
+yarn build:plugin
+```
+
+For native changes, also test the primary Expo example app on the affected platforms:
+
+```bash
+cd example
+yarn install
+npx expo prebuild --clean
+npx expo run:android
+# or
+npx expo run:ios
+```
+
+### Publish a release (maintainers only)
+
+Releases are prepared with Changesets and published to npm by GitHub Actions. Start from a dedicated release branch based on the latest `master`:
+
+```bash
+git switch master
+git pull --ff-only origin master
+corepack enable
+corepack prepare yarn@4.7.0 --activate
+yarn install --immutable
+yarn changeset status
+yarn version
+```
+
+The version command consumes the pending changesets, updates `package.json` and `CHANGELOG.md`, and removes the consumed `.changeset/*.md` files. Review these changes, run the validation commands above, and merge them through a release pull request.
+
+After the release pull request is merged, tag the resulting commit on `master`:
+
+```bash
+git switch master
+git pull --ff-only origin master
+VERSION=$(node -p "require('./package.json').version")
+git status --short
+git tag -a "v${VERSION}" -m "v${VERSION}"
+git push origin "v${VERSION}"
+```
+
+Only create the tag when the working tree is clean and the version does not already exist on npm. Pushing the tag triggers the `Build and Release` GitHub Actions workflow, which builds the package and plugin before publishing with npm provenance. Do not run `npm publish` locally.
+
+Once the workflow succeeds, verify the published version:
+
+```bash
+npm view "crisp-sdk-react-native@${VERSION}" version
+```
+
 ## License
 
 MIT - See [LICENSE](./LICENSE) for details.
