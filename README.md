@@ -977,6 +977,8 @@ npx expo run:android
 
 Ensure you've called `configure()` with a valid Website ID before calling `show()`.
 
+On iOS, the chatbox opens over any screen already presented modally. If you close a modal and open the chat in the same handler (e.g. `router.back()` then `show()`), the chatbox may be presented on the modal before navigation starts dismissing it, and is dismissed along with it. Open the chat once the modal is closed instead, for example from the previous screen or after the navigation transition ends.
+
 ### Push notifications not working
 
 1. Verify the config plugin is properly configured in `app.json`

@@ -136,22 +136,19 @@ public class ExpoCrispSdkModule: Module {
     // MARK: - UI
 
     Function("show") {
-      DispatchQueue.main.async {
-        guard let viewController = self.findRootViewController() else { return }
-        viewController.present(ChatViewController(), animated: true)
-      }
+      CrispChatPresenter.present(.lastActiveTab)
     }
 
     Function("openChat") {
-      CrispSDK.openChat()
+      CrispChatPresenter.present(.chat)
     }
 
     Function("searchHelpdesk") {
-      CrispSDK.searchHelpdesk()
+      CrispChatPresenter.present(.helpdeskSearch)
     }
 
     Function("openHelpdeskArticle") { (id: String, locale: String, title: String?, category: String?) in
-      CrispSDK.openHelpdeskArticle(locale: locale, slug: id, title: title, category: category)
+      CrispChatPresenter.present(.helpdeskArticle(locale: locale, slug: id, title: title, category: category))
     }
 
     Function("runBotScenario") { (scenarioId: String) in
@@ -247,18 +244,6 @@ public class ExpoCrispSdkModule: Module {
     case 8: return .grey
     case 9: return .black
     default: return .black
-    }
-  }
-
-  private func findRootViewController() -> UIViewController? {
-    if #available(iOS 15.0, *) {
-      return UIApplication.shared.connectedScenes
-        .compactMap { $0 as? UIWindowScene }
-        .flatMap { $0.windows }
-        .first { $0.isKeyWindow }?
-        .rootViewController
-    } else {
-      return UIApplication.shared.windows.first?.rootViewController
     }
   }
 

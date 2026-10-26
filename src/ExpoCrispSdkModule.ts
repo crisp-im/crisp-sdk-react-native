@@ -273,17 +273,20 @@ declare class ExpoCrispSdkModule extends NativeModule<ExpoCrispSdkEvents> {
 
   /**
    * Open the Crisp chat widget directly on the Chat tab.
+   * Selects the tab and presents the chat interface in one native call.
    */
   openChat(): void;
 
   /**
    * Open the helpdesk search interface.
    * Allows users to search through your knowledge base articles.
+   * Selects the search and presents the chat interface in one native call.
    */
   searchHelpdesk(): void;
 
   /**
    * Open a specific helpdesk article.
+   * Selects the article and presents the chat interface in one native call.
    *
    * @param id - Article slug or identifier
    * @param locale - Article locale (e.g., "en", "fr")

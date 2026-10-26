@@ -17,6 +17,7 @@ const mockModule = {
   pushSessionEvents: jest.fn(),
   resetSession: jest.fn(),
   show: jest.fn(),
+  openChat: jest.fn(),
   searchHelpdesk: jest.fn(),
   openHelpdeskArticle: jest.fn(),
   runBotScenario: jest.fn(),
@@ -39,6 +40,7 @@ import {
   configure,
   getSessionIdentifier,
   isCrispPushNotification,
+  openChat,
   openHelpdeskArticle,
   pushSessionEvent,
   pushSessionEvents,
@@ -198,9 +200,16 @@ describe("wrapper functions", () => {
     expect(mockModule.show).toHaveBeenCalled();
   });
 
-  it("searchHelpdesk delegates to native module", () => {
+  it("openChat opens the chatbox in a single native call", () => {
+    openChat();
+    expect(mockModule.openChat).toHaveBeenCalled();
+    expect(mockModule.show).not.toHaveBeenCalled();
+  });
+
+  it("searchHelpdesk opens the chatbox in a single native call", () => {
     searchHelpdesk();
     expect(mockModule.searchHelpdesk).toHaveBeenCalled();
+    expect(mockModule.show).not.toHaveBeenCalled();
   });
 
   it("openHelpdeskArticle converts options object to positional args", () => {
@@ -216,6 +225,7 @@ describe("wrapper functions", () => {
       "Getting Started",
       "Guides",
     );
+    expect(mockModule.show).not.toHaveBeenCalled();
   });
 
   it("openHelpdeskArticle works with only required fields", () => {

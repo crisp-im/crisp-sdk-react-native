@@ -147,22 +147,22 @@ class ExpoCrispSdkModule : Module() {
     // MARK: - UI
 
     Function("show") {
-      val crispIntent = Intent(context, ChatActivity::class.java)
-      crispIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      context.startActivity(crispIntent)
+      startChatActivity()
     }
 
     Function("openChat") {
-      // No-op on Android: ChatActivity always opens on the Chat tab.
-      Unit
+      // ChatActivity always opens on the Chat tab, so no tab selection is needed.
+      startChatActivity()
     }
 
     Function("searchHelpdesk") {
       Crisp.searchHelpdesk(context)
+      startChatActivity()
     }
 
     Function("openHelpdeskArticle") { id: String, locale: String, title: String?, category: String? ->
       Crisp.openHelpdeskArticle(context, id, locale, title, category)
+      startChatActivity()
     }
 
     Function("runBotScenario") { scenarioId: String ->
@@ -191,6 +191,12 @@ class ExpoCrispSdkModule : Module() {
       val content = ContentParser.fromMap(contentData)
       Crisp.showMessage(content)
     }
+  }
+
+  private fun startChatActivity() {
+    val crispIntent = Intent(context, ChatActivity::class.java)
+    crispIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(crispIntent)
   }
 
   private fun convertIntToColor(colorInt: Int): Color {

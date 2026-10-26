@@ -252,7 +252,6 @@ export function show(): void {
  */
 export function openChat(): void {
   ExpoCrispSdkModule.openChat();
-  ExpoCrispSdkModule.show();
 }
 
 /**
@@ -261,7 +260,6 @@ export function openChat(): void {
  */
 export function searchHelpdesk(): void {
   ExpoCrispSdkModule.searchHelpdesk();
-  ExpoCrispSdkModule.show();
 }
 
 /**
@@ -298,7 +296,6 @@ export function openHelpdeskArticle(
       optionsOrId.category,
     );
   }
-  ExpoCrispSdkModule.show();
 }
 
 /**
