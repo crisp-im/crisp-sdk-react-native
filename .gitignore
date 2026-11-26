@@ -73,3 +73,6 @@ google-services.json
 AGENTS.md
 
 .vscode/
+# Yarn project: npm lockfile and TypeScript incremental build info
+/package-lock.json
+*.tsbuildinfo
