@@ -47,6 +47,20 @@ for (const criterion of Object.keys(releaseCriteria)) {
   });
 }
 
+test("prereleases do not require a stable Android SDK, but every other criterion", () => {
+  const prerelease = { ...ready, androidOfficialSdk: false };
+  assert.doesNotThrow(() => assertReleaseReady(prerelease, "0.5.0-next.0", "v0.5.0-next.0"));
+  assert.throws(() => assertReleaseReady(prerelease, "0.5.0", "v0.5.0"), /androidOfficialSdk/);
+  for (const criterion of Object.keys(releaseCriteria).filter(
+    (name) => name !== "androidOfficialSdk",
+  )) {
+    assert.throws(
+      () => assertReleaseReady({ ...prerelease, [criterion]: false }, "0.5.0-next.0"),
+      new RegExp(criterion),
+    );
+  }
+});
+
 test("tag must match the package version exactly", () => {
   for (const tag of ["", manifest.version, "v9.9.9", `v${manifest.version}\n`]) {
     assert.throws(() => assertReleaseReady(ready, manifest.version, tag), /does not match/);

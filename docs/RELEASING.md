@@ -1,16 +1,19 @@
 # Preparing and publishing a release
 
-## Current hold: Android Web chatbox migration
+## Status of the 0.5 migration
 
-The migration is **not ready to publish**. Preparing a tarball is useful now, but does not authorize a release, including a prerelease.
+The source pins Crisp iOS **3.1.1** and Android **3.0.0beta2**, the Web chatbox SDKs. Crisp Android 3.x requires `compileSdk` 37 and Android Gradle Plugin 9.1 or newer, so the package requires Expo SDK 58 or newer (React Native 0.88 or newer) through its peer dependencies. The development dependencies and examples use Expo SDK 58.
 
-The source currently pins Crisp iOS **3.1.1** and Android **3.0.0beta2**, the Web chatbox SDKs. Crisp Android 3.x requires `compileSdk` 37 and Android Gradle Plugin 9.1 or newer, so the package requires Expo SDK 58 or newer (React Native 0.88 or newer) through its peer dependencies. The development dependencies and examples use Expo SDK 58.
+Evidence gathered so far, to review in the release PR before acknowledging the criteria below:
 
-Android notifications were delivered by real FCM pushes on a physical device, from a release build of the packed module in an Expo 58 app, in both notification modes: foreground, background and process not running, with the tap opening the conversation, and no notification after logout. This does not acknowledge `androidNotifications` on its own: interference with non-Crisp pushes in coexistence mode is not validated yet, and `androidOfficialSdk` requires a stable Android release rather than a beta.
+- Android: real FCM pushes on a physical device, from a release build of the packed module in an Expo 58 app, in both notification modes: foreground, background and process not running, with the tap opening the conversation, and no notification after logout. Interference with non-Crisp pushes in coexistence mode is not validated on a device.
+- iOS: every public export exercised on an iOS 27 simulator, with simulated pushes in both modes, including a tap that launches the app and coexistence with a delegate that forwards back to Crisp as React Native Firebase does. Real APNs delivery is not validated.
+
+`androidOfficialSdk` is required for a stable release only: a prerelease on `next` exists precisely while Crisp Android 3.x is in beta. Every other criterion applies to prereleases too.
 
 ## Prerelease channel
 
-While Crisp Android 3.x is in beta, the repository is in Changesets prerelease mode on the `next` tag (`.changeset/pre.json`): `yarn version` produces `0.5.0-next.N`. The `Build and Release` workflow publishes a prerelease to the npm dist-tag named by its identifier (`next`), and a stable version to `latest`, as npm 11 refuses to publish a prerelease without an explicit tag. The publication criteria apply to prereleases too.
+While Crisp Android 3.x is in beta, the repository is in Changesets prerelease mode on the `next` tag (`.changeset/pre.json`): `yarn version` produces `0.5.0-next.N`. The `Build and Release` workflow publishes a prerelease to the npm dist-tag named by its identifier (`next`), and a stable version to `latest`, as npm 11 refuses to publish a prerelease without an explicit tag. The publication criteria apply to prereleases too, except `androidOfficialSdk`.
 
 When the stable Android SDK is released and validated, leave prerelease mode in the release PR with `yarn changeset pre exit`, then `yarn version`.
 
@@ -46,7 +49,7 @@ publint and Are the Types Wrong report that `build/*.js` uses ESM syntax while `
 
 | Criterion | Evidence required before acknowledging it |
 | --- | --- |
-| `androidOfficialSdk` | Official, complete, pinned Android release containing notifications; module and plugin use the same version and the final native APIs. |
+| `androidOfficialSdk` | Stable releases only. Official, complete, pinned Android release containing notifications; module and plugin use the same version and the final native APIs. |
 | `sessionUpgrade` | Real in-place 2.x → 3.x upgrades preserving anonymous and identified conversations; logout, interrupted migration and account isolation checked. |
 | `androidNotifications` | Authorized test Firebase setup; real FCM reception and tap/navigation in foreground, background and process-not-running states; SDK-managed/coexistence modes, no duplicate handling or interference with non-Crisp pushes. Do not equate Android force-stop with normal process death. |
 | `reactNativeValidation` | Final tarball installed in representative Expo/RN apps on Android and iOS; documented compatibility, chat, lifecycle/uploads, session handling and notification behavior checked; APNs/device limitations recorded. |
@@ -58,9 +61,9 @@ publint and Are the Types Wrong report that `build/*.js` uses ESM syntax while `
 yarn release:check
 ```
 
-This command is expected to **fail while the hold is active**. It does not publish. The same gate protects `yarn release`, the source tree's `prepublishOnly` hook, and the tag-triggered workflow. CI also requires the tag to equal `v` plus the package version. These are repository safeguards, not npm account access controls; do not bypass them with a direct `npm publish` or `--ignore-scripts` outside the guarded workflow.
+This command fails until every required criterion is acknowledged. It does not publish. The same gate protects `yarn release`, the source tree's `prepublishOnly` hook, and the tag-triggered workflow. CI also requires the tag to equal `v` plus the package version. These are repository safeguards, not npm account access controls; do not bypass them with a direct `npm publish` or `--ignore-scripts` outside the guarded workflow.
 
-## Finalize only after the hold is lifted
+## Finalize a release
 
 1. Complete the native migration and device matrix. Rebuild and retest a fresh candidate after any source or dependency change.
 2. Check the migration guide (`MIGRATION.md`, "Upgrading to 0.5") and the `web-chatbox-sdks` changeset against the final native API changes.
@@ -70,7 +73,7 @@ This command is expected to **fail while the hold is active**. It does not publi
 
 ## Version, tag and publish
 
-**Do not run these steps while the release hold is active.** First complete and review every criterion in `.release-readiness.json`, including explicit publication approval. `yarn release:check` must succeed.
+**Do not run these steps before the release gate passes.** First complete and review every criterion in `.release-readiness.json`, including explicit publication approval. `yarn release:check` must succeed.
 
 Releases are prepared with Changesets and published to npm by GitHub Actions. Start from a dedicated release branch based on the latest `master`:
 

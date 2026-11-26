@@ -11,8 +11,13 @@ const releaseCriteria = {
   publicationApproved: "Maintainer explicitly approved publication of this candidate",
 };
 
+// A prerelease on the "next" tag exists precisely while the Android SDK is still a beta
+const stableOnlyCriteria = new Set(["androidOfficialSdk"]);
+
 function assertReleaseReady(readiness, version, tag) {
+  const prerelease = version.includes("-");
   const blocked = Object.entries(releaseCriteria)
+    .filter(([criterion]) => !(prerelease && stableOnlyCriteria.has(criterion)))
     .filter(([criterion]) => readiness?.[criterion] !== true)
     .map(([criterion, description]) => `${criterion}: ${description}`);
 
