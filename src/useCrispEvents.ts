@@ -53,7 +53,7 @@ export interface CrispEventCallbacks {
   onMessageSent?: (message: CrispMessage) => void;
 
   /**
-   * Called when a message is received from an operator.
+   * Called when the visitor receives a message in the chatbox (from an operator or a bot).
    * @param message - The message details
    */
   onMessageReceived?: (message: CrispMessage) => void;

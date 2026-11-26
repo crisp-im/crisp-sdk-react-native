@@ -26,7 +26,7 @@ type ExpoCrispPluginProps = {
    * - Adds CrispNotificationService to AndroidManifest
    * - Adds firebase-messaging dependency
    * - Configures Crisp SDK with websiteId
-   * - Enables Crisp notifications in MainApplication
+   * - Enables Crisp notifications through AndroidManifest meta-data
    *
    * @default { enabled: false }
    */
