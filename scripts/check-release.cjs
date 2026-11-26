@@ -30,7 +30,9 @@ function npmDistTag(version) {
   const prerelease = /^\d+\.\d+\.\d+-([^.+]+)/.exec(version)?.[1];
   if (prerelease === undefined) return "latest";
   if (!/^[a-z][a-z0-9-]*$/i.test(prerelease) || prerelease === "latest") {
-    throw new Error(`Prerelease ${version} must start with a dist-tag name, such as ${version.split("-")[0]}-next.0`);
+    throw new Error(
+      `Prerelease ${version} must start with a dist-tag name, such as ${version.split("-")[0]}-next.0`,
+    );
   }
   return prerelease;
 }
