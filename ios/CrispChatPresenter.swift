@@ -4,14 +4,6 @@ import UIKit
 /// Single entry point for presenting the Crisp chatbox, shared by the module's
 /// UI functions (`show`, `openChat`, `searchHelpdesk`, `openHelpdeskArticle`)
 /// and the notification-tap handler.
-///
-/// The Crisp iOS SDK leaves the presentation to the host app: its
-/// `openChat()` / `searchHelpdesk()` / `openHelpdeskArticle()` only select what
-/// the next `ChatViewController` presentation shows. This helper applies that
-/// destination and presents the chatbox in one step on the main thread, on the
-/// top-most view controller of the key window (UIKit refuses a presentation
-/// from a controller that is already presenting another one, e.g. a React
-/// Navigation modal).
 enum CrispChatPresenter {
 
   enum Destination {
@@ -37,11 +29,15 @@ enum CrispChatPresenter {
       log("No key window, the chatbox was not presented.")
       return
     }
-    // No-op if a chatbox is already anywhere in the presentation chain (the
-    // chat may itself have presented a child controller, e.g. an image preview).
-    if topViewController is ChatViewController { return }
+    if topViewController is ChatViewController {
+      select(destination)
+      return
+    }
     while let presented = topViewController.presentedViewController {
-      if presented is ChatViewController { return }
+      if presented is ChatViewController {
+        select(destination)
+        return
+      }
       topViewController = presented
     }
 

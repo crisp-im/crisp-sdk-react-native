@@ -35,13 +35,14 @@ const withIosSdkManaged: ConfigPlugin<IosNotificationConfig> = (config, { websit
     // Store websiteId for CrispAppDelegateSubscriber to read at runtime
     config.modResults.CrispWebsiteId = websiteId;
     config.modResults.CrispNotificationsEnabled = true;
+    config.modResults.CrispNotificationsMode = "sdk-managed";
 
     return config;
   });
 
   // Add aps-environment entitlement
   config = withEntitlementsPlist(config, (config) => {
-    config.modResults["aps-environment"] = "production";
+    config.modResults["aps-environment"] ??= "production";
     return config;
   });
 
@@ -74,7 +75,7 @@ const withIosCoexistence: ConfigPlugin<IosNotificationConfig> = (config, { websi
 
   // Add aps-environment entitlement
   config = withEntitlementsPlist(config, (config) => {
-    config.modResults["aps-environment"] = "production";
+    config.modResults["aps-environment"] ??= "production";
     return config;
   });
 

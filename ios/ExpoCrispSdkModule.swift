@@ -10,8 +10,9 @@ public class ExpoCrispSdkModule: Module {
   private let onLogReceived = "onLogReceived"
   private let onPushNotificationReceived = "onPushNotificationReceived"
 
-  private var callbackTokens: [CallbackToken] = []
-  private var logHandler: CrispLogHandlerBridge?
+  @MainActor private var callbackTokens: [CallbackToken] = []
+  @MainActor private var logSubscription: UUID?
+  @MainActor private var notificationSubscription: UUID?
 
   public func definition() -> ModuleDefinition {
     Name("ExpoCrispSdk")
@@ -27,16 +28,18 @@ public class ExpoCrispSdkModule: Module {
     )
 
     OnCreate {
-      self.setupNotificationEventEmitter()
       DispatchQueue.main.async { [weak self] in
         guard let self = self else { return }
+        self.setupNotificationEventEmitter()
         self.setupCallbacks()
         self.setupLogHandler()
       }
     }
 
     OnDestroy {
-      self.cleanupCallbacks()
+      DispatchQueue.main.async {
+        self.cleanupCallbacks()
+      }
     }
 
     // MARK: - Configuration
@@ -158,9 +161,6 @@ public class ExpoCrispSdkModule: Module {
     // MARK: - Push Notifications (Coexistence Mode)
 
     Function("registerPushToken") { (token: String) in
-      // An empty token means "unregister": clear the device token so Crisp
-      // stops routing pushes to this device. Previously this early-returned,
-      // leaving callers no way to unregister a token through the wrapper.
       let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
       if trimmed.isEmpty {
         CrispSDK.setDeviceToken(Data())
@@ -194,7 +194,7 @@ public class ExpoCrispSdkModule: Module {
     }
 
     Function("isCrispPushNotification") { (data: [String: String]) in
-      return data.keys.contains("crisp_website_id")
+      return CrispSDK._isRawCrispPushNotification(data)
     }
 
     Function("setShouldPromptForNotificationPermission") { (enabled: Bool) in
@@ -247,7 +247,8 @@ public class ExpoCrispSdkModule: Module {
     }
   }
 
-  private func setupCallbacks() {
+  @MainActor private func setupCallbacks() {
+    guard callbackTokens.isEmpty else { return }
     callbackTokens.append(
       CrispSDK.addCallback(.sessionLoaded { [weak self] sessionId in
         guard let self = self else { return }
@@ -284,8 +285,9 @@ public class ExpoCrispSdkModule: Module {
     )
   }
 
-  private func setupLogHandler() {
-    logHandler = CrispLogHandlerBridge { [weak self] severity, message in
+  @MainActor private func setupLogHandler() {
+    guard logSubscription == nil else { return }
+    logSubscription = CrispLogHandlerBridge.shared.subscribe { [weak self] severity, message in
       guard let self = self else { return }
       let levelInt = self.convertSeverityToInt(severity)
       self.sendEvent(self.onLogReceived, [
@@ -296,26 +298,29 @@ public class ExpoCrispSdkModule: Module {
         ]
       ])
     }
-    if let handler = logHandler {
-      CrispSDK.addLogHandler(handler)
-    }
   }
 
-  private func setupNotificationEventEmitter() {
-    CrispNotificationEventEmitter.shared.sendEvent = { [weak self] name, body in
+  @MainActor private func setupNotificationEventEmitter() {
+    guard notificationSubscription == nil else { return }
+    notificationSubscription = CrispNotificationEventEmitter.shared.subscribe { [weak self] name, body in
       self?.sendEvent(name, body)
     }
   }
 
-  private func cleanupCallbacks() {
+  @MainActor private func cleanupCallbacks() {
     for token in callbackTokens {
       CrispSDK.removeCallback(token: token)
     }
     callbackTokens.removeAll()
 
-    // Note: Crisp SDK does not provide a way to remove log handlers.
-    // The handler remains registered for the app lifetime.
-    logHandler = nil
+    if let token = logSubscription {
+      CrispLogHandlerBridge.shared.removeSubscription(token)
+      logSubscription = nil
+    }
+    if let token = notificationSubscription {
+      CrispNotificationEventEmitter.shared.removeSubscription(token)
+      notificationSubscription = nil
+    }
   }
 
   /// Converts TypeScript CrispLogLevel int to iOS Severity.

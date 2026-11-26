@@ -52,6 +52,7 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
 
   private func setupNotificationDelegate() {
     let center = UNUserNotificationCenter.current()
+    guard center.delegate !== self else { return }
 
     // Save the previous delegate for chain of responsibility
     previousDelegate = center.delegate
@@ -76,15 +77,18 @@ extension CrispAppDelegateSubscriber: UNUserNotificationCenterDelegate {
 
       // Emit onPushNotificationReceived event to JS
       let content = notification.request.content
-      CrispNotificationEventEmitter.shared.emitPushNotificationReceived(
-        title: content.title,
-        body: content.body
-      )
+      let title = content.title
+      let body = content.body
+      DispatchQueue.main.async {
+        CrispNotificationEventEmitter.shared.emitPushNotificationReceived(title: title, body: body)
+      }
 
       completionHandler([.banner, .sound])
     } else if isCoexistenceMode, let previous = previousDelegate {
       // In coexistence mode, forward non-Crisp notifications to the previous delegate
-      previous.userNotificationCenter?(center, willPresent: notification, withCompletionHandler: completionHandler)
+      if previous.userNotificationCenter?(center, willPresent: notification, withCompletionHandler: completionHandler) == nil {
+        completionHandler([.banner, .sound])
+      }
     } else {
       // Default: show the notification
       completionHandler([.banner, .sound])
@@ -111,7 +115,9 @@ extension CrispAppDelegateSubscriber: UNUserNotificationCenterDelegate {
       completionHandler()
     } else if isCoexistenceMode, let previous = previousDelegate {
       // In coexistence mode, forward non-Crisp notification taps to the previous delegate
-      previous.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler)
+      if previous.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler) == nil {
+        completionHandler()
+      }
     } else {
       completionHandler()
     }
