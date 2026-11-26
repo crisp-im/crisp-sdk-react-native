@@ -4,7 +4,7 @@
 
 The migration is **not ready to publish**. Preparing a tarball is useful now, but does not authorize a release, including a prerelease.
 
-The source currently pins Crisp iOS **3.1.1** and Android **2.0.25**. The Android version still provides the existing native chatbox and notification integration; it is not the new Web chatbox implementation. Do not replace it with a floating `develop` dependency or infer notification readiness from successful source-level tests.
+The source currently pins Crisp iOS **3.1.1** and Android **3.0.0beta2**, the Web chatbox SDKs. Android notifications compile and their plugin is tested at source level, which does not prove they are delivered: do not infer notification readiness from successful source-level tests before they are validated on a device, in both notification modes.
 
 The repository examples and development dependencies currently use Expo 56. External Expo 58 qualification is not a substitute for validating the final packed module with its final Android SDK. Do not claim a new compatibility range until that matrix has been completed.
 

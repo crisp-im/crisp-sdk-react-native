@@ -64,10 +64,9 @@
 > [!NOTE]
 > **Native SDK versions**
 >
-> This source tree uses Crisp iOS **3.1.1** and Crisp Android **2.0.25**. The Android
-> **3.0.0beta1** web chatbox rewrite does not implement push notifications yet, so it
-> is not used by this wrapper. Do not override the Android dependency with that beta:
-> its native APIs are incompatible with this bridge and notification plugin.
+> This source tree uses Crisp iOS **3.1.1** and Crisp Android **3.0.0beta2**, the web
+> chatbox SDKs. On Android, the chatbox opens in a bottom sheet, and `openChat()` is not
+> supported yet: it throws `ERR_CRISP_UNSUPPORTED`, call `show()` instead.
 
 > [!WARNING]
 > **Expo Go is Not Supported**
@@ -279,8 +278,9 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 
 **Android:**
 
-- Adds `CrispNotificationService` to AndroidManifest
-- Adds `firebase-messaging` and, when no Firebase BoM or explicit Messaging version is configured, the Firebase BoM **34.6.0** used by Crisp Android 2.0.25
+- Adds `CrispNotificationService` to AndroidManifest (replacing the Crisp Android 2.x one)
+- Adds `firebase-messaging` and, when no Firebase BoM or explicit Messaging version is configured, the Firebase BoM **34.18.0**, the minimum required by Crisp Android 3.x. An older BoM or `firebase-messaging` (below 25.1.2) of your app is kept, with a prebuild warning
+- Removes the Crisp Android 2.x dependencies added to `android/app/build.gradle` by previous versions of the plugin
 - Configures Crisp SDK with websiteId
 - Updates the website and notification mode when prebuild is rerun; switching back to `sdk-managed` removes the chained service registration
 
@@ -292,8 +292,8 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 > notification-tap delegate presents `ChatViewController` (in both notification
 > modes). Previously the tap brought the app to the foreground but left the
 > message hidden in the closed chatbox. On Android this already works out of the
-> box — the Crisp SDK's notification opens `ChatActivity` directly via its own
-> back-stacked intent — so no extra handling is required.
+> box — the Crisp SDK's notification opens the chatbox of its conversation in a
+> bottom sheet above your app — so no extra handling is required.
 
 #### Crisp Dashboard Configuration
 
