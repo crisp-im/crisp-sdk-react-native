@@ -4,9 +4,15 @@
 
 The migration is **not ready to publish**. Preparing a tarball is useful now, but does not authorize a release, including a prerelease.
 
-The source currently pins Crisp iOS **3.1.1** and Android **3.0.0beta2**, the Web chatbox SDKs. Android notifications compile and their plugin is tested at source level, which does not prove they are delivered: do not infer notification readiness from successful source-level tests before they are validated on a device, in both notification modes.
+The source currently pins Crisp iOS **3.1.1** and Android **3.0.0beta2**, the Web chatbox SDKs. Crisp Android 3.x requires `compileSdk` 37 and Android Gradle Plugin 9.1 or newer, so the package requires Expo SDK 58 or newer (React Native 0.88 or newer) through its peer dependencies. The development dependencies and examples use Expo SDK 58.
 
-The repository examples and development dependencies currently use Expo 56. External Expo 58 qualification is not a substitute for validating the final packed module with its final Android SDK. Do not claim a new compatibility range until that matrix has been completed.
+Android notifications were delivered by real FCM pushes on a physical device, from a release build of the packed module in an Expo 58 app, in both notification modes: foreground, background and process not running, with the tap opening the conversation, and no notification after logout. This does not acknowledge `androidNotifications` on its own: interference with non-Crisp pushes in coexistence mode is not validated yet, and `androidOfficialSdk` requires a stable Android release rather than a beta.
+
+## Prerelease channel
+
+While Crisp Android 3.x is in beta, the repository is in Changesets prerelease mode on the `next` tag (`.changeset/pre.json`): `yarn version` produces `0.5.0-next.N`. The `Build and Release` workflow publishes a prerelease to the npm dist-tag named by its identifier (`next`), and a stable version to `latest`, as npm 11 refuses to publish a prerelease without an explicit tag. The publication criteria apply to prereleases too.
+
+When the stable Android SDK is released and validated, leave prerelease mode in the release PR with `yarn changeset pre exit`, then `yarn version`.
 
 ## Prepare a candidate without publishing
 
@@ -55,8 +61,8 @@ This command is expected to **fail while the hold is active**. It does not publi
 ## Finalize only after the hold is lifted
 
 1. Complete the native migration and device matrix. Rebuild and retest a fresh candidate after any source or dependency change.
-2. Finalize the migration guide and release notes against the actual native API changes. `MIGRATION.md` currently covers moving from `react-native-crisp-chat-sdk`, not the new Web chatbox migration. Do not silently repurpose it.
-3. Select the appropriate version bump with Changesets when the final compatibility contract is known. The packaging-only changeset does not decide the overall migration's version bump. Use `yarn version` only in the explicitly authorized release PR, never during ordinary candidate preparation.
+2. Check the migration guide (`MIGRATION.md`, "Upgrading to 0.5") and the `web-chatbox-sdks` changeset against the final native API changes.
+3. The `web-chatbox-sdks` changeset sets a minor bump, released as `0.5.0-next.N` while prerelease mode is active. Use `yarn version` only in the explicitly authorized release PR, never during ordinary candidate preparation.
 4. Review all criteria with their evidence, including the authorized license file, independent review and publication approval. A passing CI does not set these flags.
 5. Merge the approved release PR. From a clean checkout of its commit on `master`, follow the versioning/tagging procedure in the README. Do not tag the current development version or publish it locally.
 

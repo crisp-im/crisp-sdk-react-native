@@ -1,17 +1,85 @@
-# Migration Guide: `react-native-crisp-chat-sdk` → `crisp-sdk-react-native`
+# Migration Guide
+
+- [Upgrading to 0.5 (Crisp web chatbox SDKs)](#upgrading-to-05-crisp-web-chatbox-sdks)
+- [Migrating from `react-native-crisp-chat-sdk`](#migrating-from-react-native-crisp-chat-sdk)
+
+## Upgrading to 0.5 (Crisp web chatbox SDKs)
+
+Version 0.5 moves to Crisp iOS **3.1.1** and Crisp Android **3.0.0beta2**, the web chatbox SDKs. While the Android SDK is in beta, it is published on the `next` npm tag.
+
+### 1. Check the requirements
+
+- **Expo SDK 58 or newer** (React Native 0.88 or newer). Crisp Android 3.x and its AndroidX dependencies require `compileSdk` 37 and Android Gradle Plugin 9.1 or newer, which Expo SDK 58 is the first to provide. On Expo SDK 54 to 57, stay on `crisp-sdk-react-native@0.4`.
+- iOS 14 or newer.
+
+### 2. Install and rebuild
+
+```bash
+npx expo install crisp-sdk-react-native@next
+npx expo prebuild --clean
+```
+
+The config plugin options do not change. The plugin removes the Crisp Android 2.x dependencies that previous versions added to `android/app/build.gradle`.
+
+### 3. Update your configuration
+
+**iOS: add the camera and microphone usage descriptions.** Crisp iOS 3.x requires them before opening the chat, including text-only conversations. Without them, the native SDK displays a configuration screen instead of the chat:
+
+```json
+{
+  "expo": {
+    "ios": {
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow access to your camera to share photos and make video calls with support.",
+        "NSMicrophoneUsageDescription": "Allow access to your microphone to send voice messages and make calls with support."
+      }
+    }
+  }
+}
+```
+
+**Android notifications: use Firebase Messaging 25.1.2 or newer** (Firebase BoM 34.18.0 or newer). The plugin adds this BoM when your app sets no Firebase version. If your app pins an older BoM or `firebase-messaging` version, prebuild warns: upgrade it.
+
+### 4. Review the behavior changes
+
+On Android:
+
+| API | Change | What to do |
+| --- | --- | --- |
+| `show()` | Opens the chatbox in a bottom sheet above your app, instead of a full-screen activity. | Nothing. |
+| `openChat()` | Throws `ERR_CRISP_UNSUPPORTED`: Crisp Android 3.0.0beta2 cannot open the chat section directly. | Call `show()` on Android. |
+| `getSessionIdentifier()` | Resolves to `null` unless the chatbox is shown. | Read the session identifier from the `onSessionLoaded` event. |
+| `showMessage()`, `runBotScenario()` | Run once a chatbox is ready: right away if it is shown, otherwise the next time it is. | Nothing. |
+| `onMessageSent`, `onMessageReceived` | The `content` of non-text messages is an empty string, as on iOS. | Do not rely on `content` for audio, file or other non-text messages. |
+| `setUserCompany()` | Ignores an `employment` without `role`, with a warning. | Set `employment.role` whenever you set `employment`. |
+| Notification tap | Opens the conversation in a bottom sheet above your app. | Nothing. |
+
+```typescript
+import { Platform } from "react-native";
+import { openChat, show } from "crisp-sdk-react-native";
+
+// openChat() is not supported by Crisp Android 3.0.0beta2
+Platform.OS === "android" ? show() : openChat();
+```
+
+On both platforms, keep logging out with `setTokenId(null)` then `resetSession()`: on Android, a user stops receiving notifications only once their session is reset.
+
+---
+
+## Migrating from `react-native-crisp-chat-sdk`
 
 This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](https://github.com/walterholohan/react-native-crisp-chat-sdk) to the official [`crisp-sdk-react-native`](https://github.com/crisp-im/crisp-sdk-react-native).
 
 > **Requirements for `crisp-sdk-react-native`:**
 >
 > - Expo SDK 51+ (or React Native 0.76+ with Expo Modules)
-> - **Note:** Version 0.2.0+ requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
+> - **Note:** Version 0.5.0+ requires Expo SDK 58+, see [Upgrading to 0.5](#upgrading-to-05-crisp-web-chatbox-sdks). Version 0.2.0+ requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
 > - New Architecture enabled (default in Expo SDK 53)
 > - Expo Go is **not** supported — use a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 
 ---
 
-## Step 1: Update Dependencies
+### Step 1: Update Dependencies
 
 Uninstall the old SDK and install the new one:
 
@@ -29,7 +97,7 @@ npx expo install crisp-sdk-react-native
 
 ---
 
-## Step 2: Update `app.json` / `app.config.js`
+### Step 2: Update `app.json` / `app.config.js`
 
 Replace the plugin name and remove `expo-build-properties` if no longer needed:
 
@@ -78,7 +146,7 @@ Replace the plugin name and remove `expo-build-properties` if no longer needed:
 
 ---
 
-## Step 3: Update Imports
+### Step 3: Update Imports
 
 Replace the package name in your imports:
 
@@ -108,7 +176,7 @@ All existing imports — including the `CrispChat` default export — work exact
 
 ---
 
-## Step 4: Rebuild Your App
+### Step 4: Rebuild Your App
 
 After making all changes, rebuild your native projects:
 
@@ -123,11 +191,11 @@ That's it! Your app should work exactly as before.
 
 ---
 
-## New Features in `crisp-sdk-react-native`
+### New Features in `crisp-sdk-react-native`
 
 The new SDK includes features that were not available in the legacy SDK:
 
-### Event Listeners
+#### Event Listeners
 
 Subscribe to chat events with the `useCrispEvents` hook:
 
@@ -143,7 +211,7 @@ useCrispEvents({
 });
 ```
 
-### Show Messages
+#### Show Messages
 
 Display messages programmatically as operator in the chatbox:
 
@@ -163,7 +231,7 @@ showMessage({
 });
 ```
 
-### Debug Logging
+#### Debug Logging
 
 Enable native SDK logging for debugging:
 
@@ -179,7 +247,7 @@ useCrispEvents({
 });
 ```
 
-### Push Notification Coexistence
+#### Push Notification Coexistence
 
 If your app uses another push notification system alongside Crisp:
 
@@ -195,9 +263,9 @@ const isCrisp = isCrispPushNotification(notificationData);
 
 ---
 
-## Troubleshooting
+### Troubleshooting
 
-### Build fails after migration
+#### Build fails after migration
 
 Run a clean prebuild to regenerate native projects:
 
@@ -205,7 +273,7 @@ Run a clean prebuild to regenerate native projects:
 npx expo prebuild --clean
 ```
 
-### iOS build fails locally with missing `CrispSDK.session.*` symbols
+#### iOS build fails locally with missing `CrispSDK.session.*` symbols
 
 If your local iOS build fails with errors about missing `CrispSDK.session.*` members (while the same build passes in CI), Xcode's `DerivedData` cache is likely holding a stale copy of the old SDK, which did not expose the `session` namespace.
 
@@ -219,7 +287,7 @@ npx expo run:ios
 
 > Thanks to [@Martinocom-Switcho](https://github.com/crisp-im/crisp-sdk-react-native/issues/27) for documenting this.
 
-### Push notifications stopped working
+#### Push notifications stopped working
 
 1. Make sure the plugin name is updated in `app.json` (Step 2)
 2. Rebuild with `npx expo prebuild --clean`
@@ -227,7 +295,7 @@ npx expo run:ios
 
 ---
 
-## Need Help?
+### Need Help?
 
 - [crisp-sdk-react-native README](./README.md) — Full API reference and usage examples
 - [Push Notifications Guide](./docs/PUSH_NOTIFICATIONS.md) — Detailed push notification setup

@@ -14,7 +14,7 @@
   <a href="https://github.com/crisp-im/crisp-sdk-react-native/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/crisp-sdk-react-native.svg" alt="license" />
   </a>
-  <img src="https://img.shields.io/badge/Expo%20SDK-51%2B-blue" alt="Expo SDK 51+" />
+  <img src="https://img.shields.io/badge/Expo%20SDK-58%2B-blue" alt="Expo SDK 58+" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="platforms" />
 </p>
 
@@ -53,11 +53,13 @@
 >
 > | SDK Version | Expo Compatibility |
 > |---|---|
-> | **0.2.0+** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
+> | **0.5.0+** (`next` tag) | Expo SDK 58+ (`compileSdk` 37 and AGP 9.1+ required by Crisp Android SDK 3.x) |
+> | **0.2.0 to 0.4.x** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
 > | **0.1.4** | Expo SDK 51+ |
 >
-> If you are on Expo 53 or older, pin to version 0.1.4:
+> On Expo 54 to 57, pin to version 0.4; on Expo 53 or older, pin to version 0.1.4:
 > ```bash
+> npx expo install crisp-sdk-react-native@0.4
 > npx expo install crisp-sdk-react-native@0.1.4
 > ```
 
@@ -65,8 +67,10 @@
 > **Native SDK versions**
 >
 > This source tree uses Crisp iOS **3.1.1** and Crisp Android **3.0.0beta2**, the web
-> chatbox SDKs. On Android, the chatbox opens in a bottom sheet, and `openChat()` is not
-> supported yet: it throws `ERR_CRISP_UNSUPPORTED`, call `show()` instead.
+> chatbox SDKs, published on the `next` npm tag (`npx expo install crisp-sdk-react-native@next`).
+> On Android, the chatbox opens in a bottom sheet, and `openChat()` is not supported yet:
+> it throws `ERR_CRISP_UNSUPPORTED`, call `show()` instead. To upgrade from 0.4, see the
+> [migration guide](./MIGRATION.md#upgrading-to-05-crisp-web-chatbox-sdks).
 
 > [!WARNING]
 > **Expo Go is Not Supported**
