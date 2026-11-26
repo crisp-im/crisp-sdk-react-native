@@ -80,7 +80,6 @@
     "MIGRATION.md",
     "docs/API.md",
     "docs/PUSH_NOTIFICATIONS.md",
-    "docs/RELEASING.md",
     "ios/*.swift",
     "ios/*.podspec",
     "ios/Tests/*.swift",

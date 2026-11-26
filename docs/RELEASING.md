@@ -16,7 +16,7 @@ When the stable Android SDK is released and validated, leave prerelease mode in 
 
 ## Prepare a candidate without publishing
 
-Use Node 24 (recommended) or Node 22, Yarn 4.7.0 through Corepack, **npm 11.19.1 or newer**, and `tar`. The packaging command refuses older npm before starting validation or creating an artifact directory. This is a maintainer-tool requirement, not a new consumer runtime requirement.
+Use the latest Node 24 (Node 22 ships npm 10), Yarn 4.7.0 through Corepack, **npm 11.19.1 or newer**, and `tar`. The packaging command refuses older npm before starting validation or creating an artifact directory. This is a maintainer-tool requirement, not a new consumer runtime requirement.
 
 ```bash
 yarn install --immutable
@@ -36,7 +36,9 @@ This is a packaging smoke test, **not** a native build, device test, push test o
 
 npm creates and inspects the archive with `--ignore-scripts`; Yarn remains the dependency manager and runs the validations. npm 10.9.3 and 10.9.8 still execute the repository's `prepare` hook during directory packing despite that flag. The packaging tool requires the qualified newer npm rather than patching that hook or silently rewriting project configuration. Yarn's packing behavior differs from npm for nested paths and README files, so it is not used as a substitute.
 
-The public migration, push and API guides are included in the package. The Swift tests referenced by the podspec's `Migration` test spec remain included. Release scripts, internal readiness state and development artifacts are not distributed.
+The public migration, push and API guides are included in the package; this maintainer guide is not. The Swift tests referenced by the podspec's `Migration` test spec remain included. Release scripts, internal readiness state and development artifacts are not distributed.
+
+publint and Are the Types Wrong report that `build/*.js` uses ESM syntax while `package.json` has no `type` field. This is the standard output of `expo-module-scripts`, unchanged since 0.4.x: Metro and TypeScript resolve the package through `main` and `types`. Adding `type` or `exports` would change how bundlers and the config plugin (`app.plugin.js`) resolve the package, so it is out of scope for this migration.
 
 ## Publication criteria
 

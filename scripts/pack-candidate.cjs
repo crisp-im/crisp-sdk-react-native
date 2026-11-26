@@ -13,7 +13,6 @@ const requiredFiles = [
   "MIGRATION.md",
   "docs/API.md",
   "docs/PUSH_NOTIFICATIONS.md",
-  "docs/RELEASING.md",
   "app.plugin.js",
   "expo-module.config.json",
   "plugin/build/withExpoCrisp.js",
@@ -30,7 +29,7 @@ const requiredFiles = [
 
 const allowedFiles = [
   /^(package\.json|README\.md|LICENSE|CHANGELOG\.md|MIGRATION\.md|app\.plugin\.js|expo-module\.config\.json)$/,
-  /^docs\/(API|PUSH_NOTIFICATIONS|RELEASING)\.md$/,
+  /^docs\/(API|PUSH_NOTIFICATIONS)\.md$/,
   /^(build|plugin\/build)\/[\w./-]+\.(js|d\.ts)(\.map)?$/,
   /^ios\/[\w-]+\.(swift|podspec)$/,
   /^ios\/Tests\/[\w-]+\.swift$/,
