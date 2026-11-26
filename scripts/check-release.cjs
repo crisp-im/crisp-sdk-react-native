@@ -25,6 +25,16 @@ function assertReleaseReady(readiness, version, tag) {
   }
 }
 
+// npm 11 refuses to publish a prerelease without --tag: 0.5.0-next.0 goes to "next", 0.5.0 to "latest"
+function npmDistTag(version) {
+  const prerelease = /^\d+\.\d+\.\d+-([^.+]+)/.exec(version)?.[1];
+  if (prerelease === undefined) return "latest";
+  if (!/^[a-z][a-z0-9-]*$/i.test(prerelease) || prerelease === "latest") {
+    throw new Error(`Prerelease ${version} must start with a dist-tag name, such as ${version.split("-")[0]}-next.0`);
+  }
+  return prerelease;
+}
+
 if (require.main === module) {
   try {
     if (process.argv.length > 3) {
@@ -46,4 +56,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { assertReleaseReady, releaseCriteria };
+module.exports = { assertReleaseReady, npmDistTag, releaseCriteria };

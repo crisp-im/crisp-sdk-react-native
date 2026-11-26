@@ -92,4 +92,5 @@ jobs:
       - name: Publish inspected archive
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          npm publish "$RUNNER_TEMP/crisp-candidate/crisp-sdk-react-native-${VERSION}.tgz" --ignore-scripts --provenance
+          DIST_TAG=$(node -p "require('./scripts/check-release.cjs').npmDistTag(require('./package.json').version)")
+          npm publish "$RUNNER_TEMP/crisp-candidate/crisp-sdk-react-native-${VERSION}.tgz" --ignore-scripts --provenance --tag "$DIST_TAG"

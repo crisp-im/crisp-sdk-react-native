@@ -3,7 +3,7 @@ const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { test } = require("node:test");
-const { assertReleaseReady, releaseCriteria } = require("../check-release.cjs");
+const { assertReleaseReady, npmDistTag, releaseCriteria } = require("../check-release.cjs");
 const { requiredFiles, validatePackage, assertPackagingNpm } = require("../pack-candidate.cjs");
 
 const ready = Object.fromEntries(
@@ -50,6 +50,16 @@ for (const criterion of Object.keys(releaseCriteria)) {
 test("tag must match the package version exactly", () => {
   for (const tag of ["", manifest.version, "v9.9.9", `v${manifest.version}\n`]) {
     assert.throws(() => assertReleaseReady(ready, manifest.version, tag), /does not match/);
+  }
+});
+
+test("prereleases publish to the dist-tag named by their identifier", () => {
+  assert.equal(npmDistTag("0.5.0"), "latest");
+  assert.equal(npmDistTag("0.5.0-next.0"), "next");
+  assert.equal(npmDistTag("1.0.0-beta.2"), "beta");
+  assert.equal(npmDistTag("0.5.0-next.1+build.7"), "next");
+  for (const version of ["0.5.0-0", "0.5.0-1.next", "0.5.0-latest.0"]) {
+    assert.throws(() => npmDistTag(version), /must start with a dist-tag name/);
   }
 });
 
