@@ -4,13 +4,16 @@ on:
       - "v*.*.*"
 
 permissions:
-  id-token: write
+  contents: read
 
 name: Build and Release
 
 jobs:
-  release:
+  prepare:
     runs-on: ubuntu-latest
+    env:
+      CI: "1"
+      EXPO_NONINTERACTIVE: "1"
 
     steps:
       - name: Checkout code
@@ -22,20 +25,71 @@ jobs:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
 
-      - name: Verify versions
-        run: node --version && npm --version && node -p process.versions.v8
+      - name: Check release criteria and tag
+        run: node scripts/check-release.cjs "$GITHUB_REF_NAME"
 
       - name: Enable Corepack
         run: corepack enable && corepack prepare yarn@4.7.0 --activate
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --immutable
 
-      - name: Build package
-        run: yarn build
+      - name: Validate and pack release candidate
+        run: yarn release:prepare --out-dir "$RUNNER_TEMP/crisp-candidate"
 
-      - name: Build plugin
-        run: yarn build:plugin
+      - name: Upload inspected candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: crisp-release-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/crisp-candidate/*.tgz
+            ${{ runner.temp }}/crisp-candidate/candidate.json
+          if-no-files-found: error
+          retention-days: 7
 
-      - name: Release package
-        run: npm publish --ignore-scripts --provenance
+  release:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Download inspected candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: crisp-release-${{ github.sha }}
+          path: ${{ runner.temp }}/crisp-candidate
+
+      - name: Recheck release criteria and archive integrity
+        run: |
+          node scripts/check-release.cjs "$GITHUB_REF_NAME"
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const { createHash } = require('node:crypto');
+          const manifest = require('./package.json');
+          const { validatePackage, expectedPackageFiles } = require('./scripts/pack-candidate.cjs');
+          const directory = path.join(process.env.RUNNER_TEMP, 'crisp-candidate');
+          const candidate = JSON.parse(fs.readFileSync(path.join(directory, 'candidate.json'), 'utf8'));
+          validatePackage(candidate.package, manifest, expectedPackageFiles(process.cwd()));
+          const archive = path.join(directory, `${manifest.name}-${manifest.version}.tgz`);
+          const integrity = `sha512-${createHash('sha512').update(fs.readFileSync(archive)).digest('base64')}`;
+          assert.equal(integrity, candidate.integrity, 'Candidate changed after validation');
+          assert.equal(integrity, candidate.package.integrity, 'Package integrity mismatch');
+          assert.ok(candidate.package.files.some(file => file.path === 'LICENSE'), 'LICENSE missing from archive');
+          NODE
+
+      - name: Publish inspected archive
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          npm publish "$RUNNER_TEMP/crisp-candidate/crisp-sdk-react-native-${VERSION}.tgz" --ignore-scripts --provenance

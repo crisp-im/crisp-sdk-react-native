@@ -2,9 +2,15 @@ on: [push, pull_request]
 
 name: Test and Build
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      CI: "1"
+      EXPO_NONINTERACTIVE: "1"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -12,7 +18,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           registry-url: https://registry.npmjs.org
 
       - name: Verify versions
@@ -22,10 +28,17 @@ jobs:
         run: corepack enable && corepack prepare yarn@4.7.0 --activate
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --immutable
 
-      - name: Lint
-        run: yarn lint
+      - name: Validate and pack candidate (no publication)
+        run: yarn release:prepare --out-dir "$RUNNER_TEMP/crisp-candidate"
 
-      - name: Format check
-        run: yarn format --check || echo "Format check completed"
+      - name: Upload inspected candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: crisp-candidate-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/crisp-candidate/*.tgz
+            ${{ runner.temp }}/crisp-candidate/candidate.json
+          if-no-files-found: error
+          retention-days: 7
