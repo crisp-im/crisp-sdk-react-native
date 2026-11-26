@@ -14,21 +14,29 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if let websiteId = Bundle.main.object(forInfoDictionaryKey: "CrispWebsiteId") as? String {
-      DispatchQueue.main.async {
-        CrispSDK.configure(websiteID: websiteId)
+    guard let websiteId = Bundle.main.object(forInfoDictionaryKey: "CrispWebsiteId") as? String else {
+      return true
+    }
+    let notificationsEnabled =
+      Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool ?? false
 
-        if let notificationsEnabled = Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool,
-          notificationsEnabled
-        {
-          // Always register for remote notifications to obtain the APNs device token.
-          // This does NOT prompt the user for permission (that's requestAuthorization).
-          application.registerForRemoteNotifications()
+    // iOS hands the tap on a notification that launched the app only to the delegate set
+    // before launch finishes: set it now, without it the tap opens the app but not the chatbox.
+    // Without a delegate, iOS also drops the notifications received in the foreground.
+    if notificationsEnabled {
+      setupNotificationDelegate()
+    }
 
-          // Always set up UNUserNotificationCenterDelegate for foreground notification handling.
-          // Without this, iOS silently drops notifications received while the app is in foreground.
-          self.setupNotificationDelegate()
-        }
+    DispatchQueue.main.async {
+      CrispSDK.configure(websiteID: websiteId)
+
+      if notificationsEnabled {
+        // Obtains the APNs device token, without prompting the user for permission (requestAuthorization does)
+        application.registerForRemoteNotifications()
+
+        // Takes the delegate back if another subscriber replaced it after this one,
+        // and passes it the notifications that are not from Crisp in coexistence mode
+        self.setupNotificationDelegate()
       }
     }
     return true
