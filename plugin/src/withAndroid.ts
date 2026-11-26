@@ -23,7 +23,7 @@ const CRISP_COMMONMARK_EXCLUSION =
   "exclude group: 'com.atlassian.commonmark', module: 'commonmark'";
 
 function addCrispAndroidSdkDependency(contents: string): string {
-  if (!contents.includes("im.crisp:crisp-sdk")) {
+  if (!/^\s*(?:implementation|api)\s*\(?\s*['"]im\.crisp:crisp-sdk:/m.test(contents)) {
     return contents.replace(
       /dependencies\s*\{/,
       `dependencies {
@@ -53,11 +53,48 @@ function addCommonmarkAndroidDependency(contents: string): string {
   );
 }
 
+function addFirebaseMessagingDependencies(contents: string): string {
+  if (!contents.includes("com.google.firebase:firebase-messaging")) {
+    contents = contents.replace(
+      /dependencies\s*\{/,
+      `dependencies {
+    implementation 'com.google.firebase:firebase-messaging'`,
+    );
+  }
+  if (
+    !contents.includes("com.google.firebase:firebase-bom") &&
+    !/com\.google\.firebase:firebase-messaging:[^'"\s]+/.test(contents)
+  ) {
+    contents = contents.replace(
+      /dependencies\s*\{/,
+      `dependencies {
+    implementation platform('com.google.firebase:firebase-bom:34.6.0')`,
+    );
+  }
+  return contents;
+}
+
 export const withAndroidNotifications: ConfigPlugin<[string, NotificationMode]> = (
   config,
   [websiteId, mode],
 ) => {
   const notificationConfig: AndroidNotificationConfig = { websiteId, mode };
+
+  config = withAndroidManifest(config, (config) => {
+    const application = AndroidConfig.Manifest.getMainApplicationOrThrow(config.modResults);
+    const metadata = {
+      "expo.modules.crispsdk.WEBSITE_ID": websiteId,
+      "expo.modules.crispsdk.NOTIFICATIONS_ENABLED": "true",
+      "expo.modules.crispsdk.NOTIFICATIONS_MODE": mode,
+    };
+    application["meta-data"] = (application["meta-data"] ?? []).filter(
+      (entry) => !Object.hasOwn(metadata, entry.$["android:name"]),
+    );
+    for (const [name, value] of Object.entries(metadata)) {
+      application["meta-data"].push({ $: { "android:name": name, "android:value": value } });
+    }
+    return config;
+  });
 
   if (mode === "coexistence") {
     return withAndroidCoexistence(config, notificationConfig);
@@ -70,7 +107,7 @@ export const withAndroidNotifications: ConfigPlugin<[string, NotificationMode]> 
 // SDK-Managed Mode (existing behavior, extracted)
 // =============================================================================
 
-const withAndroidSdkManaged: ConfigPlugin<AndroidNotificationConfig> = (config, { websiteId }) => {
+const withAndroidSdkManaged: ConfigPlugin<AndroidNotificationConfig> = (config) => {
   // Add CrispNotificationService and meta-data to manifest
   config = withAndroidManifest(config, (config) => {
     const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(config.modResults);
@@ -79,6 +116,11 @@ const withAndroidSdkManaged: ConfigPlugin<AndroidNotificationConfig> = (config, 
     if (!mainApplication.service) {
       mainApplication.service = [];
     }
+
+    const packageName = config.android?.package ?? "com.anonymous";
+    mainApplication.service = mainApplication.service.filter(
+      (service) => service.$["android:name"] !== `${packageName}.ExpoCrispFirebaseMessagingService`,
+    );
 
     const hasService = mainApplication.service.some(
       (s) =>
@@ -99,49 +141,12 @@ const withAndroidSdkManaged: ConfigPlugin<AndroidNotificationConfig> = (config, 
       });
     }
 
-    // Add meta-data for CrispApplicationLifecycleListener to read at runtime
-    if (!mainApplication["meta-data"]) {
-      mainApplication["meta-data"] = [];
-    }
-
-    // Add websiteId meta-data
-    const hasWebsiteId = mainApplication["meta-data"].some(
-      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.WEBSITE_ID",
-    );
-    if (!hasWebsiteId) {
-      mainApplication["meta-data"].push({
-        $: {
-          "android:name": "expo.modules.crispsdk.WEBSITE_ID",
-          "android:value": websiteId,
-        },
-      });
-    }
-
-    // Add notifications enabled meta-data
-    const hasNotificationsEnabled = mainApplication["meta-data"].some(
-      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.NOTIFICATIONS_ENABLED",
-    );
-    if (!hasNotificationsEnabled) {
-      mainApplication["meta-data"].push({
-        $: {
-          "android:name": "expo.modules.crispsdk.NOTIFICATIONS_ENABLED",
-          "android:value": "true",
-        },
-      });
-    }
-
     return config;
   });
 
   // Add firebase-messaging dependency
   config = withAppBuildGradle(config, (config) => {
-    if (!config.modResults.contents.includes("firebase-messaging")) {
-      config.modResults.contents = config.modResults.contents.replace(
-        /dependencies\s*\{/,
-        `dependencies {
-    implementation 'com.google.firebase:firebase-messaging'`,
-      );
-    }
+    config.modResults.contents = addFirebaseMessagingDependencies(config.modResults.contents);
     return config;
   });
 
@@ -152,17 +157,17 @@ const withAndroidSdkManaged: ConfigPlugin<AndroidNotificationConfig> = (config, 
 // Coexistence Mode
 // =============================================================================
 
-function hasExpoNotifications(): boolean {
+function hasExpoNotifications(projectRoot: string): boolean {
   try {
-    require.resolve("expo-notifications");
+    require.resolve("expo-notifications", { paths: [projectRoot] });
     return true;
   } catch {
     return false;
   }
 }
 
-function generateFirebaseMessagingService(packageName: string): string {
-  const expoNotificationsInstalled = hasExpoNotifications();
+function generateFirebaseMessagingService(packageName: string, projectRoot: string): string {
+  const expoNotificationsInstalled = hasExpoNotifications(projectRoot);
   const baseClass = expoNotificationsInstalled
     ? "expo.modules.notifications.service.ExpoFirebaseMessagingService"
     : "com.google.firebase.messaging.FirebaseMessagingService";
@@ -190,7 +195,7 @@ class ExpoCrispFirebaseMessagingService : ${baseClass}() {
 `;
 }
 
-const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config, { websiteId }) => {
+const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config) => {
   // Generate the ExpoCrispFirebaseMessagingService.kt source file
   config = withDangerousMod(config, [
     "android",
@@ -208,7 +213,10 @@ const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config,
 
       fs.mkdirSync(serviceDir, { recursive: true });
 
-      const serviceCode = generateFirebaseMessagingService(packageName);
+      const serviceCode = generateFirebaseMessagingService(
+        packageName,
+        config.modRequest.projectRoot,
+      );
       fs.writeFileSync(
         path.join(serviceDir, "ExpoCrispFirebaseMessagingService.kt"),
         serviceCode,
@@ -252,50 +260,6 @@ const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config,
       ],
     });
 
-    // Add meta-data
-    if (!mainApplication["meta-data"]) {
-      mainApplication["meta-data"] = [];
-    }
-
-    // Add websiteId meta-data
-    const hasWebsiteId = mainApplication["meta-data"].some(
-      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.WEBSITE_ID",
-    );
-    if (!hasWebsiteId) {
-      mainApplication["meta-data"].push({
-        $: {
-          "android:name": "expo.modules.crispsdk.WEBSITE_ID",
-          "android:value": websiteId,
-        },
-      });
-    }
-
-    // Add notifications enabled meta-data
-    const hasNotificationsEnabled = mainApplication["meta-data"].some(
-      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.NOTIFICATIONS_ENABLED",
-    );
-    if (!hasNotificationsEnabled) {
-      mainApplication["meta-data"].push({
-        $: {
-          "android:name": "expo.modules.crispsdk.NOTIFICATIONS_ENABLED",
-          "android:value": "true",
-        },
-      });
-    }
-
-    // Add notifications mode meta-data
-    const hasMode = mainApplication["meta-data"].some(
-      (m) => m.$?.["android:name"] === "expo.modules.crispsdk.NOTIFICATIONS_MODE",
-    );
-    if (!hasMode) {
-      mainApplication["meta-data"].push({
-        $: {
-          "android:name": "expo.modules.crispsdk.NOTIFICATIONS_MODE",
-          "android:value": "coexistence",
-        },
-      });
-    }
-
     return config;
   });
 
@@ -303,13 +267,7 @@ const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config,
   // The generated ExpoCrispFirebaseMessagingService.kt lives in the app's source directory
   // and imports CrispNotificationClient, so the app module needs the Crisp SDK dependency
   config = withAppBuildGradle(config, (config) => {
-    if (!config.modResults.contents.includes("firebase-messaging")) {
-      config.modResults.contents = config.modResults.contents.replace(
-        /dependencies\s*\{/,
-        `dependencies {
-    implementation 'com.google.firebase:firebase-messaging'`,
-      );
-    }
+    config.modResults.contents = addFirebaseMessagingDependencies(config.modResults.contents);
     config.modResults.contents = addCrispAndroidSdkDependency(config.modResults.contents);
     config.modResults.contents = addCommonmarkAndroidDependency(config.modResults.contents);
     return config;
