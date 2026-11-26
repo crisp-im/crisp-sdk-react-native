@@ -73,8 +73,14 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "ios",
-    "android",
+    "MIGRATION.md",
+    "docs/PUSH_NOTIFICATIONS.md",
+    "docs/RELEASING.md",
+    "ios/*.swift",
+    "ios/*.podspec",
+    "ios/Tests/*.swift",
+    "android/build.gradle",
+    "android/src/main",
     "expo-module.config.json"
   ]
 }
