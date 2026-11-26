@@ -7,6 +7,15 @@ import { AndroidConfig, compileModsAsync, WarningAggregator } from "expo/config-
 import { withAndroidNotifications } from "../../plugin/src/withAndroid";
 import type { NotificationMode } from "../../plugin/src/withExpoCrisp";
 
+// Expo 58 exports WarningAggregator as a non-configurable property: jest.spyOn cannot replace it
+jest.mock("expo/config-plugins", () => {
+  const actual = jest.requireActual("expo/config-plugins");
+  return {
+    ...actual,
+    WarningAggregator: { ...actual.WarningAggregator, addWarningAndroid: jest.fn() },
+  };
+});
+
 const websiteId = "00000000-0000-4000-8000-000000000001";
 const packageName = "chat.crisp.synthetic";
 const crispService = "im.crisp.sdk.api.notification.CrispNotificationService";
@@ -65,11 +74,8 @@ async function applyAndroidConfiguration(
 }
 
 describe("Android notification plugin", () => {
-  let warnings: jest.SpyInstance;
-  beforeEach(() => {
-    warnings = jest.spyOn(WarningAggregator, "addWarningAndroid").mockImplementation(() => {});
-  });
-  afterEach(() => warnings.mockRestore());
+  const warnings = jest.mocked(WarningAggregator.addWarningAndroid);
+  beforeEach(() => warnings.mockClear());
 
   it.each<NotificationMode>([
     "sdk-managed",
