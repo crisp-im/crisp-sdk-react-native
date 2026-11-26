@@ -64,9 +64,9 @@ const withIosCoexistence: ConfigPlugin<IosNotificationConfig> = (config, { websi
     // Store websiteId for CrispAppDelegateSubscriber to read at runtime
     config.modResults.CrispWebsiteId = websiteId;
 
-    // In coexistence mode, set CrispNotificationsEnabled to true (Crisp needs it for
-    // enableNotifications internally), but set CrispNotificationsMode to "coexistence"
-    // so the delegate knows NOT to auto-register for remote notifications
+    // In coexistence mode, CrispNotificationsEnabled is true too (the delegate registers for
+    // remote notifications in both modes); CrispNotificationsMode tells the delegate to pass
+    // the notifications that are not from Crisp to the delegates it replaced
     config.modResults.CrispNotificationsEnabled = true;
     config.modResults.CrispNotificationsMode = "coexistence";
 

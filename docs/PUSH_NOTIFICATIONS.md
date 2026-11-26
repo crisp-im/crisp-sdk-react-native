@@ -51,7 +51,7 @@ The plugin does not add the iOS camera and microphone usage descriptions that Cr
 - Adds `remote-notification` to `UIBackgroundModes`
 - Adds the `aps-environment` entitlement for APNs (`production`), keeping a value already set by your app configuration
 - Configures the Crisp SDK with `websiteId` at app launch
-- Registers for remote notifications on app launch (in `sdk-managed` mode) and forwards the device token to Crisp
+- Registers for remote notifications on app launch (in both modes, without prompting for permission) and forwards the device token to Crisp
 
 **Android:**
 
@@ -116,7 +116,7 @@ By default (`"sdk-managed"`), Crisp handles all push notification routing. If yo
 In coexistence mode, the plugin:
 
 - **Android**: generates a chained `FirebaseMessagingService` that routes Crisp notifications to the Crisp SDK and delegates the others to `expo-notifications` (or Firebase directly)
-- **iOS**: installs a `UNUserNotificationCenterDelegate` that handles Crisp notifications and forwards the others to the previous delegate. It does not register for remote notifications itself
+- **iOS**: installs a `UNUserNotificationCenterDelegate` that handles Crisp notifications and forwards the others to the delegates it replaced, such as `expo-notifications` or React Native Firebase. It registers for remote notifications to get the APNs token, which does not prompt for permission
 
 The native routing is automatic: you do not need JavaScript filtering code. These functions are optional utilities for advanced cases (see the [API reference](./API.md#push-notifications)):
 

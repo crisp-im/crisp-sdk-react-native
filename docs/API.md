@@ -51,6 +51,8 @@ Sets a token, such as your user ID, that restores the user's conversation across
 
 Android: changing the token closes the chatbox shown and drops the pending `showMessage()` and `runBotScenario()` calls, so a call made for one user never runs in the session of another.
 
+Android: user and session data apply to the session of the current token. Call `setTokenId()` before the user and session setters, or the data stays with the previous session.
+
 ### `setLogLevel(level: CrispLogLevel): void`
 
 Sets the minimum level of the native SDK logs sent to [`onLogReceived`](#events). The default is `CrispLogLevel.WARN`. Set it after calling `configure()`.

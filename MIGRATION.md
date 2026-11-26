@@ -64,6 +64,8 @@ On Android:
 | `onMessageSent`, `onMessageReceived` | The `content` of non-text messages is an empty string, as on iOS. | Do not rely on `content` for audio, file or other non-text messages. |
 | `setUserCompany()` | Ignores an `employment` without `role`, with a warning. | Set `employment.role` whenever you set `employment`. |
 | Notification tap | Opens the conversation in a bottom sheet above your app. | Nothing. |
+| User and session setters | Throw `ERR_CRISP_NOT_CONFIGURED` before `configure()`. React runs child effects before parent effects, so a child component's setter can run before a `configure()` called in the root component's `useEffect`. | Call `configure()` at module scope or before rendering components that call setters. |
+| `setTokenId()` | User and session data apply to the session of the current token. Data set before `setTokenId()` stays with the previous session. | Call `setTokenId()` before `setUserEmail()`, `setSessionString()` and the other setters. |
 
 For every platform difference, see the [API reference](./docs/API.md#platform-differences).
 
@@ -74,6 +76,8 @@ import { openChat, show } from "crisp-sdk-react-native";
 // openChat() is not supported by Crisp Android 3.0.0beta2
 Platform.OS === "android" ? show() : openChat();
 ```
+
+On iOS, `isCrispPushNotification()` recognizes the payload of Crisp iOS 3.x notifications, which carries `sender: "crisp"`, `website_id` and `session_id`. A payload with only `crisp_website_id` no longer matches.
 
 On both platforms, keep logging out with `setTokenId(null)` then `resetSession()`: on Android, a user stops receiving notifications only once their session is reset.
 
