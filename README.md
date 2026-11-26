@@ -61,6 +61,14 @@
 > npx expo install crisp-sdk-react-native@0.1.4
 > ```
 
+> [!NOTE]
+> **Native SDK versions**
+>
+> This source tree uses Crisp iOS **3.1.1** and Crisp Android **2.0.25**. The Android
+> **3.0.0beta1** web chatbox rewrite does not implement push notifications yet, so it
+> is not used by this wrapper. Do not override the Android dependency with that beta:
+> its native APIs are incompatible with this bridge and notification plugin.
+
 > [!WARNING]
 > **Expo Go is Not Supported**
 >
@@ -93,6 +101,36 @@ npx expo install crisp-sdk-react-native
 # Using yarn
 yarn dlx expo install crisp-sdk-react-native
 ```
+
+### iOS Privacy Descriptions (Required)
+
+Crisp iOS 3.1.1 requires camera and microphone usage descriptions in the host app before opening the chat, including text-only conversations. Without these descriptions, the native SDK displays a configuration screen instead of the chat.
+
+For Expo apps, merge these keys into your existing `app.json` or `app.config.js`:
+
+```json
+{
+  "expo": {
+    "ios": {
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow access to your camera to share photos and make video calls with support.",
+        "NSMicrophoneUsageDescription": "Allow access to your microphone to send voice messages and make calls with support."
+      }
+    }
+  }
+}
+```
+
+Use wording appropriate to your app and supported languages. For bare React Native apps, add the same keys directly to the application target's `Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Allow access to your camera to share photos and make video calls with support.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Allow access to your microphone to send voice messages and make calls with support.</string>
+```
+
+Rebuild the native application after changing these values. Adding descriptions does not grant permissions or request access immediately; it supplies the text for iOS permission prompts when those features are used. The notification plugin does not add these descriptions.
 
 ### For Bare React Native Apps
 
@@ -139,6 +177,8 @@ bun add crisp-sdk-react-native
 #### Step 3: Platform Configuration
 
 **iOS:**
+
+Add the [required privacy descriptions](#ios-privacy-descriptions-required) to your application target, then install the pods:
 
 ```bash
 cd ios && pod install
@@ -233,15 +273,16 @@ To enable push notifications, add the config plugin to your `app.json` or `app.c
 **iOS:**
 
 - Adds `remote-notification` to UIBackgroundModes
-- Adds `aps-environment` entitlement for APNs
+- Adds `aps-environment` entitlement for APNs, preserving an existing value from your app configuration
 - Registers for remote notifications on app launch
 - Forwards device token to Crisp SDK
 
 **Android:**
 
 - Adds `CrispNotificationService` to AndroidManifest
-- Adds `firebase-messaging` dependency
+- Adds `firebase-messaging` and, when no Firebase BoM or explicit Messaging version is configured, the Firebase BoM **34.6.0** used by Crisp Android 2.0.25
 - Configures Crisp SDK with websiteId
+- Updates the website and notification mode when prebuild is rerun; switching back to `sdk-managed` removes the chained service registration
 
 > [!NOTE]
 > After enabling notifications, rebuild your app with `npx expo prebuild --clean` followed by `npx expo run:ios` or `npx expo run:android`.
@@ -963,6 +1004,39 @@ interface CarouselTarget {
 
 ## Troubleshooting
 
+### CocoaPods resource deployment targets on Xcode 27
+
+The tested Expo 58.0.23 / React Native 0.88.1 installation, using `expo-modules-autolinking` 58.0.17, already reconciles these resource targets automatically. It builds and launches with the generated Podfile and official Crisp 3.1.1, without the workaround below. Keep the autolinking version compatible with your Expo SDK; do not install an Expo 58 autolinker into an older SDK just for this fix.
+
+If Xcode rejects the `CrispChatBox-CrispChatBox` or `CrispChatBoxFFI-CrispChatBoxFFI` resource bundle because its iOS deployment target is below the supported range, check the generated Pods project. Some React Native versions adjust the library targets in `react_native_post_install` but leave their resource bundles at the native podspec's iOS 14 minimum.
+
+As an explicit integration workaround, insert the following **after** `react_native_post_install(...)`, inside your **existing** Podfile `post_install do |installer|` block. Do not add a second `post_install` hook:
+
+```ruby
+installer.target_installation_results.pod_target_installation_results.each_value do |result|
+  next unless %w[CrispChatBox CrispChatBoxFFI].include?(result.target.pod_name)
+
+  result.resource_bundle_targets.each do |bundle|
+    bundle.build_configurations.each do |configuration|
+      library_configuration = result.native_target.build_configurations.find do |candidate|
+        candidate.name == configuration.name
+      end
+      library_minimum = library_configuration&.build_settings&.fetch('IPHONEOS_DEPLOYMENT_TARGET', nil)
+      bundle_minimum = configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      next if [library_minimum, bundle_minimum].any? { |value| value.nil? || value.empty? }
+      next unless Gem::Version.correct?(library_minimum) && Gem::Version.correct?(bundle_minimum)
+      next unless Gem::Version.new(bundle_minimum) < Gem::Version.new(library_minimum)
+
+      configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = library_minimum
+    end
+  end
+end
+```
+
+Run `pod install` again, then rebuild normally. This aligns only these Crisp resource bundles with the minimum already selected for their libraries, separately for each build configuration. It preserves higher or symbolic settings, does not change your app's minimum iOS version, and does not modify the native Crisp SDK. If symbolic settings still resolve below Xcode's minimum, fix their value in your app's build configuration.
+
+For Expo projects that regenerate `ios/`, preserve this adjustment in an app-owned config plugin or reapply it after prebuild; edits to a generated Podfile can be overwritten. The SDK's notification plugin does **not** inject this workaround. An installation requiring it is not an out-of-the-box Xcode 27 validation, and it is unrelated to APNs or session API behavior.
+
 ### "Expo Go is not supported"
 
 The Crisp SDK requires native modules. Use a development build instead:
@@ -1074,7 +1148,19 @@ npx expo run:android
 npx expo run:ios
 ```
 
+### Prepare a release candidate without publishing
+
+The Web chatbox migration is currently **blocked from publication** until the official Android notification implementation, session-upgrade checks and final React Native/Expo validation are complete. Candidate preparation can proceed independently, using Node 24 (recommended), npm 11.19.1 or newer, and Yarn 4.7.0:
+
+```bash
+yarn release:prepare
+```
+
+This runs lint, tests and both builds, then produces and inspects a tarball outside the repository. It does **not** bump the version, create a tag or publish. The package keeps its current development version; it is not a new npm release. See [the release guide](./docs/RELEASING.md) for artifacts, remaining criteria and validation limits.
+
 ### Publish a release (maintainers only)
+
+**Do not run the following steps while the release hold is active.** First complete and review every criterion in `.release-readiness.json`, including explicit publication approval. `yarn release:check` must succeed. See [the release guide](./docs/RELEASING.md) for the required evidence.
 
 Releases are prepared with Changesets and published to npm by GitHub Actions. Start from a dedicated release branch based on the latest `master`:
 
@@ -1101,7 +1187,7 @@ git tag -a "v${VERSION}" -m "v${VERSION}"
 git push origin "v${VERSION}"
 ```
 
-Only create the tag when the working tree is clean and the version does not already exist on npm. Pushing the tag triggers the `Build and Release` GitHub Actions workflow, which builds the package and plugin before publishing with npm provenance. Do not run `npm publish` locally.
+Only create the tag when the working tree is clean and the version does not already exist on npm. Pushing the tag triggers the `Build and Release` GitHub Actions workflow, which checks the release criteria and tag/version match, runs tests and builds, and publishes the inspected tarball with npm provenance. Do not run `npm publish` locally.
 
 Once the workflow succeeds, verify the published version:
 
