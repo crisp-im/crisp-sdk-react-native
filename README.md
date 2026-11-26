@@ -73,19 +73,21 @@
 > ```
 
 > [!NOTE]
-> Version 0.5 uses the Crisp web chatbox SDKs and is published on the `next` npm tag while
-> Crisp Android 3.x is in beta. To upgrade from 0.4, see the
+> Version 0.5 is built on the native Crisp iOS 3.x and Android 3.x SDKs, which embed the Crisp
+> web chatbox. It is published on the `next` npm tag while Crisp Android 3.x is in beta. To upgrade from 0.4, see the
 > [migration guide](./MIGRATION.md#upgrading-to-05-crisp-web-chatbox-sdks).
 
 ## Quick start
 
-Expo Go is not supported: the SDK uses native code, so you need a [development build](https://docs.expo.dev/develop/development-builds/introduction/).
+Expo Go is not supported: the SDK uses native code, so you need a [development build](https://docs.expo.dev/develop/development-builds/introduction/). `npx expo run:ios` and `npx expo run:android` make one; `expo-dev-client` is optional.
 
 **1. Install the package.** With another package manager, use `bunx`, `pnpm dlx` or `yarn dlx` instead of `npx`.
 
 ```bash
 npx expo install crisp-sdk-react-native@next
 ```
+
+This also adds `crisp-sdk-react-native` to `plugins` in `app.json`. Without options the config plugin changes nothing; it is only needed for [push notifications](./docs/PUSH_NOTIFICATIONS.md).
 
 **2. Add the iOS usage descriptions** to `app.json`. Crisp iOS 3.x requires them before opening the chat, even for text-only conversations: without them, it shows a configuration screen instead of the chat. The config plugin does not add them. They do not request any permission; use wording suited to your app.
 
@@ -115,14 +117,13 @@ export default function App() {
 }
 ```
 
-**4. Build and run** the native app:
+In an Expo Router app, call `configure()` in `app/_layout.tsx`.
+
+**4. Build and run** the native app. Expo SDK 58 already uses `compileSdk` 37 and AGP 9.2, so Android needs no extra build settings.
 
 ```bash
-npx expo prebuild
 npx expo run:ios # or: npx expo run:android
 ```
-
-The config plugin is only needed for push notifications: see the [push notifications guide](./docs/PUSH_NOTIFICATIONS.md).
 
 ### Bare React Native
 
@@ -183,7 +184,7 @@ Helpdesk, bot scenarios, operator messages, debug logs and every type are covere
 
 ## Platform differences
 
-- Android opens the chatbox in a bottom sheet. `openChat()` throws `ERR_CRISP_UNSUPPORTED` on Android: call `show()` instead.
+- Android opens the chatbox in a bottom sheet. `openChat()`, which opens the chatbox on its Chat tab on iOS, throws `ERR_CRISP_UNSUPPORTED` on Android: call `show()` instead.
 - `getSessionIdentifier()` returns `null` on Android unless the chatbox is shown: use `onSessionLoaded`. On iOS, it returns the identifier once the session has loaded.
 - On Android, `showMessage()` and `runBotScenario()` wait for a chatbox to be ready.
 - The `content` of non-text messages is an empty string on both platforms.
