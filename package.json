@@ -30,7 +30,7 @@
     "lint": "expo-module lint",
     "test": "expo-module test",
     "prepare": "expo-module prepare",
-    "prepublishOnly": "expo-module prepublishOnly",
+    "prepublishOnly": "yarn release:check && expo-module prepublishOnly",
     "expo-module": "expo-module",
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android",
@@ -38,7 +38,11 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "version": "changeset version",
-    "release": "EXPO_NONINTERACTIVE=1 yarn build && changeset publish"
+    "test:release": "node --test scripts/__tests__/*.test.cjs",
+    "release:check": "node scripts/check-release.cjs",
+    "release:validate": "yarn lint && yarn lint plugin && biome check scripts && yarn test:release && yarn test --runInBand && yarn build && yarn build:plugin",
+    "release:prepare": "node scripts/pack-candidate.cjs",
+    "release": "yarn release:check && yarn release:prepare && changeset publish"
   },
   "bugs": {
     "url": "https://github.com/crisp-im/crisp-sdk-react-native/issues"

@@ -1,0 +1,9 @@
+{
+  "androidOfficialSdk": false,
+  "sessionUpgrade": false,
+  "androidNotifications": false,
+  "reactNativeValidation": false,
+  "licenseFile": false,
+  "independentReview": false,
+  "publicationApproved": false
+}
