@@ -5,7 +5,7 @@ import UserNotifications
 
 public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
 
-  private var previousDelegate: UNUserNotificationCenterDelegate?
+  private let replacedDelegates = NotificationDelegateChain()
   private var isCoexistenceMode: Bool {
     return Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsMode") as? String == "coexistence"
   }
@@ -62,8 +62,8 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
     let center = UNUserNotificationCenter.current()
     guard center.delegate !== self else { return }
 
-    // Save the previous delegate for chain of responsibility
-    previousDelegate = center.delegate
+    // Keep the replaced delegate to pass it the notifications that are not from Crisp
+    replacedDelegates.record(center.delegate)
 
     // Set ourselves as the delegate
     center.delegate = self
@@ -92,11 +92,12 @@ extension CrispAppDelegateSubscriber: UNUserNotificationCenterDelegate {
       }
 
       completionHandler([.banner, .sound])
-    } else if isCoexistenceMode, let previous = previousDelegate {
-      // In coexistence mode, forward non-Crisp notifications to the previous delegate
-      if previous.userNotificationCenter?(center, willPresent: notification, withCompletionHandler: completionHandler) == nil {
-        completionHandler([.banner, .sound])
-      }
+    } else if isCoexistenceMode,
+      replacedDelegates.forward({
+        $0.userNotificationCenter?(center, willPresent: notification, withCompletionHandler: completionHandler) != nil
+      })
+    {
+      // In coexistence mode, a replaced delegate handled the non-Crisp notification
     } else {
       // Default: show the notification
       completionHandler([.banner, .sound])
@@ -121,11 +122,12 @@ extension CrispAppDelegateSubscriber: UNUserNotificationCenterDelegate {
       CrispChatPresenter.present(.chat)
 
       completionHandler()
-    } else if isCoexistenceMode, let previous = previousDelegate {
-      // In coexistence mode, forward non-Crisp notification taps to the previous delegate
-      if previous.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler) == nil {
-        completionHandler()
-      }
+    } else if isCoexistenceMode,
+      replacedDelegates.forward({
+        $0.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler) != nil
+      })
+    {
+      // In coexistence mode, a replaced delegate handled the tap on the non-Crisp notification
     } else {
       completionHandler()
     }
