@@ -1,25 +1,23 @@
 package expo.modules.crispsdk
 
-import im.crisp.client.external.Logger
+import android.util.Log
+import im.crisp.sdk.api.CrispLogger
 
 /**
- * Bridge class that implements Crisp's Logger interface
- * and forwards log messages to the Expo module for emission to JavaScript.
- *
- * IMPORTANT: Crisp SDK keeps strong references to loggers.
- * Adding a custom logger automatically disables the default Logcat logger.
- * There is no removeLogger API, so the logger remains registered for the app lifetime.
+ * Forwards the SDK and Web client logs to JS. Once registered, Crisp no longer logs to Logcat.
+ * May be called from any thread.
  */
 class CrispLoggerBridge(
-    private val onLog: (level: Logger.Level, tag: String?, message: String) -> Unit
-) : Logger {
+  private val onLog: (level: Int, tag: String, message: String) -> Unit
+) : CrispLogger {
+  override fun log(priority: Int, tag: String, message: String) {
+    onLog(CrispLogLevels.fromPriority(priority), tag, message)
+  }
+}
 
-    override fun log(tag: String?, cause: Throwable) {
-        val message = cause.message ?: cause.toString()
-        onLog(Logger.Level.ERROR, tag, message)
-    }
+/** Maps the JS `CrispLogLevel` (VERBOSE 0 … ASSERT 5) to the `android.util.Log` priorities (VERBOSE 2 … ASSERT 7). */
+internal object CrispLogLevels {
+  fun toPriority(level: Int): Int = if (level in 0..5) Log.VERBOSE + level else Log.WARN
 
-    override fun log(level: Logger.Level, tag: String?, message: String) {
-        onLog(level, tag, message)
-    }
+  fun fromPriority(priority: Int): Int = (priority - Log.VERBOSE).coerceIn(0, 5)
 }

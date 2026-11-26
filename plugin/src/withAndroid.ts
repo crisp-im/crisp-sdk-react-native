@@ -5,6 +5,7 @@ import {
   type ConfigPlugin,
   withAndroidManifest,
   withAppBuildGradle,
+  WarningAggregator,
   withDangerousMod,
 } from "expo/config-plugins";
 
@@ -15,42 +16,50 @@ type AndroidNotificationConfig = {
   mode: NotificationMode;
 };
 
-const CRISP_ANDROID_SDK_DEPENDENCY = `implementation('im.crisp:crisp-sdk:2.0.25') {
-        exclude group: 'com.atlassian.commonmark', module: 'commonmark'
-    }`;
-const COMMONMARK_ANDROID_DEPENDENCY = "implementation 'org.commonmark:commonmark:0.21.0'";
-const CRISP_COMMONMARK_EXCLUSION =
-  "exclude group: 'com.atlassian.commonmark', module: 'commonmark'";
+export const CRISP_NOTIFICATION_SERVICE = "im.crisp.sdk.api.notification.CrispNotificationService";
+const LEGACY_CRISP_NOTIFICATION_SERVICE = "im.crisp.client.external.notification.CrispNotificationService";
 
-function addCrispAndroidSdkDependency(contents: string): string {
-  if (!/^\s*(?:implementation|api)\s*\(?\s*['"]im\.crisp:crisp-sdk:/m.test(contents)) {
-    return contents.replace(
-      /dependencies\s*\{/,
-      `dependencies {
-    ${CRISP_ANDROID_SDK_DEPENDENCY}`,
-    );
-  }
+/** Minimum Firebase versions required by Crisp Android SDK 3.x for notifications. */
+export const FIREBASE_BOM_MIN_VERSION = "34.18.0";
+const FIREBASE_MESSAGING_MIN_VERSION = "25.1.2";
 
-  if (contents.includes(CRISP_COMMONMARK_EXCLUSION)) {
-    return contents;
-  }
+// Lines added to the app module by previous versions of this plugin, for Crisp Android 2.x:
+// the module now exposes the Crisp SDK to the app itself.
+const LEGACY_APP_DEPENDENCIES = [
+  /^[ \t]*implementation\('im\.crisp:crisp-sdk:2\.[^']+'\)\s*\{\s*exclude group: 'com\.atlassian\.commonmark', module: 'commonmark'\s*\}[ \t]*\r?\n?/m,
+  /^[ \t]*implementation 'org\.commonmark:commonmark:0\.21\.0'[ \t]*\r?\n?/m,
+];
 
-  return contents.replace(
-    /implementation\s+['"]im\.crisp:crisp-sdk:[^'"]+['"]/,
-    CRISP_ANDROID_SDK_DEPENDENCY,
-  );
+function removeLegacyCrispDependencies(contents: string): string {
+  return LEGACY_APP_DEPENDENCIES.reduce((result, pattern) => result.replace(pattern, ""), contents);
 }
 
-function addCommonmarkAndroidDependency(contents: string): string {
-  if (contents.includes("org.commonmark:commonmark")) {
-    return contents;
+function isOlderVersion(version: string, minimum: string): boolean {
+  const parts = version.split(".").map(Number);
+  const minimumParts = minimum.split(".").map(Number);
+  if (parts.some(Number.isNaN)) return false;
+  for (let i = 0; i < minimumParts.length; i++) {
+    const difference = (parts[i] ?? 0) - minimumParts[i];
+    if (difference !== 0) return difference < 0;
   }
+  return false;
+}
 
-  return contents.replace(
-    /dependencies\s*\{/,
-    `dependencies {
-    ${COMMONMARK_ANDROID_DEPENDENCY}`,
-  );
+function warnAboutOldFirebase(contents: string): void {
+  const bom = contents.match(/com\.google\.firebase:firebase-bom:([\w.-]+)/)?.[1];
+  const messaging = contents.match(/com\.google\.firebase:firebase-messaging:([\w.-]+)/)?.[1];
+  if (bom && isOlderVersion(bom, FIREBASE_BOM_MIN_VERSION)) {
+    WarningAggregator.addWarningAndroid(
+      "crisp-sdk-react-native",
+      `Firebase BoM ${bom} is older than ${FIREBASE_BOM_MIN_VERSION}, required by Crisp Android SDK 3.x notifications.`,
+    );
+  }
+  if (messaging && isOlderVersion(messaging, FIREBASE_MESSAGING_MIN_VERSION)) {
+    WarningAggregator.addWarningAndroid(
+      "crisp-sdk-react-native",
+      `firebase-messaging ${messaging} is older than ${FIREBASE_MESSAGING_MIN_VERSION}, required by Crisp Android SDK 3.x notifications.`,
+    );
+  }
 }
 
 function addFirebaseMessagingDependencies(contents: string): string {
@@ -68,10 +77,11 @@ function addFirebaseMessagingDependencies(contents: string): string {
     contents = contents.replace(
       /dependencies\s*\{/,
       `dependencies {
-    implementation platform('com.google.firebase:firebase-bom:34.6.0')`,
+    implementation platform('com.google.firebase:firebase-bom:${FIREBASE_BOM_MIN_VERSION}')`,
     );
   }
-  return contents;
+  warnAboutOldFirebase(contents);
+  return removeLegacyCrispDependencies(contents);
 }
 
 export const withAndroidNotifications: ConfigPlugin<[string, NotificationMode]> = (
@@ -118,28 +128,25 @@ const withAndroidSdkManaged: ConfigPlugin<AndroidNotificationConfig> = (config) 
     }
 
     const packageName = config.android?.package ?? "com.anonymous";
+    const replaced = [
+      `${packageName}.ExpoCrispFirebaseMessagingService`,
+      LEGACY_CRISP_NOTIFICATION_SERVICE,
+      CRISP_NOTIFICATION_SERVICE,
+    ];
     mainApplication.service = mainApplication.service.filter(
-      (service) => service.$["android:name"] !== `${packageName}.ExpoCrispFirebaseMessagingService`,
+      (service) => !replaced.includes(service.$["android:name"]),
     );
-
-    const hasService = mainApplication.service.some(
-      (s) =>
-        s.$?.["android:name"] === "im.crisp.client.external.notification.CrispNotificationService",
-    );
-
-    if (!hasService) {
-      mainApplication.service.push({
-        $: {
-          "android:name": "im.crisp.client.external.notification.CrispNotificationService",
-          "android:exported": "false",
+    mainApplication.service.push({
+      $: {
+        "android:name": CRISP_NOTIFICATION_SERVICE,
+        "android:exported": "false",
+      },
+      "intent-filter": [
+        {
+          action: [{ $: { "android:name": "com.google.firebase.MESSAGING_EVENT" } }],
         },
-        "intent-filter": [
-          {
-            action: [{ $: { "android:name": "com.google.firebase.MESSAGING_EVENT" } }],
-          },
-        ],
-      });
-    }
+      ],
+    });
 
     return config;
   });
@@ -175,21 +182,30 @@ function generateFirebaseMessagingService(packageName: string, projectRoot: stri
   return `package ${packageName}
 
 import com.google.firebase.messaging.RemoteMessage
-import im.crisp.client.external.notification.CrispNotificationClient
+import im.crisp.sdk.api.notification.CrispNotifications
 
+// Generated by crisp-sdk-react-native (coexistence mode): shows Crisp notifications,
+// passes the others to ${baseClass.split(".").pop()}.
 class ExpoCrispFirebaseMessagingService : ${baseClass}() {
 
     override fun onMessageReceived(message: RemoteMessage) {
-        if (CrispNotificationClient.isCrispNotification(message)) {
-            CrispNotificationClient.handleNotification(this, message)
+        if (CrispNotifications.isCrispNotification(message)) {
+            CrispNotifications.handleNotification(this, message)
         } else {
             super.onMessageReceived(message)
         }
     }
 
+    // Deprecated by firebase-messaging 25.1.0, still called while the app registers with the FCM token
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun onNewToken(token: String) {
-        CrispNotificationClient.sendTokenToCrisp(this, token)
+        CrispNotifications.onNewToken(this, token)
         super.onNewToken(token)
+    }
+
+    override fun onRegistered(installationId: String) {
+        CrispNotifications.onRegistered(this, installationId)
+        super.onRegistered(installationId)
     }
 }
 `;
@@ -263,13 +279,10 @@ const withAndroidCoexistence: ConfigPlugin<AndroidNotificationConfig> = (config)
     return config;
   });
 
-  // Add firebase-messaging and crisp-sdk dependencies
-  // The generated ExpoCrispFirebaseMessagingService.kt lives in the app's source directory
-  // and imports CrispNotificationClient, so the app module needs the Crisp SDK dependency
+  // The generated service lives in the app module: it gets the Crisp SDK from the module (api dependency)
+  // and Firebase Messaging from the app
   config = withAppBuildGradle(config, (config) => {
     config.modResults.contents = addFirebaseMessagingDependencies(config.modResults.contents);
-    config.modResults.contents = addCrispAndroidSdkDependency(config.modResults.contents);
-    config.modResults.contents = addCommonmarkAndroidDependency(config.modResults.contents);
     return config;
   });
 
