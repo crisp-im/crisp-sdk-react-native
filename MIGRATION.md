@@ -38,6 +38,17 @@ The config plugin options do not change. The plugin removes the Crisp Android 2.
 }
 ```
 
+In a bare React Native app, add the same keys to the application target's `Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Allow access to your camera to share photos and make video calls with support.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Allow access to your microphone to send voice messages and make calls with support.</string>
+```
+
+Use wording suited to your app and its languages, then rebuild the native app. The descriptions do not request any permission: they supply the text of the iOS prompts shown when the user starts using these features. The config plugin does not add them.
+
 **Android notifications: use Firebase Messaging 25.1.2 or newer** (Firebase BoM 34.18.0 or newer). The plugin adds this BoM when your app sets no Firebase version. If your app pins an older BoM or `firebase-messaging` version, prebuild warns: upgrade it.
 
 ### 4. Review the behavior changes
@@ -54,6 +65,8 @@ On Android:
 | `setUserCompany()` | Ignores an `employment` without `role`, with a warning. | Set `employment.role` whenever you set `employment`. |
 | Notification tap | Opens the conversation in a bottom sheet above your app. | Nothing. |
 
+For every platform difference, see the [API reference](./docs/API.md#platform-differences).
+
 ```typescript
 import { Platform } from "react-native";
 import { openChat, show } from "crisp-sdk-react-native";
@@ -63,6 +76,39 @@ Platform.OS === "android" ? show() : openChat();
 ```
 
 On both platforms, keep logging out with `setTokenId(null)` then `resetSession()`: on Android, a user stops receiving notifications only once their session is reset.
+
+### 5. If Xcode rejects the Crisp resource bundles
+
+Crisp iOS 3.x ships the `CrispChatBox` and `CrispChatBoxFFI` pods. The tested Expo 58.0.23 / React Native 0.88.1 installation, with `expo-modules-autolinking` 58.0.17, reconciles their resource targets automatically: it builds and launches with the generated Podfile and Crisp 3.1.1, without the workaround below. Keep the autolinking version compatible with your Expo SDK; do not install an Expo 58 autolinker into an older SDK just for this fix.
+
+If Xcode 27 rejects the `CrispChatBox-CrispChatBox` or `CrispChatBoxFFI-CrispChatBoxFFI` resource bundle because its iOS deployment target is below the supported range, check the generated Pods project. Some React Native versions adjust the library targets in `react_native_post_install` but leave their resource bundles at the native podspec's iOS 14 minimum.
+
+As an explicit workaround, insert the following **after** `react_native_post_install(...)`, inside your **existing** Podfile `post_install do |installer|` block. Do not add a second `post_install` hook:
+
+```ruby
+installer.target_installation_results.pod_target_installation_results.each_value do |result|
+  next unless %w[CrispChatBox CrispChatBoxFFI].include?(result.target.pod_name)
+
+  result.resource_bundle_targets.each do |bundle|
+    bundle.build_configurations.each do |configuration|
+      library_configuration = result.native_target.build_configurations.find do |candidate|
+        candidate.name == configuration.name
+      end
+      library_minimum = library_configuration&.build_settings&.fetch('IPHONEOS_DEPLOYMENT_TARGET', nil)
+      bundle_minimum = configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      next if [library_minimum, bundle_minimum].any? { |value| value.nil? || value.empty? }
+      next unless Gem::Version.correct?(library_minimum) && Gem::Version.correct?(bundle_minimum)
+      next unless Gem::Version.new(bundle_minimum) < Gem::Version.new(library_minimum)
+
+      configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = library_minimum
+    end
+  end
+end
+```
+
+Run `pod install` again, then rebuild. This aligns only these Crisp resource bundles with the minimum already selected for their libraries, separately for each build configuration. It keeps higher or symbolic settings, does not change your app's minimum iOS version, and does not modify the Crisp SDK. If symbolic settings still resolve below Xcode's minimum, fix their value in your app's build configuration.
+
+For Expo projects that regenerate `ios/`, keep this adjustment in an app-owned config plugin or reapply it after prebuild: prebuild can overwrite a generated Podfile. The SDK's config plugin does **not** inject this workaround. An installation that needs it is not an out-of-the-box Xcode 27 validation, and it is unrelated to APNs or session API behavior.
 
 ---
 
@@ -150,9 +196,9 @@ Replace the plugin name and remove `expo-build-properties` if no longer needed:
 
 Replace the package name in your imports:
 
-**Before:**
+**Before** (the legacy package, shown as plain JavaScript):
 
-```typescript
+```js
 import CrispChat, {
   configure,
   setUserEmail,
@@ -254,8 +300,11 @@ If your app uses another push notification system alongside Crisp:
 ```typescript
 import { registerPushToken, isCrispPushNotification } from "crisp-sdk-react-native";
 
+declare const devicePushToken: string; // APNs (hex) or FCM token from your notification library
+declare const notificationData: Record<string, string>;
+
 // Register a token from your notification system
-registerPushToken(expoPushToken);
+registerPushToken(devicePushToken);
 
 // Check if a notification is from Crisp
 const isCrisp = isCrispPushNotification(notificationData);
@@ -297,7 +346,7 @@ npx expo run:ios
 
 ### Need Help?
 
-- [crisp-sdk-react-native README](./README.md) — Full API reference and usage examples
+- [API reference](./docs/API.md) — Every function, hook and type, with platform differences
 - [Push Notifications Guide](./docs/PUSH_NOTIFICATIONS.md) — Detailed push notification setup
 - [Crisp Developer Documentation](https://docs.crisp.chat/) — Official Crisp docs
 - [GitHub Issues](https://github.com/crisp-im/crisp-sdk-react-native/issues) — Report bugs or ask questions

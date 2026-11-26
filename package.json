@@ -78,6 +78,7 @@
     "LICENSE",
     "CHANGELOG.md",
     "MIGRATION.md",
+    "docs/API.md",
     "docs/PUSH_NOTIFICATIONS.md",
     "docs/RELEASING.md",
     "ios/*.swift",

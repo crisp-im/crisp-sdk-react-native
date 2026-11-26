@@ -4,9 +4,141 @@ This guide walks you through configuring push notifications for the Crisp SDK on
 
 ## Table of Contents
 
+- [Config plugin](#config-plugin)
+- [Coexistence mode](#coexistence-mode)
 - [Prerequisites](#prerequisites)
 - [iOS Setup (APNs)](#ios-setup-apns)
 - [Android Setup (Firebase Cloud Messaging)](#android-setup-firebase-cloud-messaging)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Config plugin
+
+Enable notifications in the config plugin, in your `app.json` or `app.config.js`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "crisp-sdk-react-native",
+        {
+          "websiteId": "YOUR_WEBSITE_ID",
+          "notifications": {
+            "enabled": true,
+            "mode": "sdk-managed"
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `websiteId` | `string` | - | Your Crisp Website ID. **Required** when notifications are enabled: the plugin throws without it. |
+| `notifications.enabled` | `boolean` | `false` | Enables push notifications for Crisp. When `false`, the plugin changes nothing. |
+| `notifications.mode` | `"sdk-managed" \| "coexistence"` | `"sdk-managed"` | How notifications are routed. See [Coexistence mode](#coexistence-mode). Any other value throws. |
+
+The plugin does not add the iOS camera and microphone usage descriptions that Crisp iOS 3.x requires: add them yourself, see the [README](../README.md#quick-start).
+
+### What the plugin configures
+
+**iOS:**
+
+- Adds `remote-notification` to `UIBackgroundModes`
+- Adds the `aps-environment` entitlement for APNs (`production`), keeping a value already set by your app configuration
+- Configures the Crisp SDK with `websiteId` at app launch
+- Registers for remote notifications on app launch (in `sdk-managed` mode) and forwards the device token to Crisp
+
+**Android:**
+
+- Adds `CrispNotificationService` to the `AndroidManifest.xml`, replacing the Crisp Android 2.x one
+- Adds `firebase-messaging` and, when no Firebase BoM or explicit Messaging version is configured, the Firebase BoM **34.18.0**, the minimum required by Crisp Android 3.x. An older BoM or `firebase-messaging` (below 25.1.2) set by your app is kept, with a prebuild warning: upgrade it
+- Removes the Crisp Android 2.x dependencies added to `android/app/build.gradle` by previous versions of the plugin
+- Configures the Crisp SDK with `websiteId` at app launch
+- Updates the website and notification mode when prebuild runs again. Switching back to `sdk-managed` removes the chained service registration
+
+After enabling notifications, rebuild your app with `npx expo prebuild --clean`, then `npx expo run:ios` or `npx expo run:android`.
+
+Push notifications also need your APNs and Firebase credentials in the Crisp dashboard: see the [iOS](#ios-setup-apns) and [Android](#android-setup-firebase-cloud-messaging) setup below.
+
+### Notification taps
+
+- iOS: tapping a Crisp notification opens the chatbox, in both notification modes, including when the app was not running.
+- Android: the Crisp SDK opens the conversation in a bottom sheet above your app. No extra handling is required.
+
+### Foreground notifications
+
+`onPushNotificationReceived` fires in both notification modes. On iOS, when a Crisp notification is presented while the app is in the foreground. On Android, when a Crisp notification is shown, while the JavaScript module is loaded.
+
+```tsx
+import { useCrispEvents } from "crisp-sdk-react-native";
+
+export function CrispNotificationListener() {
+  useCrispEvents({
+    onPushNotificationReceived: ({ title, body }) => {
+      console.log("Crisp notification:", title, body);
+      // Update a badge count, show a toast, log analytics, etc.
+    },
+  });
+  return null;
+}
+```
+
+---
+
+## Coexistence mode
+
+By default (`"sdk-managed"`), Crisp handles all push notification routing. If your app uses another notification system, such as `expo-notifications`, `@react-native-firebase/messaging` or OneSignal, use `"coexistence"` so both work together:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "crisp-sdk-react-native",
+        {
+          "websiteId": "YOUR_WEBSITE_ID",
+          "notifications": {
+            "enabled": true,
+            "mode": "coexistence"
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+
+In coexistence mode, the plugin:
+
+- **Android**: generates a chained `FirebaseMessagingService` that routes Crisp notifications to the Crisp SDK and delegates the others to `expo-notifications` (or Firebase directly)
+- **iOS**: installs a `UNUserNotificationCenterDelegate` that handles Crisp notifications and forwards the others to the previous delegate. It does not register for remote notifications itself
+
+The native routing is automatic: you do not need JavaScript filtering code. These functions are optional utilities for advanced cases (see the [API reference](./API.md#push-notifications)):
+
+```tsx
+import {
+  isCrispPushNotification,
+  registerPushToken,
+  setShouldPromptForNotificationPermission,
+} from "crisp-sdk-react-native";
+
+declare const devicePushToken: string; // APNs (hex) or FCM token from your notification library
+declare const notificationData: Record<string, string>;
+
+// Register a push token obtained from your notification system
+registerPushToken(devicePushToken);
+
+// Check if a notification payload is from Crisp
+const isCrisp = isCrispPushNotification(notificationData);
+
+// Control whether Crisp prompts for the notification permission (iOS only)
+setShouldPromptForNotificationPermission(false);
+```
 
 ---
 
@@ -14,7 +146,7 @@ This guide walks you through configuring push notifications for the Crisp SDK on
 
 Before starting, ensure you have:
 
-- [ ] Enabled the config plugin in your `app.json` (see [README](../README.md#push-notifications-config-plugin))
+- [ ] Enabled notifications in the [config plugin](#config-plugin)
 - [ ] A Crisp account with access to your Website settings
 - [ ] For iOS: An Apple Developer account
 - [ ] For Android: A Firebase project
@@ -355,3 +487,15 @@ The final step is to add the Firebase configuration to your project. Choose the 
 - [ ] App has been rebuilt
 
 Once Crisp confirms successful configuration, you're ready to receive push notifications on Android!
+
+---
+
+## Troubleshooting
+
+If push notifications do not arrive:
+
+1. Check the config plugin configuration in `app.json` (`notifications.enabled` and `websiteId`)
+2. Rebuild with `npx expo prebuild --clean`
+3. Check that push notifications are enabled in your Crisp dashboard
+4. iOS: check the APNs key, Team ID, Bundle ID and Sandbox mode in the Crisp dashboard, and test on a real device
+5. Android: check `google-services.json` and the Firebase credentials in the Crisp dashboard

@@ -36,7 +36,7 @@ This is a packaging smoke test, **not** a native build, device test, push test o
 
 npm creates and inspects the archive with `--ignore-scripts`; Yarn remains the dependency manager and runs the validations. npm 10.9.3 and 10.9.8 still execute the repository's `prepare` hook during directory packing despite that flag. The packaging tool requires the qualified newer npm rather than patching that hook or silently rewriting project configuration. Yarn's packing behavior differs from npm for nested paths and README files, so it is not used as a substitute.
 
-The public migration and push guides are included in the package. The Swift tests referenced by the podspec's `Migration` test spec remain included. Release scripts, internal readiness state and development artifacts are not distributed.
+The public migration, push and API guides are included in the package. The Swift tests referenced by the podspec's `Migration` test spec remain included. Release scripts, internal readiness state and development artifacts are not distributed.
 
 ## Publication criteria
 
@@ -48,7 +48,7 @@ The public migration and push guides are included in the package. The Swift test
 | `sessionUpgrade` | Real in-place 2.x → 3.x upgrades preserving anonymous and identified conversations; logout, interrupted migration and account isolation checked. |
 | `androidNotifications` | Authorized test Firebase setup; real FCM reception and tap/navigation in foreground, background and process-not-running states; SDK-managed/coexistence modes, no duplicate handling or interference with non-Crisp pushes. Do not equate Android force-stop with normal process death. |
 | `reactNativeValidation` | Final tarball installed in representative Expo/RN apps on Android and iOS; documented compatibility, chat, lifecycle/uploads, session handling and notification behavior checked; APNs/device limitations recorded. |
-| `licenseFile` | Authorized `LICENSE` supplied by the maintainers and included in the archive. The manifest declares MIT and README links to this file, but it is currently absent. Do not invent a copyright owner or license text. |
+| `licenseFile` | Authorized `LICENSE` supplied by the maintainers and included in the archive. The manifest declares MIT and README links to this file. Do not invent a copyright owner or license text. |
 | `independentReview` | Independent review and release outcome check completed; blocking findings resolved. A self-review is not independent review. |
 | `publicationApproved` | Explicit maintainer approval to publish this exact candidate after all other checks. |
 
@@ -64,7 +64,44 @@ This command is expected to **fail while the hold is active**. It does not publi
 2. Check the migration guide (`MIGRATION.md`, "Upgrading to 0.5") and the `web-chatbox-sdks` changeset against the final native API changes.
 3. The `web-chatbox-sdks` changeset sets a minor bump, released as `0.5.0-next.N` while prerelease mode is active. Use `yarn version` only in the explicitly authorized release PR, never during ordinary candidate preparation.
 4. Review all criteria with their evidence, including the authorized license file, independent review and publication approval. A passing CI does not set these flags.
-5. Merge the approved release PR. From a clean checkout of its commit on `master`, follow the versioning/tagging procedure in the README. Do not tag the current development version or publish it locally.
+5. Merge the approved release PR. From a clean checkout of its commit on `master`, follow [Version, tag and publish](#version-tag-and-publish). Do not tag the current development version or publish it locally.
+
+## Version, tag and publish
+
+**Do not run these steps while the release hold is active.** First complete and review every criterion in `.release-readiness.json`, including explicit publication approval. `yarn release:check` must succeed.
+
+Releases are prepared with Changesets and published to npm by GitHub Actions. Start from a dedicated release branch based on the latest `master`:
+
+```bash
+git switch master
+git pull --ff-only origin master
+corepack enable
+corepack prepare yarn@4.7.0 --activate
+yarn install --immutable
+yarn changeset status
+yarn version
+```
+
+The version command consumes the pending changesets, updates `package.json` and `CHANGELOG.md`, and removes the consumed `.changeset/*.md` files. Review these changes, run `yarn release:validate`, and merge them through a release pull request.
+
+After the release pull request is merged, tag the resulting commit on `master`:
+
+```bash
+git switch master
+git pull --ff-only origin master
+VERSION=$(node -p "require('./package.json').version")
+git status --short
+git tag -a "v${VERSION}" -m "v${VERSION}"
+git push origin "v${VERSION}"
+```
+
+Only create the tag when the working tree is clean and the version does not already exist on npm. Pushing the tag triggers the `Build and Release` workflow, which checks the release criteria and tag/version match, runs tests and builds, and publishes the inspected tarball with npm provenance. Do not run `npm publish` locally.
+
+Once the workflow succeeds, verify the published version:
+
+```bash
+npm view "crisp-sdk-react-native@${VERSION}" version
+```
 
 ## CI behavior
 
