@@ -9,7 +9,7 @@ Version 0.5 moves to Crisp iOS **3.1.1** and Crisp Android **3.0.0beta3**, the w
 
 ### 1. Check the requirements
 
-- **Expo SDK 54 or newer** (React Native 0.81 or newer). Crisp Android 3.0.0beta3 requires `compileSdk` 36 and Android Gradle Plugin 8.9.1 or newer, which Expo SDK 54 already provides. On Expo SDK 53 or older, stay on `crisp-sdk-react-native@0.1.4`.
+- **Expo SDK 54 or newer** (React Native 0.81 or newer). Crisp Android 3.0.0beta3 requires `compileSdk` 36, Android Gradle Plugin 8.11 or newer and Kotlin 2.1.20 or newer, which Expo SDK 54 already provides. On Expo SDK 53 or older, stay on `crisp-sdk-react-native@0.1.4`.
 - iOS 14 or newer.
 
 ### 2. Install and rebuild
@@ -124,7 +124,7 @@ This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](htt
 > **Requirements for `crisp-sdk-react-native`:**
 >
 > - Expo SDK 51+ (or React Native 0.76+ with Expo Modules)
-> - **Note:** Version 0.2.0+, including 0.5.0+ (see [Upgrading to 0.5](#upgrading-to-05-crisp-web-chatbox-sdks)), requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
+> - **Note:** Version 0.2.0+, including 0.5.0+ (see [Upgrading to 0.5](#upgrading-to-05-crisp-web-chatbox-sdks)), requires Expo SDK 54+ (AGP 8.9.1+ for 0.2.0 to 0.4.x, AGP 8.11+ for 0.5.0+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
 > - New Architecture enabled (default in Expo SDK 53)
 > - Expo Go is **not** supported — use a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 

@@ -62,7 +62,7 @@
 >
 > | SDK Version | Expo Compatibility |
 > |---|---|
-> | **0.5.0+** (`next` tag) | Expo SDK 54+ (`compileSdk` 36 and AGP 8.9.1+ required by Crisp Android SDK 3.x) |
+> | **0.5.0+** (`next` tag) | Expo SDK 54+ (`compileSdk` 36, AGP 8.11+ and Kotlin 2.1.20+ required by Crisp Android SDK 3.x) |
 > | **0.2.0 to 0.4.x** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
 > | **0.1.4** | Expo SDK 51+ |
 >
@@ -118,7 +118,7 @@ export default function App() {
 
 In an Expo Router app, call `configure()` in `app/_layout.tsx`.
 
-**4. Build and run** the native app. Expo SDK 54 and newer already use `compileSdk` 36 or newer and AGP 8.9.1 or newer, so Android needs no extra build settings. The config plugin also adjusts the generated Podfile so that Xcode 27 accepts the Crisp resource bundles, see the [migration guide](./MIGRATION.md#5-if-xcode-rejects-the-crisp-resource-bundles).
+**4. Build and run** the native app. Expo SDK 54 and newer already use `compileSdk` 36 or newer, AGP 8.11 or newer and Kotlin 2.1.20 or newer, so Android needs no extra build settings. The config plugin also adjusts the generated Podfile so that Xcode 27 accepts the Crisp resource bundles, see the [migration guide](./MIGRATION.md#5-if-xcode-rejects-the-crisp-resource-bundles).
 
 ```bash
 npx expo run:ios # or: npx expo run:android
@@ -126,7 +126,7 @@ npx expo run:ios # or: npx expo run:android
 
 ### Bare React Native
 
-Requirements: React Native 0.81+, iOS 15.1+, Android `minSdkVersion` 24+ and `compileSdkVersion` 36+, Android Gradle Plugin 8.9.1+, Node.js 20.19.4+. If Xcode 27 rejects the Crisp resource bundles, add the Podfile workaround from the [migration guide](./MIGRATION.md#5-if-xcode-rejects-the-crisp-resource-bundles).
+Requirements: React Native 0.81+, iOS 15.1+, Android `minSdkVersion` 24+ and `compileSdkVersion` 36+, Android Gradle Plugin 8.11+, Kotlin 2.1.20+, Node.js 20.19.4+. If Xcode 27 rejects the Crisp resource bundles, add the Podfile workaround from the [migration guide](./MIGRATION.md#5-if-xcode-rejects-the-crisp-resource-bundles).
 
 ```bash
 npx install-expo-modules@latest
