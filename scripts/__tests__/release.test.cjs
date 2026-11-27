@@ -49,13 +49,13 @@ for (const criterion of Object.keys(releaseCriteria)) {
 
 test("prereleases do not require a stable Android SDK, but every other criterion", () => {
   const prerelease = { ...ready, androidOfficialSdk: false };
-  assert.doesNotThrow(() => assertReleaseReady(prerelease, "0.5.0-next.0", "v0.5.0-next.0"));
-  assert.throws(() => assertReleaseReady(prerelease, "0.5.0", "v0.5.0"), /androidOfficialSdk/);
+  assert.doesNotThrow(() => assertReleaseReady(prerelease, "1.0.0-next.0", "v1.0.0-next.0"));
+  assert.throws(() => assertReleaseReady(prerelease, "1.0.0", "v1.0.0"), /androidOfficialSdk/);
   for (const criterion of Object.keys(releaseCriteria).filter(
     (name) => name !== "androidOfficialSdk",
   )) {
     assert.throws(
-      () => assertReleaseReady({ ...prerelease, [criterion]: false }, "0.5.0-next.0"),
+      () => assertReleaseReady({ ...prerelease, [criterion]: false }, "1.0.0-next.0"),
       new RegExp(criterion),
     );
   }
@@ -68,11 +68,11 @@ test("tag must match the package version exactly", () => {
 });
 
 test("prereleases publish to the dist-tag named by their identifier", () => {
-  assert.equal(npmDistTag("0.5.0"), "latest");
-  assert.equal(npmDistTag("0.5.0-next.0"), "next");
+  assert.equal(npmDistTag("1.0.0"), "latest");
+  assert.equal(npmDistTag("1.0.0-next.0"), "next");
   assert.equal(npmDistTag("1.0.0-beta.2"), "beta");
-  assert.equal(npmDistTag("0.5.0-next.1+build.7"), "next");
-  for (const version of ["0.5.0-0", "0.5.0-1.next", "0.5.0-latest.0"]) {
+  assert.equal(npmDistTag("1.0.0-next.1+build.7"), "next");
+  for (const version of ["1.0.0-0", "1.0.0-1.next", "1.0.0-latest.0"]) {
     assert.throws(() => npmDistTag(version), /must start with a dist-tag name/);
   }
 });

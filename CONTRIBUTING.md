@@ -64,6 +64,6 @@ yarn changeset
 
 Pick the version bump: `patch` for fixes and compatible dependency updates, `minor` for backward-compatible features, `major` for breaking changes. Commit the generated `.changeset/*.md` file with your change. Documentation, tests and internal maintenance that do not change the published package need no changeset.
 
-The repository is in Changesets prerelease mode on the `next` tag (`.changeset/pre.json`): versions are released as `0.5.0-next.N` until the stable Crisp Android SDK ships.
+`master` holds the stable `0.4.x` line. The `next` branch is in Changesets prerelease mode (`.changeset/pre.json`) and releases `1.0.0-next.N` on the `next` npm tag until the stable Crisp Android SDK ships. Open changes for 1.0 against `next`, and fixes for `0.4.x` against `master`.
 
 Do not update the package version, changelog or Git tags, and do not run the release commands: maintainers handle versioning and publication. See the [release guide](./docs/RELEASING.md).

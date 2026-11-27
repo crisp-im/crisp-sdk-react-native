@@ -1,9 +1,9 @@
 # Migration Guide
 
-- [Upgrading to 0.5 (Crisp web chatbox SDKs)](#upgrading-to-05-crisp-web-chatbox-sdks)
+- [Upgrading to 1.0 (Crisp web chatbox SDKs)](#upgrading-to-10-crisp-web-chatbox-sdks)
 - [Migrating from `react-native-crisp-chat-sdk`](#migrating-from-react-native-crisp-chat-sdk)
 
-## Upgrading to 0.5 (Crisp web chatbox SDKs)
+## Upgrading to 1.0 (Crisp web chatbox SDKs)
 
 Version 0.5 moves to Crisp iOS **3.1.1** and Crisp Android **3.0.0beta3**, the web chatbox SDKs. While the Android SDK is in beta, it is published on the `next` npm tag.
 
@@ -124,7 +124,7 @@ This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](htt
 > **Requirements for `crisp-sdk-react-native`:**
 >
 > - Expo SDK 51+ (or React Native 0.76+ with Expo Modules)
-> - **Note:** Version 0.2.0+, including 0.5.0+ (see [Upgrading to 0.5](#upgrading-to-05-crisp-web-chatbox-sdks)), requires Expo SDK 54+ (AGP 8.9.1+ for 0.2.0 to 0.4.x, AGP 8.11+ for 0.5.0+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
+> - **Note:** Version 0.2.0+, including 1.0.0+ (see [Upgrading to 1.0](#upgrading-to-10-crisp-web-chatbox-sdks)), requires Expo SDK 54+ (AGP 8.9.1+ for 0.2.0 to 0.4.x, AGP 8.11+ for 1.0.0+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
 > - New Architecture enabled (default in Expo SDK 53)
 > - Expo Go is **not** supported — use a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 

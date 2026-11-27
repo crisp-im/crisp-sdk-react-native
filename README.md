@@ -62,7 +62,7 @@
 >
 > | SDK Version | Expo Compatibility |
 > |---|---|
-> | **0.5.0+** (`next` tag) | Expo SDK 54+ (`compileSdk` 36, AGP 8.11+ and Kotlin 2.1.20+ required by Crisp Android SDK 3.x) |
+> | **1.0.0+** (`next` tag) | Expo SDK 54+ (`compileSdk` 36, AGP 8.11+ and Kotlin 2.1.20+ required by Crisp Android SDK 3.x) |
 > | **0.2.0 to 0.4.x** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
 > | **0.1.4** | Expo SDK 51+ |
 >
@@ -72,9 +72,9 @@
 > ```
 
 > [!NOTE]
-> Version 0.5 is built on the native Crisp iOS 3.x and Android 3.x SDKs, which embed the Crisp
+> Version 1.0 is built on the native Crisp iOS 3.x and Android 3.x SDKs, which embed the Crisp
 > web chatbox. It is published on the `next` npm tag while Crisp Android 3.x is in beta. To upgrade from 0.4, see the
-> [migration guide](./MIGRATION.md#upgrading-to-05-crisp-web-chatbox-sdks).
+> [migration guide](./MIGRATION.md#upgrading-to-10-crisp-web-chatbox-sdks).
 
 ## Quick start
 

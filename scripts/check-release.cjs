@@ -30,7 +30,7 @@ function assertReleaseReady(readiness, version, tag) {
   }
 }
 
-// npm 11 refuses to publish a prerelease without --tag: 0.5.0-next.0 goes to "next", 0.5.0 to "latest"
+// npm 11 refuses to publish a prerelease without --tag: 1.0.0-next.0 goes to "next", 1.0.0 to "latest"
 function npmDistTag(version) {
   const prerelease = /^\d+\.\d+\.\d+-([^.+]+)/.exec(version)?.[1];
   if (prerelease === undefined) return "latest";

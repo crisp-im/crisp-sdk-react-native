@@ -14,9 +14,9 @@ Evidence gathered so far, to review in the release PR before acknowledging the c
 
 ## Prerelease channel
 
-While Crisp Android 3.x is in beta, the repository is in Changesets prerelease mode on the `next` tag (`.changeset/pre.json`): `yarn version` produces `0.5.0-next.N`. The `Build and Release` workflow publishes a prerelease to the npm dist-tag named by its identifier (`next`), and a stable version to `latest`, as npm 11 refuses to publish a prerelease without an explicit tag. The publication criteria apply to prereleases too, except `androidOfficialSdk`.
+While Crisp Android 3.x is in beta, `master` keeps the stable `0.4.x` line and the `next` branch is in Changesets prerelease mode (`.changeset/pre.json`): on `next`, `yarn version` produces `1.0.0-next.N`. Prereleases follow the steps below with `next` in place of `master`. The `Build and Release` workflow publishes a prerelease to the npm dist-tag named by its identifier (`next`), and a stable version to `latest`, as npm 11 refuses to publish a prerelease without an explicit tag. The publication criteria apply to prereleases too, except `androidOfficialSdk`.
 
-When the stable Android SDK is released and validated, leave prerelease mode in the release PR with `yarn changeset pre exit`, then `yarn version`.
+When the stable Android SDK is released and validated, leave prerelease mode on `next` with `yarn changeset pre exit`, merge `next` into `master`, then release `1.0.0` from `master`. A `0.4.x` fix released from `master` in the meantime must also be merged into `next`.
 
 ## Prepare a candidate without publishing
 
@@ -67,10 +67,10 @@ This command fails until every required criterion is acknowledged. It does not p
 ## Finalize a release
 
 1. Complete the native migration and device matrix. Rebuild and retest a fresh candidate after any source or dependency change.
-2. Check the migration guide (`MIGRATION.md`, "Upgrading to 0.5") and the `web-chatbox-sdks` changeset against the final native API changes.
-3. The `web-chatbox-sdks` changeset sets a minor bump, released as `0.5.0-next.N` while prerelease mode is active. Use `yarn version` only in the explicitly authorized release PR, never during ordinary candidate preparation.
+2. Check the migration guide (`MIGRATION.md`, "Upgrading to 1.0") and the `web-chatbox-sdks` changeset against the final native API changes.
+3. The `web-chatbox-sdks` changeset sets a major bump, released as `1.0.0-next.N` while prerelease mode is active. Use `yarn version` only in the explicitly authorized release PR, never during ordinary candidate preparation.
 4. Review all criteria with their evidence, including the authorized license file, independent review and publication approval. A passing CI does not set these flags.
-5. Merge the approved release PR. From a clean checkout of its commit on `master`, follow [Version, tag and publish](#version-tag-and-publish). Do not tag the current development version or publish it locally.
+5. Merge the approved release PR. From a clean checkout of its commit on `master` (`next` for a prerelease), follow [Version, tag and publish](#version-tag-and-publish). Do not tag the current development version or publish it locally.
 
 ## Version, tag and publish
 

@@ -2,7 +2,7 @@
 
 Every public export of `crisp-sdk-react-native`. The native SDKs are Crisp iOS 3.1.1 and Crisp Android 3.0.0beta3.
 
-Functions are synchronous and return `void` unless noted. Platform notes describe where iOS and Android differ. For the changes since 0.4, see the [migration guide](../MIGRATION.md#upgrading-to-05-crisp-web-chatbox-sdks).
+Functions are synchronous and return `void` unless noted. Platform notes describe where iOS and Android differ. For the changes since 0.4, see the [migration guide](../MIGRATION.md#upgrading-to-10-crisp-web-chatbox-sdks).
 
 - [Setup](#setup): `configure`, `setTokenId`, `setLogLevel`
 - [User information](#user-information): `setUserEmail`, `setUserNickname`, `setUserPhone`, `setUserAvatar`, `setUserCompany`

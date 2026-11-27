@@ -1,8 +1,8 @@
 ---
-"crisp-sdk-react-native": minor
+"crisp-sdk-react-native": major
 ---
 
-Migrate to Crisp iOS SDK 3.1.1 and Crisp Android SDK 3.0.0beta3, the web chatbox SDKs. On Android, the chatbox opens in a bottom sheet, and notification taps open their conversation above the app. See the [migration guide](./MIGRATION.md#upgrading-to-05-crisp-web-chatbox-sdks).
+Migrate to Crisp iOS SDK 3.1.1 and Crisp Android SDK 3.0.0beta3, the web chatbox SDKs. On Android, the chatbox opens in a bottom sheet, and notification taps open their conversation above the app. See the [migration guide](./MIGRATION.md#upgrading-to-10-crisp-web-chatbox-sdks).
 
 Expo SDK 54 or newer (React Native 0.81 or newer) is still supported: Crisp Android 3.0.0beta3 requires `compileSdk` 36, Android Gradle Plugin 8.11 or newer and Kotlin 2.1.20 or newer. On iOS, the config plugin adds a Podfile step that aligns the Crisp resource bundles with the iOS minimum of their library, which Xcode 27 requires.
 
