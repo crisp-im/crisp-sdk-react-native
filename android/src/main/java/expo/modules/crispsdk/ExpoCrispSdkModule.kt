@@ -158,7 +158,7 @@ class ExpoCrispSdkModule : Module() {
     Function("openChat") {
       throw CrispUnsupportedException(
         "openChat",
-        "Crisp Android SDK 3.0.0beta2 cannot open the chat section directly, call show() instead"
+        "Crisp Android SDK 3.0.0beta3 cannot open the chat section directly, call show() instead"
       )
     }
 

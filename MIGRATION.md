@@ -5,11 +5,11 @@
 
 ## Upgrading to 0.5 (Crisp web chatbox SDKs)
 
-Version 0.5 moves to Crisp iOS **3.1.1** and Crisp Android **3.0.0beta2**, the web chatbox SDKs. While the Android SDK is in beta, it is published on the `next` npm tag.
+Version 0.5 moves to Crisp iOS **3.1.1** and Crisp Android **3.0.0beta3**, the web chatbox SDKs. While the Android SDK is in beta, it is published on the `next` npm tag.
 
 ### 1. Check the requirements
 
-- **Expo SDK 58 or newer** (React Native 0.88 or newer). Crisp Android 3.x and its AndroidX dependencies require `compileSdk` 37 and Android Gradle Plugin 9.1 or newer, which Expo SDK 58 is the first to provide. On Expo SDK 54 to 57, stay on `crisp-sdk-react-native@0.4`.
+- **Expo SDK 54 or newer** (React Native 0.81 or newer). Crisp Android 3.0.0beta3 requires `compileSdk` 36 and Android Gradle Plugin 8.9.1 or newer, which Expo SDK 54 already provides. On Expo SDK 53 or older, stay on `crisp-sdk-react-native@0.1.4`.
 - iOS 14 or newer.
 
 ### 2. Install and rebuild
@@ -58,7 +58,7 @@ On Android:
 | API | Change | What to do |
 | --- | --- | --- |
 | `show()` | Opens the chatbox in a bottom sheet above your app, instead of a full-screen activity. | Nothing. |
-| `openChat()` | Throws `ERR_CRISP_UNSUPPORTED`: Crisp Android 3.0.0beta2 cannot open the chat section directly. | Call `show()` on Android. |
+| `openChat()` | Throws `ERR_CRISP_UNSUPPORTED`: Crisp Android 3.0.0beta3 cannot open the chat section directly. | Call `show()` on Android. |
 | `getSessionIdentifier()` | Resolves to `null` unless the chatbox is shown. | Read the session identifier from the `onSessionLoaded` event. |
 | `showMessage()`, `runBotScenario()` | Run once a chatbox is ready: right away if it is shown, otherwise the next time it is. | Nothing. |
 | `onMessageSent`, `onMessageReceived` | The `content` of non-text messages is an empty string, as on iOS. | Do not rely on `content` for audio, file or other non-text messages. |
@@ -73,7 +73,7 @@ For every platform difference, see the [API reference](./docs/API.md#platform-di
 import { Platform } from "react-native";
 import { openChat, show } from "crisp-sdk-react-native";
 
-// openChat() is not supported by Crisp Android 3.0.0beta2
+// openChat() is not supported by Crisp Android 3.0.0beta3
 Platform.OS === "android" ? show() : openChat();
 ```
 
@@ -83,11 +83,12 @@ On both platforms, keep logging out with `setTokenId(null)` then `resetSession()
 
 ### 5. If Xcode rejects the Crisp resource bundles
 
-Crisp iOS 3.x ships the `CrispChatBox` and `CrispChatBoxFFI` pods. The tested Expo 58.0.23 / React Native 0.88.1 installation, with `expo-modules-autolinking` 58.0.17, reconciles their resource targets automatically: it builds and launches with the generated Podfile and Crisp 3.1.1, without the workaround below. Keep the autolinking version compatible with your Expo SDK; do not install an Expo 58 autolinker into an older SDK just for this fix.
+Crisp iOS 3.x ships the `CrispChatBox` and `CrispChatBoxFFI` pods, whose resource bundles keep the iOS 14 minimum of the native podspec. Xcode 27 rejects that minimum.
 
-If Xcode 27 rejects the `CrispChatBox-CrispChatBox` or `CrispChatBoxFFI-CrispChatBoxFFI` resource bundle because its iOS deployment target is below the supported range, check the generated Pods project. Some React Native versions adjust the library targets in `react_native_post_install` but leave their resource bundles at the native podspec's iOS 14 minimum.
+- **Expo projects:** on every prebuild, the SDK's config plugin adds the workaround below to the generated Podfile, after `react_native_post_install(...)`. The tested Expo 54.0.38 / React Native 0.81.5 installation builds and launches with it. `expo-modules-autolinking` 57.0.6 and newer align the bundles too; the workaround then changes nothing. If the plugin cannot locate the `react_native_post_install(...)` call, it leaves the Podfile unchanged and prints a warning: add the workaround by hand.
+- **Bare React Native projects**, which do not run prebuild: if Xcode rejects the `CrispChatBox-CrispChatBox` or `CrispChatBoxFFI-CrispChatBoxFFI` resource bundle because its iOS deployment target is below the supported range, add the workaround by hand.
 
-As an explicit workaround, insert the following **after** `react_native_post_install(...)`, inside your **existing** Podfile `post_install do |installer|` block. Do not add a second `post_install` hook:
+To add the workaround by hand, insert the following **after** `react_native_post_install(...)`, inside your **existing** Podfile `post_install do |installer|` block. Do not add a second `post_install` hook:
 
 ```ruby
 installer.target_installation_results.pod_target_installation_results.each_value do |result|
@@ -112,7 +113,7 @@ end
 
 Run `pod install` again, then rebuild. This aligns only these Crisp resource bundles with the minimum already selected for their libraries, separately for each build configuration. It keeps higher or symbolic settings, does not change your app's minimum iOS version, and does not modify the Crisp SDK. If symbolic settings still resolve below Xcode's minimum, fix their value in your app's build configuration.
 
-For Expo projects that regenerate `ios/`, keep this adjustment in an app-owned config plugin or reapply it after prebuild: prebuild can overwrite a generated Podfile. The SDK's config plugin does **not** inject this workaround. An installation that needs it is not an out-of-the-box Xcode 27 validation, and it is unrelated to APNs or session API behavior.
+It is unrelated to APNs or session API behavior.
 
 ---
 
@@ -123,7 +124,7 @@ This guide helps you migrate from the legacy [`react-native-crisp-chat-sdk`](htt
 > **Requirements for `crisp-sdk-react-native`:**
 >
 > - Expo SDK 51+ (or React Native 0.76+ with Expo Modules)
-> - **Note:** Version 0.5.0+ requires Expo SDK 58+, see [Upgrading to 0.5](#upgrading-to-05-crisp-web-chatbox-sdks). Version 0.2.0+ requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
+> - **Note:** Version 0.2.0+, including 0.5.0+ (see [Upgrading to 0.5](#upgrading-to-05-crisp-web-chatbox-sdks)), requires Expo SDK 54+ (AGP 8.9.1+). If you are on Expo 51/52/53, use `crisp-sdk-react-native@0.1.4`.
 > - New Architecture enabled (default in Expo SDK 53)
 > - Expo Go is **not** supported — use a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 

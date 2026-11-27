@@ -1,6 +1,6 @@
 # API reference
 
-Every public export of `crisp-sdk-react-native`. The native SDKs are Crisp iOS 3.1.1 and Crisp Android 3.0.0beta2.
+Every public export of `crisp-sdk-react-native`. The native SDKs are Crisp iOS 3.1.1 and Crisp Android 3.0.0beta3.
 
 Functions are synchronous and return `void` unless noted. Platform notes describe where iOS and Android differ. For the changes since 0.4, see the [migration guide](../MIGRATION.md#upgrading-to-05-crisp-web-chatbox-sdks).
 
@@ -212,7 +212,7 @@ Android: right after `setTokenId(null)`, `resetSession()` also resets the sessio
 - iOS: the chatbox opens on the last active tab, over the top-most view controller, including a modal already on screen. `show()` does nothing if a chatbox is already presented. If a modal is being dismissed, the chatbox waits for the transition to end.
 - Android: the chatbox opens in a bottom sheet above your app. `show()` throws `ERR_CRISP_NO_ACTIVITY` without a foreground activity, or if the current activity is not a `FragmentActivity`.
 
-`openChat()` is not supported by Crisp Android 3.0.0beta2. Call `show()` on Android:
+`openChat()` is not supported by Crisp Android 3.0.0beta3. Call `show()` on Android:
 
 ```tsx
 import { Platform } from "react-native";
@@ -670,5 +670,5 @@ Android throws these coded errors. Catch them with `try`/`catch` and read `error
 | Code | Thrown by | Cause |
 | --- | --- | --- |
 | `ERR_CRISP_NOT_CONFIGURED` | User, session data and session event setters, `resetSession()`, and the methods that open the chatbox | No website configured: call `configure()` first. |
-| `ERR_CRISP_UNSUPPORTED` | `openChat()` | Not supported by Crisp Android 3.0.0beta2. |
+| `ERR_CRISP_UNSUPPORTED` | `openChat()` | Not supported by Crisp Android 3.0.0beta3. |
 | `ERR_CRISP_NO_ACTIVITY` | `show()`, `searchHelpdesk()`, `openHelpdeskArticle()` | No foreground activity, or the current activity is not a `FragmentActivity`. |

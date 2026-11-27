@@ -14,7 +14,7 @@
   <a href="https://github.com/crisp-im/crisp-sdk-react-native/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/crisp-sdk-react-native.svg" alt="license" />
   </a>
-  <img src="https://img.shields.io/badge/Expo%20SDK-58%2B-blue" alt="Expo SDK 58+" />
+  <img src="https://img.shields.io/badge/Expo%20SDK-54%2B-blue" alt="Expo SDK 54+" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="platforms" />
 </p>
 
@@ -50,7 +50,7 @@
 
 ## Features
 
-- Live chat with the Crisp chatbox, built on Crisp iOS 3.1.1 and Crisp Android 3.0.0beta2
+- Live chat with the Crisp chatbox, built on Crisp iOS 3.1.1 and Crisp Android 3.0.0beta3
 - User identification, session data, segments and timeline events
 - Helpdesk search and articles, bot scenarios and operator messages
 - A React hook for session, chat, message, notification and log events
@@ -62,13 +62,12 @@
 >
 > | SDK Version | Expo Compatibility |
 > |---|---|
-> | **0.5.0+** (`next` tag) | Expo SDK 58+ (`compileSdk` 37 and AGP 9.1+ required by Crisp Android SDK 3.x) |
+> | **0.5.0+** (`next` tag) | Expo SDK 54+ (`compileSdk` 36 and AGP 8.9.1+ required by Crisp Android SDK 3.x) |
 > | **0.2.0 to 0.4.x** | Expo SDK 54+ (AGP 8.9.1+ required by Crisp Android SDK 2.0.16+) |
 > | **0.1.4** | Expo SDK 51+ |
 >
-> On Expo 54 to 57, pin to version 0.4; on Expo 53 or older, pin to version 0.1.4:
+> On Expo 53 or older, pin to version 0.1.4:
 > ```bash
-> npx expo install crisp-sdk-react-native@0.4
 > npx expo install crisp-sdk-react-native@0.1.4
 > ```
 
@@ -119,7 +118,7 @@ export default function App() {
 
 In an Expo Router app, call `configure()` in `app/_layout.tsx`.
 
-**4. Build and run** the native app. Expo SDK 58 already uses `compileSdk` 37 and AGP 9.2, so Android needs no extra build settings.
+**4. Build and run** the native app. Expo SDK 54 and newer already use `compileSdk` 36 or newer and AGP 8.9.1 or newer, so Android needs no extra build settings. The config plugin also adjusts the generated Podfile so that Xcode 27 accepts the Crisp resource bundles, see the [migration guide](./MIGRATION.md#5-if-xcode-rejects-the-crisp-resource-bundles).
 
 ```bash
 npx expo run:ios # or: npx expo run:android
@@ -127,7 +126,7 @@ npx expo run:ios # or: npx expo run:android
 
 ### Bare React Native
 
-Requirements: React Native 0.88+, iOS 15.1+, Android `minSdkVersion` 24+ and `compileSdkVersion` 37+, Node.js 22.13+.
+Requirements: React Native 0.81+, iOS 15.1+, Android `minSdkVersion` 24+ and `compileSdkVersion` 36+, Android Gradle Plugin 8.9.1+, Node.js 20.19.4+. If Xcode 27 rejects the Crisp resource bundles, add the Podfile workaround from the [migration guide](./MIGRATION.md#5-if-xcode-rejects-the-crisp-resource-bundles).
 
 ```bash
 npx install-expo-modules@latest
