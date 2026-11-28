@@ -1,6 +1,6 @@
 # Preparing and publishing a release
 
-## Status of the 0.5 migration
+## Status of the 1.0 migration
 
 The source pins Crisp iOS **3.1.1** and Android **3.0.0beta3**, the Web chatbox SDKs. Crisp Android 3.0.0beta3 requires `compileSdk` 36, Android Gradle Plugin 8.11 or newer and Kotlin 2.1.20 or newer, so the package requires Expo SDK 54 or newer (React Native 0.81 or newer) through its peer dependencies. The development dependencies and examples use Expo SDK 58.
 
@@ -54,7 +54,7 @@ publint and Are the Types Wrong report that `build/*.js` uses ESM syntax while `
 | `sessionUpgrade` | Real in-place 2.x → 3.x upgrades preserving anonymous and identified conversations; logout, interrupted migration and account isolation checked. |
 | `androidNotifications` | Authorized test Firebase setup; real FCM reception and tap/navigation in foreground, background and process-not-running states; SDK-managed/coexistence modes, no duplicate handling or interference with non-Crisp pushes. Do not equate Android force-stop with normal process death. |
 | `reactNativeValidation` | Final tarball installed in representative Expo/RN apps on Android and iOS; documented compatibility, chat, lifecycle/uploads, session handling and notification behavior checked; APNs/device limitations recorded. |
-| `licenseFile` | Authorized `LICENSE` supplied by the maintainers and included in the archive. The manifest declares MIT and README links to this file. Do not invent a copyright owner or license text. |
+| `licenseFile` | Authorized `LICENSE` supplied by the maintainers and included in the archive. The manifest declares `SEE LICENSE IN LICENSE`, the podspec a commercial license, and README links to this file. Do not invent a copyright owner or license text. |
 | `independentReview` | Independent review and release outcome check completed; blocking findings resolved. A self-review is not independent review. |
 | `publicationApproved` | Explicit maintainer approval to publish this exact candidate after all other checks. |
 

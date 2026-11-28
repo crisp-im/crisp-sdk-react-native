@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.version        = package['version']
   s.summary        = package['description']
   s.description    = package['description']
-  s.license        = package['license']
+  s.license        = { :type => 'Commercial' }
   s.author         = package['author']
   s.homepage       = package['homepage']
   s.swift_version  = '5.0'

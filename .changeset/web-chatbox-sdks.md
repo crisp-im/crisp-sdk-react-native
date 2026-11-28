@@ -8,6 +8,7 @@ Expo SDK 54 or newer (React Native 0.81 or newer) is still supported: Crisp Andr
 
 Breaking changes:
 
+- License: the package is now distributed under the Crisp license of the native SDKs (use as is, modifications are not allowed) instead of MIT. Versions up to 0.4.4 stay under MIT.
 - iOS: the app must declare `NSCameraUsageDescription` and `NSMicrophoneUsageDescription`, otherwise Crisp iOS 3.x displays a configuration screen instead of the chat.
 - Android: `openChat()` throws `ERR_CRISP_UNSUPPORTED`, as the native SDK cannot open the chat section directly yet. Call `show()` instead.
 - Android: `getSessionIdentifier()` resolves to `null` unless the chatbox is shown.

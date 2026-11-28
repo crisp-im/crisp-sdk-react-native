@@ -11,9 +11,6 @@
   <a href="https://www.npmjs.com/package/crisp-sdk-react-native">
     <img src="https://img.shields.io/npm/v/crisp-sdk-react-native.svg" alt="npm version" />
   </a>
-  <a href="https://github.com/crisp-im/crisp-sdk-react-native/blob/master/LICENSE">
-    <img src="https://img.shields.io/npm/l/crisp-sdk-react-native.svg" alt="license" />
-  </a>
   <img src="https://img.shields.io/badge/Expo%20SDK-54%2B-blue" alt="Expo SDK 54+" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey" alt="platforms" />
 </p>
@@ -188,7 +185,7 @@ Helpdesk, bot scenarios, operator messages, debug logs and every type are covere
 - On Android, `showMessage()` and `runBotScenario()` wait for a chatbox to be ready.
 - The `content` of non-text messages is an empty string on both platforms.
 
-See the full table in the [API reference](./docs/API.md#platform-differences) and the [0.5 behavior changes](./MIGRATION.md#4-review-the-behavior-changes).
+See the full table in the [API reference](./docs/API.md#platform-differences) and the [1.0 behavior changes](./MIGRATION.md#4-review-the-behavior-changes).
 
 ## Troubleshooting
 
@@ -203,7 +200,7 @@ See the full table in the [API reference](./docs/API.md#platform-differences) an
 
 - [API reference](./docs/API.md): every function, hook, enum and type, with platform notes
 - [Push notifications](./docs/PUSH_NOTIFICATIONS.md): config plugin options, coexistence mode, APNs and Firebase setup
-- [Migration guide](./MIGRATION.md): upgrading to 0.5, and migrating from `react-native-crisp-chat-sdk`
+- [Migration guide](./MIGRATION.md): upgrading to 1.0, and migrating from `react-native-crisp-chat-sdk`
 - [Changelog](./CHANGELOG.md)
 - [Contributing](./CONTRIBUTING.md): development setup, checks and changesets
 - [Releasing](./docs/RELEASING.md): release process, for maintainers
@@ -228,4 +225,4 @@ Add your Website ID to their `.env` file, then follow [CONTRIBUTING.md](./CONTRI
 
 ## License
 
-MIT - See [LICENSE](./LICENSE) for details.
+Copyright Crisp IM SAS. You may use the SDK as is; modifications are not allowed. See [LICENSE](./LICENSE).

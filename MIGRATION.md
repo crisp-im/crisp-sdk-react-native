@@ -5,12 +5,13 @@
 
 ## Upgrading to 1.0 (Crisp web chatbox SDKs)
 
-Version 0.5 moves to Crisp iOS **3.1.1** and Crisp Android **3.0.0beta3**, the web chatbox SDKs. While the Android SDK is in beta, it is published on the `next` npm tag.
+Version 1.0 moves to Crisp iOS **3.1.1** and Crisp Android **3.0.0beta3**, the web chatbox SDKs. While the Android SDK is in beta, it is published on the `next` npm tag.
 
 ### 1. Check the requirements
 
 - **Expo SDK 54 or newer** (React Native 0.81 or newer). Crisp Android 3.0.0beta3 requires `compileSdk` 36, Android Gradle Plugin 8.11 or newer and Kotlin 2.1.20 or newer, which Expo SDK 54 already provides. On Expo SDK 53 or older, stay on `crisp-sdk-react-native@0.1.4`.
 - iOS 14 or newer.
+- **License:** 1.0 is distributed under the Crisp license of the native SDKs: you may use it as is, modifications are not allowed. Versions up to 0.4.4 stay under MIT.
 
 ### 2. Install and rebuild
 
