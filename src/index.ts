@@ -192,6 +192,8 @@ export function setSessionSegments(
  * - Session hasn't loaded yet (wait for `onSessionLoaded` event first)
  * - `configure()` was not called
  * - Native SDK hasn't established a session
+ * - Android only: the chatbox is not shown (Crisp Android 3.x exposes the session
+ *   only while the chatbox is open; use the `onSessionLoaded` event instead)
  */
 export function getSessionIdentifier(): Promise<string | null> {
   return ExpoCrispSdkModule.getSessionIdentifier();
@@ -249,6 +251,9 @@ export function show(): void {
 /**
  * Open the Crisp chat widget directly on the Chat tab.
  * Unlike `show()`, this always opens on the Chat tab regardless of the last active tab.
+ *
+ * @throws On Android, an error with code `ERR_CRISP_UNSUPPORTED`: Crisp Android 3.x
+ * cannot select a tab. Call `show()` there.
  */
 export function openChat(): void {
   ExpoCrispSdkModule.openChat();

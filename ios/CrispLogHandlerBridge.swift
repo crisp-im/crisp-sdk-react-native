@@ -1,24 +1,38 @@
 import Crisp
+import Foundation
 
-/**
- * Bridge class that implements Crisp's CrispLogHandler protocol
- * and forwards log messages to the Expo module for emission to JavaScript.
- *
- * IMPORTANT: The Crisp SDK does not provide a way to remove log handlers.
- * Once registered, the handler remains active for the app lifetime.
- */
-class CrispLogHandlerBridge: CrispLogHandler {
-    private let onLog: (Severity, String) -> Void
+@MainActor
+final class CrispLogHandlerBridge: CrispLogHandler {
+  static let shared = CrispLogHandlerBridge()
 
-    init(onLog: @escaping (Severity, String) -> Void) {
-        self.onLog = onLog
+  private var handlers: [UUID: (Severity, String) -> Void] = [:]
+  private var isRegistered = false
+
+  private init() {}
+
+  func subscribe(_ handler: @escaping (Severity, String) -> Void) -> UUID {
+    if !isRegistered {
+      CrispSDK.addLogHandler(self)
+      isRegistered = true
     }
+    let token = UUID()
+    handlers[token] = handler
+    return token
+  }
 
-    func log(severity: Severity, message: String) {
-        onLog(severity, message)
-    }
+  func removeSubscription(_ token: UUID) {
+    handlers.removeValue(forKey: token)
+  }
 
-    func log(error: any Error) {
-        onLog(.error, error.localizedDescription)
+  nonisolated func log(severity: Severity, message: String) {
+    DispatchQueue.main.async {
+      for handler in Array(self.handlers.values) {
+        handler(severity, message)
+      }
     }
+  }
+
+  nonisolated func log(error: any Error) {
+    log(severity: .error, message: error.localizedDescription)
+  }
 }

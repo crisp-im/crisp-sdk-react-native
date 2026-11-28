@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "files": {
-    "includes": ["**/*.ts", "**/*.tsx"],
+    "includes": ["**/*.ts", "**/*.tsx", "scripts/**/*.cjs"],
     "maxSize": 2000000
   },
   "vcs": {

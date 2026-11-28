@@ -10,6 +10,7 @@ module.exports = {
       {
         tsconfig: {
           resolveJsonModule: true,
+          types: ["jest", "jest-require", "node"],
         },
       },
     ],

@@ -10,7 +10,7 @@
   ],
   "author": "Crisp IM SAS",
   "homepage": "https://github.com/crisp-im/crisp-sdk-react-native",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "sideEffects": [
@@ -30,7 +30,7 @@
     "lint": "expo-module lint",
     "test": "expo-module test",
     "prepare": "expo-module prepare",
-    "prepublishOnly": "expo-module prepublishOnly",
+    "prepublishOnly": "yarn release:check && expo-module prepublishOnly",
     "expo-module": "expo-module",
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android",
@@ -38,7 +38,11 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "version": "changeset version",
-    "release": "EXPO_NONINTERACTIVE=1 yarn build && changeset publish"
+    "test:release": "node --test scripts/__tests__/*.test.cjs",
+    "release:check": "node scripts/check-release.cjs",
+    "release:validate": "yarn lint && yarn lint plugin && biome check scripts && yarn test:release && yarn test --runInBand && yarn build && yarn build:plugin",
+    "release:prepare": "node scripts/pack-candidate.cjs",
+    "release": "yarn release:check && yarn release:prepare && changeset publish"
   },
   "bugs": {
     "url": "https://github.com/crisp-im/crisp-sdk-react-native/issues"
@@ -53,18 +57,18 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "8.57.1",
-    "expo": "~56.0.11",
+    "expo": "~58.0.26",
     "expo-module-scripts": "5.0.7",
     "jest": "30.2.0",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-native": "0.85.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.1",
     "ts-jest": "29.4.6"
   },
   "peerDependencies": {
-    "expo": "*",
+    "expo": ">=54.0.0",
     "react": "*",
-    "react-native": "*"
+    "react-native": ">=0.81.0"
   },
   "files": [
     "build",
@@ -73,8 +77,14 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "ios",
-    "android",
+    "MIGRATION.md",
+    "docs/API.md",
+    "docs/PUSH_NOTIFICATIONS.md",
+    "ios/*.swift",
+    "ios/*.podspec",
+    "ios/Tests/*.swift",
+    "android/build.gradle",
+    "android/src/main",
     "expo-module.config.json"
   ]
 }

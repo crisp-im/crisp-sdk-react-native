@@ -20,6 +20,11 @@ const config: ExpoConfig = {
     bundleIdentifier: "com.expo.crisp.sdk",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      // Required by Crisp iOS 3.x, even for text-only conversations
+      NSCameraUsageDescription:
+        "Allow access to your camera to share photos and make video calls with support.",
+      NSMicrophoneUsageDescription:
+        "Allow access to your microphone to send voice messages and make calls with support.",
     },
     appleTeamId: "FC5S5V6TYF",
   },

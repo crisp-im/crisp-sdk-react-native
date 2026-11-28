@@ -1,0 +1,25 @@
+{
+  "messageContents": [
+    { "type": "text", "text": "Synthetic message" },
+    { "type": "file", "url": "https://example.com/document.pdf", "name": "Document.pdf", "mimeType": "application/pdf" },
+    { "type": "animation", "url": "https://example.com/animation.gif", "mimeType": "image/gif" },
+    { "type": "audio", "url": "https://example.com/audio.mp3", "mimeType": "audio/mpeg", "duration": 12.5 },
+    { "type": "picker", "id": "rating", "text": "Choose", "choices": [{ "value": "yes", "label": "Yes", "selected": true }, { "value": "no", "label": "No" }] },
+    { "type": "field", "id": "email", "text": "Email", "explain": "Synthetic input", "required": true },
+    { "type": "carousel", "text": "Items", "targets": [{ "title": "Item", "description": "Synthetic item", "imageUrl": "https://example.com/image.png", "actionUrl": "https://example.com/item" }] }
+  ],
+  "companies": [
+    { "name": "Synthetic", "url": "https://example.com", "companyDescription": "Test fixture", "employment": { "title": "Developer", "role": "Engineering" }, "geolocation": { "city": "Paris", "country": "France" } },
+    { "name": "Synthetic title-only", "employment": { "title": "Developer" } }
+  ],
+  "receivedMessage": {
+    "content": "Synthetic reply",
+    "timestamp": 1794225600123,
+    "fromOperator": true,
+    "fingerprint": "9007199254740993",
+    "isMe": false,
+    "origin": "network",
+    "user": { "nickname": "Support", "userId": "synthetic-operator", "avatar": "https://example.com/avatar.png" }
+  },
+  "iosPush": { "sender": "crisp", "website_id": "00000000-0000-0000-0000-000000000000", "session_id": "synthetic-session" }
+}

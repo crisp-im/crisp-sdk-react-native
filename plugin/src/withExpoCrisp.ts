@@ -1,6 +1,6 @@
 import type { ConfigPlugin } from "expo/config-plugins";
 import { withAndroidNotifications } from "./withAndroid";
-import { withIosNotifications } from "./withIos";
+import { withCrispResourceBundles, withIosNotifications } from "./withIos";
 
 type ExpoCrispPluginProps = {
   /**
@@ -26,7 +26,7 @@ type ExpoCrispPluginProps = {
    * - Adds CrispNotificationService to AndroidManifest
    * - Adds firebase-messaging dependency
    * - Configures Crisp SDK with websiteId
-   * - Enables Crisp notifications in MainApplication
+   * - Enables Crisp notifications through AndroidManifest meta-data
    *
    * @default { enabled: false }
    */
@@ -55,6 +55,9 @@ const withExpoCrisp: ConfigPlugin<ExpoCrispPluginProps> = (
   config,
   { websiteId, notifications = { enabled: false } } = {},
 ) => {
+  // Needed to build with Xcode 27, with or without notifications
+  config = withCrispResourceBundles(config);
+
   if (!notifications.enabled) {
     return config;
   }

@@ -1,277 +1,238 @@
 package expo.modules.crispsdk
 
-import android.content.Intent
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import androidx.fragment.app.FragmentActivity
+import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.Promise
+import im.crisp.sdk.api.Crisp
+import im.crisp.sdk.api.controller.CrispSessionController
+import im.crisp.sdk.api.controller.chatbox.CrispChatboxController
+import im.crisp.sdk.api.notification.CrispNotifications
+import im.crisp.sdk.model.SessionEventColor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-import im.crisp.client.external.ChatActivity
-import im.crisp.client.external.Crisp
-import im.crisp.client.external.Logger
-import im.crisp.client.external.data.SessionEvent
-import im.crisp.client.external.data.SessionEvent.Color
-import im.crisp.client.external.notification.CrispNotificationClient
-
+/**
+ * Bridges the JS API to Crisp Android SDK 3.x.
+ *
+ * - Session setters go through [CrispSessionController], which saves them until a chatbox
+ *   loads the session, with or without a chatbox shown.
+ * - UI calls and getters go through the [CrispChatPresenter] controller, on the main thread,
+ *   in the order they are made.
+ */
 class ExpoCrispSdkModule : Module() {
   private val context
     get() = requireNotNull(appContext.reactContext)
 
-  private var eventsCallback: CrispEventsBridge? = null
-  private var loggerCallback: CrispLoggerBridge? = null
-
-  private val onSessionLoaded = "onSessionLoaded"
-  private val onChatOpened = "onChatOpened"
-  private val onChatClosed = "onChatClosed"
-  private val onMessageSent = "onMessageSent"
-  private val onMessageReceived = "onMessageReceived"
-  private val onLogReceived = "onLogReceived"
-  private val onPushNotificationReceived = "onPushNotificationReceived"
+  private val mainHandler = Handler(Looper.getMainLooper())
+  private var presenter: CrispChatPresenter? = null
+  private var logger: CrispLoggerBridge? = null
 
   override fun definition() = ModuleDefinition {
     Name("ExpoCrispSdk")
 
     Events(
-      onSessionLoaded,
-      onChatOpened,
-      onChatClosed,
-      onMessageSent,
-      onMessageReceived,
-      onLogReceived,
-      onPushNotificationReceived
+      "onSessionLoaded",
+      "onChatOpened",
+      "onChatClosed",
+      "onMessageSent",
+      "onMessageReceived",
+      "onLogReceived",
+      "onPushNotificationReceived"
     )
 
     OnCreate {
-      registerEventsCallback()
-      registerLogger()
-      // Keep the legacy push-event singleton wired for any already generated
-      // coexistence services. New generated services emit through EventsCallback.
-      CrispPushEventEmitter.sendEvent = { eventName, data ->
-        this@ExpoCrispSdkModule.sendEvent(eventName, data)
-      }
+      val events = CrispEventsBridge { name, data -> sendEvent(name, data) }
+      onMain { presenter = CrispChatPresenter(events) }
+      logger = CrispLoggerBridge { level, tag, message ->
+        sendEvent("onLogReceived", mapOf("log" to mapOf("level" to level, "tag" to tag, "message" to message)))
+      }.also(Crisp::addLogger)
+      CrispPushEventEmitter.sendEvent = { name, body -> sendEvent(name, body) }
     }
 
     OnDestroy {
-      unregisterEventsCallback()
-      unregisterLogger()
+      logger?.let(Crisp::removeLogger)
+      logger = null
       CrispPushEventEmitter.sendEvent = null
+      onMain {
+        presenter?.close()
+        presenter = null
+      }
     }
 
     // MARK: - Configuration
 
     Function("configure") { websiteId: String ->
-      Crisp.configure(context, websiteId)
+      if (CrispIdentity.configure(websiteId)) sessionChanged()
     }
 
     Function("setTokenId") { tokenId: String? ->
-      Crisp.setTokenID(context, tokenId)
+      if (CrispIdentity.setTokenId(tokenId)) sessionChanged()
     }
 
     Function("setLogLevel") { level: Int ->
-      val logLevel = convertIntToLogLevel(level)
-      Crisp.setLogLevel(logLevel)
+      Crisp.setLogLevel(CrispLogLevels.toPriority(level))
     }
 
     // MARK: - User Information
 
     Function("setUserEmail") { email: String, signature: String? ->
-      Crisp.setUserEmail(email, signature)
+      session().user.setEmail(email, signature)
     }
 
     Function("setUserNickname") { name: String ->
-      Crisp.setUserNickname(name)
+      session().user.setNickname(name)
     }
 
     Function("setUserPhone") { phone: String ->
-      Crisp.setUserPhone(phone)
+      session().user.setPhone(phone)
     }
 
     Function("setUserCompany") { companyData: Map<String, Any?> ->
-      val company = CompanyParser.fromMap(companyData)
-      Crisp.setUserCompany(company)
+      session().user.setCompany(CompanyParser.fromMap(companyData) { warning -> Log.w(TAG, warning) })
     }
 
     Function("setUserAvatar") { url: String ->
-      Crisp.setUserAvatar(url)
+      session().user.setAvatar(url)
     }
 
     // MARK: - Session Data
 
     Function("setSessionString") { key: String, value: String ->
-      Crisp.setSessionString(key, value)
+      session().session.setData(mapOf(key to value))
     }
 
     Function("setSessionBool") { key: String, value: Boolean ->
-      Crisp.setSessionBool(key, value)
+      session().session.setData(mapOf(key to value))
     }
 
     Function("setSessionInt") { key: String, value: Double ->
-      Crisp.setSessionInt(key, value.toInt())
+      session().session.setData(mapOf(key to value.toInt()))
     }
 
     Function("setSessionSegment") { segment: String ->
-      Crisp.setSessionSegment(segment)
+      session().session.setSegments(listOf(segment), overwrite = false)
     }
 
     Function("setSessionSegments") { segments: List<String>, overwrite: Boolean ->
-      Crisp.setSessionSegments(segments, overwrite)
+      session().session.setSegments(segments, overwrite)
     }
 
-    AsyncFunction("getSessionIdentifier") { promise: Promise ->
-      val identifier = Crisp.getSessionIdentifier(context)
-      promise.resolve(identifier)
+    // Only available while the chatbox is shown on Android: Crisp Android 3.x reads it from the chatbox
+    AsyncFunction("getSessionIdentifier") Coroutine { ->
+      withContext(Dispatchers.Main) { presenter?.sessionIdentifier() }
     }
 
     // MARK: - Events
 
     Function("pushSessionEvent") { name: String, color: Int ->
-      val sessionColor = convertIntToColor(color)
-      Crisp.pushSessionEvent(SessionEvent(name, sessionColor))
+      session().session.pushEvent(name, color = sessionEventColor(color))
     }
 
     Function("pushSessionEvents") { events: List<Map<String, Any?>> ->
-      val sessionEvents = events.mapNotNull { event ->
-        val name = event["name"] as? String ?: return@mapNotNull null
-        val colorValue = (event["color"] as? Number)?.toInt() ?: 9
-        val color = convertIntToColor(colorValue)
-        SessionEvent(name, color)
+      val session = session().session
+      for (event in events) {
+        val name = event["name"] as? String ?: continue
+        session.pushEvent(name, color = sessionEventColor((event["color"] as? Number)?.toInt()))
       }
-      Crisp.pushSessionEvents(sessionEvents)
     }
 
     // MARK: - Session Management
 
     Function("resetSession") {
-      Crisp.resetChatSession(context)
+      for (config in CrispIdentity.takeSessionsToReset()) {
+        CrispSessionController(context, config).session.reset()
+      }
+      sessionChanged()
     }
 
     // MARK: - UI
 
     Function("show") {
-      startChatActivity()
+      show()
     }
 
     Function("openChat") {
-      // ChatActivity always opens on the Chat tab, so no tab selection is needed.
-      startChatActivity()
+      throw CrispUnsupportedException(
+        "openChat",
+        "Crisp Android SDK 3.0.0beta3 cannot open the chat section directly, call show() instead"
+      )
     }
 
     Function("searchHelpdesk") {
-      Crisp.searchHelpdesk(context)
-      startChatActivity()
+      show { helpdesk.search(completion = null) }
     }
 
     Function("openHelpdeskArticle") { id: String, locale: String, title: String?, category: String? ->
-      Crisp.openHelpdeskArticle(context, id, locale, title, category)
-      startChatActivity()
+      show { helpdesk.openArticle(locale = locale, slug = id, title = title, category = category, completion = null) }
     }
 
+    // Made once a chatbox is ready: right away if shown, otherwise the next time it is
     Function("runBotScenario") { scenarioId: String ->
-      Crisp.runBotScenario(scenarioId)
+      onMain { presenter?.controller?.bot?.runScenario(scenarioId, completion = null) }
     }
 
-    // MARK: - Push Notifications (Coexistence Mode)
+    // MARK: - Push Notifications
 
     Function("registerPushToken") { token: String ->
       if (token.isNotEmpty()) {
-        CrispNotificationClient.sendTokenToCrisp(context, token)
+        CrispNotifications.onNewToken(context, token)
       }
     }
 
     Function("isCrispPushNotification") { data: Map<String, String> ->
-      data.containsKey("crisp_website_id")
+      CrispNotifications.isCrispNotification(data)
     }
 
     Function("setShouldPromptForNotificationPermission") { _: Boolean ->
-      // No-op on Android — this API does not exist in the native SDK
+      // iOS only: on Android, the chatbox asks for the notification permission itself
     }
 
     // MARK: - Messages
 
+    // Made once a chatbox is ready: right away if shown, otherwise the next time it is
     Function("showMessage") { contentData: Map<String, Any?> ->
       val content = ContentParser.fromMap(contentData)
-      Crisp.showMessage(content)
+      onMain { presenter?.controller?.message?.show(content, completion = null) }
     }
   }
 
-  private fun startChatActivity() {
-    val crispIntent = Intent(context, ChatActivity::class.java)
-    crispIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(crispIntent)
-  }
+  private fun session() = CrispSessionController(context, CrispIdentity.config())
 
-  private fun convertIntToColor(colorInt: Int): Color {
-    return when (colorInt) {
-      0 -> Color.RED
-      1 -> Color.ORANGE
-      2 -> Color.YELLOW
-      3 -> Color.GREEN
-      4 -> Color.BLUE
-      5 -> Color.PURPLE
-      6 -> Color.PINK
-      7 -> Color.BROWN
-      8 -> Color.GREY
-      else -> Color.BLACK
+  private fun sessionChanged() = onMain { presenter?.sessionChanged() }
+
+  /** Shows the chatbox of the current session, then makes [then] on its controller. */
+  private fun show(then: (CrispChatboxController.() -> Unit)? = null) {
+    val config = CrispIdentity.config()
+    val activity = appContext.currentActivity ?: throw CrispNoActivityException("no foreground activity")
+    if (activity !is FragmentActivity) {
+      throw CrispNoActivityException("the current activity is not a FragmentActivity")
+    }
+    onMain {
+      val presenter = presenter ?: return@onMain
+      presenter.show(activity, config)
+      then?.invoke(presenter.controller)
     }
   }
 
-  private fun registerEventsCallback() {
-    unregisterEventsCallback()
-    eventsCallback = CrispEventsBridge { eventName, data ->
-      this@ExpoCrispSdkModule.sendEvent(eventName, data)
-    }
-    eventsCallback?.let { Crisp.addCallback(it) }
-  }
-
-  private fun unregisterEventsCallback() {
-    eventsCallback?.let {
-      Crisp.removeCallback(it)
-      eventsCallback = null
+  // Posted in order, so that UI calls run after the session changes made before them
+  private fun onMain(block: () -> Unit) {
+    mainHandler.post {
+      try {
+        block()
+      } catch (e: Exception) {
+        Log.e(TAG, "Crisp call failed", e)
+      }
     }
   }
 
-  private fun registerLogger() {
-    unregisterLogger()
-    loggerCallback = CrispLoggerBridge { level, tag, message ->
-      val levelInt = convertLogLevelToInt(level)
-      this@ExpoCrispSdkModule.sendEvent(onLogReceived, mapOf(
-        "log" to mapOf(
-          "level" to levelInt,
-          "tag" to tag,
-          "message" to message
-        )
-      ))
-    }
-    loggerCallback?.let { Crisp.addLogger(it) }
-  }
+  private fun sessionEventColor(color: Int?): SessionEventColor =
+    SessionEventColor.entries.getOrElse(color ?: -1) { SessionEventColor.BLACK }
 
-  private fun unregisterLogger() {
-    // Note: Crisp SDK does not provide a removeLogger API.
-    // The logger remains registered for the app lifetime.
-    // Setting to null allows garbage collection of our bridge object,
-    // though the SDK may still hold a reference.
-    loggerCallback = null
-  }
-
-  private fun convertIntToLogLevel(levelInt: Int): Logger.Level {
-    return when (levelInt) {
-      0 -> Logger.Level.VERBOSE
-      1 -> Logger.Level.DEBUG
-      2 -> Logger.Level.INFO
-      3 -> Logger.Level.WARN
-      4 -> Logger.Level.ERROR
-      5 -> Logger.Level.ASSERT
-      else -> Logger.Level.WARN
-    }
-  }
-
-  private fun convertLogLevelToInt(level: Logger.Level): Int {
-    return when (level) {
-      Logger.Level.VERBOSE -> 0
-      Logger.Level.DEBUG -> 1
-      Logger.Level.INFO -> 2
-      Logger.Level.WARN -> 3
-      Logger.Level.ERROR -> 4
-      Logger.Level.ASSERT -> 5
-    }
+  private companion object {
+    const val TAG = "ExpoCrispSdk"
   }
 }

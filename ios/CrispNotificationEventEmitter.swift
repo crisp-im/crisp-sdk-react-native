@@ -1,20 +1,27 @@
-import ExpoModulesCore
+import Foundation
 
-/// Singleton that allows the CrispAppDelegateSubscriber to emit events
-/// through the ExpoCrispSdkModule's event system.
-class CrispNotificationEventEmitter {
+@MainActor
+final class CrispNotificationEventEmitter {
 
   static let shared = CrispNotificationEventEmitter()
 
-  /// Reference to the module's sendEvent function, set by ExpoCrispSdkModule on create.
-  var sendEvent: ((_ name: String, _ body: [String: Any]) -> Void)?
+  private var handlers: [UUID: (String, [String: Any]) -> Void] = [:]
 
   private init() {}
 
+  func subscribe(_ handler: @escaping (String, [String: Any]) -> Void) -> UUID {
+    let token = UUID()
+    handlers[token] = handler
+    return token
+  }
+
+  func removeSubscription(_ token: UUID) {
+    handlers.removeValue(forKey: token)
+  }
+
   func emitPushNotificationReceived(title: String, body: String) {
-    sendEvent?("onPushNotificationReceived", [
-      "title": title,
-      "body": body
-    ])
+    for handler in Array(handlers.values) {
+      handler("onPushNotificationReceived", ["title": title, "body": body])
+    }
   }
 }

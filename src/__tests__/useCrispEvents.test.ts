@@ -12,7 +12,8 @@ jest.mock("../ExpoCrispSdkModule", () => ({
 }));
 
 import type { CrispLogEntry, CrispMessage, PushNotificationPayload } from "../ExpoCrispSdk.types";
-import { useCrispEvents } from "../useCrispEvents";
+import { type CrispEventCallbacks, useCrispEvents } from "../useCrispEvents";
+import migration from "./fixtures/native-migration.json";
 
 beforeEach(() => {
   mockAddListener.mockClear();
@@ -181,6 +182,95 @@ describe("useCrispEvents", () => {
 
     // Should NOT add more listeners (empty dep array)
     expect(mockAddListener).toHaveBeenCalledTimes(7);
+  });
+});
+
+describe("native migration event compatibility", () => {
+  const events: Array<{ name: keyof CrispEventCallbacks; payload: unknown; args: unknown[] }> = [
+    {
+      name: "onSessionLoaded",
+      payload: { sessionId: "synthetic-session" },
+      args: ["synthetic-session"],
+    },
+    { name: "onChatOpened", payload: {}, args: [] },
+    { name: "onChatClosed", payload: {}, args: [] },
+    {
+      name: "onMessageSent",
+      payload: { message: migration.receivedMessage },
+      args: [migration.receivedMessage],
+    },
+    {
+      name: "onMessageReceived",
+      payload: { message: migration.receivedMessage },
+      args: [migration.receivedMessage],
+    },
+    {
+      name: "onLogReceived",
+      payload: { log: { level: 3, tag: "Crisp", message: "Synthetic" } },
+      args: [{ level: 3, tag: "Crisp", message: "Synthetic" }],
+    },
+    {
+      name: "onPushNotificationReceived",
+      payload: { title: "Synthetic", body: "Reply" },
+      args: [{ title: "Synthetic", body: "Reply" }],
+    },
+  ];
+
+  it.each(events)("updates $name handlers without resubscribing", ({ name, payload, args }) => {
+    const first = jest.fn();
+    const second = jest.fn();
+    const { rerender, unmount } = renderHook(
+      (callbacks: CrispEventCallbacks) => useCrispEvents(callbacks),
+      { initialProps: { [name]: first } },
+    );
+    const listener = getListenerHandler(name);
+    rerender({ [name]: second });
+    act(() => listener(payload));
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledWith(...args);
+    expect(mockAddListener).toHaveBeenCalledTimes(7);
+    rerender({});
+    act(() => listener(payload));
+    expect(second).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(mockRemove).toHaveBeenCalledTimes(7);
+  });
+
+  it("forwards repeated session-loaded events rather than treating them as one-shot", () => {
+    const onSessionLoaded = jest.fn();
+    renderHook(() => useCrispEvents({ onSessionLoaded }));
+    const handler = getListenerHandler("onSessionLoaded");
+    act(() => {
+      handler({ sessionId: "synthetic-session" });
+      handler({ sessionId: "synthetic-session" });
+    });
+    expect(onSessionLoaded).toHaveBeenCalledTimes(2);
+  });
+
+  it("preserves millisecond timestamps and fingerprints beyond the safe integer range", () => {
+    const onMessageReceived = jest.fn();
+    renderHook(() => useCrispEvents({ onMessageReceived }));
+    act(() => getListenerHandler("onMessageReceived")({ message: migration.receivedMessage }));
+    const received = onMessageReceived.mock.calls[0][0];
+    expect(received).toBe(migration.receivedMessage);
+    expect(received.timestamp).toBe(1794225600123);
+    expect(received.fingerprint).toBe("9007199254740993");
+  });
+
+  it("cleans each subscription exactly once across StrictMode remounts", () => {
+    const removers: jest.Mock[] = [];
+    mockAddListener.mockImplementation(() => {
+      const remove = jest.fn();
+      removers.push(remove);
+      return { remove };
+    });
+    const { unmount } = renderHook(() => useCrispEvents({}), {
+      reactStrictMode: true,
+    });
+    expect(mockAddListener).toHaveBeenCalledTimes(14);
+    expect(removers.filter((remove) => remove.mock.calls.length === 0)).toHaveLength(7);
+    unmount();
+    for (const remove of removers) expect(remove).toHaveBeenCalledTimes(1);
   });
 });
 

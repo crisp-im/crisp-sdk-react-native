@@ -5,7 +5,7 @@ import UserNotifications
 
 public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
 
-  private var previousDelegate: UNUserNotificationCenterDelegate?
+  private let replacedDelegates = NotificationDelegateChain()
   private var isCoexistenceMode: Bool {
     return Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsMode") as? String == "coexistence"
   }
@@ -14,21 +14,29 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if let websiteId = Bundle.main.object(forInfoDictionaryKey: "CrispWebsiteId") as? String {
-      DispatchQueue.main.async {
-        CrispSDK.configure(websiteID: websiteId)
+    guard let websiteId = Bundle.main.object(forInfoDictionaryKey: "CrispWebsiteId") as? String else {
+      return true
+    }
+    let notificationsEnabled =
+      Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool ?? false
 
-        if let notificationsEnabled = Bundle.main.object(forInfoDictionaryKey: "CrispNotificationsEnabled") as? Bool,
-          notificationsEnabled
-        {
-          // Always register for remote notifications to obtain the APNs device token.
-          // This does NOT prompt the user for permission (that's requestAuthorization).
-          application.registerForRemoteNotifications()
+    // iOS hands the tap on a notification that launched the app only to the delegate set
+    // before launch finishes: set it now, without it the tap opens the app but not the chatbox.
+    // Without a delegate, iOS also drops the notifications received in the foreground.
+    if notificationsEnabled {
+      setupNotificationDelegate()
+    }
 
-          // Always set up UNUserNotificationCenterDelegate for foreground notification handling.
-          // Without this, iOS silently drops notifications received while the app is in foreground.
-          self.setupNotificationDelegate()
-        }
+    DispatchQueue.main.async {
+      CrispSDK.configure(websiteID: websiteId)
+
+      if notificationsEnabled {
+        // Obtains the APNs device token, without prompting the user for permission (requestAuthorization does)
+        application.registerForRemoteNotifications()
+
+        // Takes the delegate back if another subscriber replaced it after this one,
+        // and passes it the notifications that are not from Crisp in coexistence mode
+        self.setupNotificationDelegate()
       }
     }
     return true
@@ -52,9 +60,10 @@ public class CrispAppDelegateSubscriber: ExpoAppDelegateSubscriber {
 
   private func setupNotificationDelegate() {
     let center = UNUserNotificationCenter.current()
+    guard center.delegate !== self else { return }
 
-    // Save the previous delegate for chain of responsibility
-    previousDelegate = center.delegate
+    // Keep the replaced delegate to pass it the notifications that are not from Crisp
+    replacedDelegates.record(center.delegate)
 
     // Set ourselves as the delegate
     center.delegate = self
@@ -76,15 +85,19 @@ extension CrispAppDelegateSubscriber: UNUserNotificationCenterDelegate {
 
       // Emit onPushNotificationReceived event to JS
       let content = notification.request.content
-      CrispNotificationEventEmitter.shared.emitPushNotificationReceived(
-        title: content.title,
-        body: content.body
-      )
+      let title = content.title
+      let body = content.body
+      DispatchQueue.main.async {
+        CrispNotificationEventEmitter.shared.emitPushNotificationReceived(title: title, body: body)
+      }
 
       completionHandler([.banner, .sound])
-    } else if isCoexistenceMode, let previous = previousDelegate {
-      // In coexistence mode, forward non-Crisp notifications to the previous delegate
-      previous.userNotificationCenter?(center, willPresent: notification, withCompletionHandler: completionHandler)
+    } else if isCoexistenceMode,
+      replacedDelegates.forward({
+        $0.userNotificationCenter?(center, willPresent: notification, withCompletionHandler: completionHandler) != nil
+      })
+    {
+      // In coexistence mode, a replaced delegate handled the non-Crisp notification
     } else {
       // Default: show the notification
       completionHandler([.banner, .sound])
@@ -109,9 +122,12 @@ extension CrispAppDelegateSubscriber: UNUserNotificationCenterDelegate {
       CrispChatPresenter.present(.chat)
 
       completionHandler()
-    } else if isCoexistenceMode, let previous = previousDelegate {
-      // In coexistence mode, forward non-Crisp notification taps to the previous delegate
-      previous.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler)
+    } else if isCoexistenceMode,
+      replacedDelegates.forward({
+        $0.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler) != nil
+      })
+    {
+      // In coexistence mode, a replaced delegate handled the tap on the non-Crisp notification
     } else {
       completionHandler()
     }

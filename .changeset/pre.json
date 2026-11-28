@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "crisp-sdk-react-native": "0.4.4"
+  },
+  "changesets": []
+}

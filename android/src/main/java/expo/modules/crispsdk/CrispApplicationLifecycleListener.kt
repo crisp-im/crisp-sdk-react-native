@@ -1,79 +1,49 @@
 package expo.modules.crispsdk
 
 import android.app.Application
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.pm.PackageManager
-import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import expo.modules.core.interfaces.ApplicationLifecycleListener
-import im.crisp.client.external.Crisp
+import im.crisp.sdk.api.notification.CrispNotifications
 
+/**
+ * Applies the config plugin settings (AndroidManifest meta-data) in `Application.onCreate`,
+ * before Firebase Cloud Messaging delivers a notification to a process it started:
+ * configures the website and enables its notifications.
+ */
 class CrispApplicationLifecycleListener : ApplicationLifecycleListener {
-
-  companion object {
-    private const val TAG = "CrispLifecycle"
-  }
-
   override fun onCreate(application: Application) {
-    Log.d(TAG, "onCreate called")
+    val metaData = try {
+      application.packageManager
+        .getApplicationInfo(application.packageName, PackageManager.GET_META_DATA)
+        .metaData
+    } catch (e: PackageManager.NameNotFoundException) {
+      null
+    } ?: return
 
-    val appInfo = application.packageManager.getApplicationInfo(
-      application.packageName,
-      PackageManager.GET_META_DATA
-    )
+    val websiteId = metaData.getString(WEBSITE_ID)?.takeIf { it.isNotBlank() } ?: return
+    CrispIdentity.configure(websiteId)
 
-    val websiteId = appInfo.metaData?.getString("expo.modules.crispsdk.WEBSITE_ID")
-    // AndroidManifest meta-data stores values as strings, so we need to parse it
-    val notificationsEnabledRaw = appInfo.metaData?.get("expo.modules.crispsdk.NOTIFICATIONS_ENABLED")
-    val notificationsEnabled = when (notificationsEnabledRaw) {
-      is Boolean -> notificationsEnabledRaw
-      is String -> notificationsEnabledRaw.equals("true", ignoreCase = true)
-      else -> false
-    }
-
-    val notificationsMode = appInfo.metaData?.getString("expo.modules.crispsdk.NOTIFICATIONS_MODE") ?: "sdk-managed"
-
-    Log.d(TAG, "websiteId: $websiteId")
-    Log.d(TAG, "notificationsEnabled: $notificationsEnabled (raw: $notificationsEnabledRaw, type: ${notificationsEnabledRaw?.javaClass?.simpleName})")
-    Log.d(TAG, "notificationsMode: $notificationsMode")
-
-    websiteId?.let { id ->
-      Log.d(TAG, "Calling Crisp.configure($id)")
-      Crisp.configure(application, id)
-
-      if (notificationsEnabled) {
-        createNotificationChannel(application, id)
-
-        Log.d(TAG, "Calling Crisp.enableNotifications(true)")
-        Crisp.enableNotifications(application, true)
-
-        if (notificationsMode == "coexistence") {
-          Log.d(TAG, "Coexistence mode: CrispNotificationService NOT registered (handled by ExpoCrispFirebaseMessagingService)")
-        }
-      }
-    } ?: run {
-      Log.e(TAG, "websiteId is NULL - check AndroidManifest meta-data")
-    }
+    if (!metaData.isTrue(NOTIFICATIONS_ENABLED)) return
+    // Persisted by the SDK, which registers the device on the session of the next chatbox loading the website
+    CrispNotifications.setEnabled(application, websiteId, true)
+    CrispNotifications.addListener(CrispPushEventEmitter)
+    Log.d(TAG, "Notifications enabled (${metaData.getString(NOTIFICATIONS_MODE) ?: "sdk-managed"} mode)")
   }
 
-  private fun createNotificationChannel(application: Application, websiteId: String) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val channelId = "crisp_chatbox_$websiteId"
-      val channelName = "Crisp Messages"
-      val channel = NotificationChannel(
-        channelId,
-        channelName,
-        NotificationManager.IMPORTANCE_HIGH
-      ).apply {
-        description = "Chat messages from Crisp"
-        enableVibration(true)
-        enableLights(true)
-      }
+  // Android parses the meta-data value "true" written by the config plugin as a Boolean: read it untyped
+  @Suppress("DEPRECATION")
+  private fun Bundle.isTrue(key: String): Boolean = when (val value = get(key)) {
+    is Boolean -> value
+    is String -> value.equals("true", ignoreCase = true)
+    else -> false
+  }
 
-      val notificationManager = application.getSystemService(NotificationManager::class.java)
-      notificationManager.createNotificationChannel(channel)
-      Log.d(TAG, "Notification channel created: $channelId")
-    }
+  private companion object {
+    const val TAG = "CrispLifecycle"
+    const val WEBSITE_ID = "expo.modules.crispsdk.WEBSITE_ID"
+    const val NOTIFICATIONS_ENABLED = "expo.modules.crispsdk.NOTIFICATIONS_ENABLED"
+    const val NOTIFICATIONS_MODE = "expo.modules.crispsdk.NOTIFICATIONS_MODE"
   }
 }

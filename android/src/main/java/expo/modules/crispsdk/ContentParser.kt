@@ -1,142 +1,79 @@
 package expo.modules.crispsdk
 
-import im.crisp.client.external.data.message.content.AnimationContent
-import im.crisp.client.external.data.message.content.AudioContent
-import im.crisp.client.external.data.message.content.CarouselContent
-import im.crisp.client.external.data.message.content.Content
-import im.crisp.client.external.data.message.content.FieldContent
-import im.crisp.client.external.data.message.content.FileContent
-import im.crisp.client.external.data.message.content.PickerContent
-import im.crisp.client.external.data.message.content.TextContent
+import im.crisp.sdk.model.AnimationFile
+import im.crisp.sdk.model.AudioFile
+import im.crisp.sdk.model.Carousel
+import im.crisp.sdk.model.Field
+import im.crisp.sdk.model.File
+import im.crisp.sdk.model.MessageContent
+import im.crisp.sdk.model.Picker
+import java.net.MalformedURLException
+import java.net.URL
 
 /**
- * Parser for Message Content objects from JavaScript.
- * Converts Map<String, Any?> to Crisp SDK Content subclasses.
+ * Converts the JS `MessageContent` of `showMessage` to a native [MessageContent].
+ * Discriminated by its `type`: text, file, animation, audio, picker, field, carousel.
  *
- * TypeScript union type: MessageContent
- * Discriminated by "type" field: text, file, animation, audio, picker, field, carousel
+ * @throws IllegalArgumentException for an unknown type, or a missing or invalid required field.
  */
 object ContentParser {
+  fun fromMap(map: Map<String, Any?>): MessageContent = when (val type = map.string("type")) {
+    "text" -> MessageContent.TextContent(map.string("text"))
+    "file" -> MessageContent.FileContent(File(map.string("name"), map.string("mimeType"), map.url("url")))
+    "animation" -> MessageContent.AnimationContent(AnimationFile(map.string("mimeType"), map.url("url")))
+    "audio" -> MessageContent.AudioContent(
+      AudioFile(map.string("mimeType"), map.url("url"), map.number("duration").toInt())
+    )
+    "picker" -> MessageContent.PickerContent(
+      Picker(map.string("id"), map.string("text"), map.list("choices").mapNotNull(::choice))
+    )
+    // `required` has no equivalent in Crisp Android 3.x
+    "field" -> MessageContent.FieldContent(
+      Field(map.string("id"), map.string("text"), map["explain"] as? String ?: "")
+    )
+    "carousel" -> MessageContent.CarouselContent(
+      Carousel(map.string("text"), map.list("targets").mapNotNull(::target))
+    )
+    else -> throw IllegalArgumentException("Unknown message content type: $type")
+  }
 
-    /**
-     * Parse a map from JavaScript into Content for Crisp.showMessage
-     *
-     * @param map Map with "type" discriminator and type-specific fields
-     * @return Content subclass instance
-     * @throws IllegalArgumentException for invalid or missing required fields
-     */
-    fun fromMap(map: Map<String, Any?>): Content {
-        val type = map["type"] as? String
-            ?: throw IllegalArgumentException("Missing required field: type")
+  // Choices without value or label are skipped, as in previous versions
+  private fun choice(map: Map<String, Any?>): Picker.Choice? {
+    val value = map["value"] as? String ?: return null
+    val label = map["label"] as? String ?: return null
+    return Picker.Choice(label = label, selected = map["selected"] as? Boolean ?: false, value = value)
+  }
 
-        return when (type) {
-            "text" -> parseTextContent(map)
-            "file" -> parseFileContent(map)
-            "animation" -> parseAnimationContent(map)
-            "audio" -> parseAudioContent(map)
-            "picker" -> parsePickerContent(map)
-            "field" -> parseFieldContent(map)
-            "carousel" -> parseCarouselContent(map)
-            else -> throw IllegalArgumentException("Unknown message content type: $type")
-        }
-    }
+  // Targets without title are skipped, as in previous versions
+  private fun target(map: Map<String, Any?>): Carousel.Target? {
+    val title = map["title"] as? String ?: return null
+    val actions = (map["actionUrl"] as? String)
+      ?.let { listOf(Carousel.Target.Action("Open", parseUrl("actionUrl", it))) }
+      ?: emptyList()
+    return Carousel.Target(
+      title = title,
+      description = map["description"] as? String ?: "",
+      image = (map["imageUrl"] as? String)?.let { parseUrl("imageUrl", it) },
+      actions = actions
+    )
+  }
 
-    private fun parseTextContent(map: Map<String, Any?>): TextContent {
-        val text = map["text"] as? String
-            ?: throw IllegalArgumentException("Missing required field: text")
-        return TextContent(text)
-    }
+  private fun Map<String, Any?>.string(key: String): String =
+    this[key] as? String ?: throw IllegalArgumentException("Missing required field: $key")
 
-    private fun parseFileContent(map: Map<String, Any?>): FileContent {
-        val url = map["url"] as? String
-            ?: throw IllegalArgumentException("Missing required field: url")
-        val name = map["name"] as? String
-            ?: throw IllegalArgumentException("Missing required field: name")
-        val mimeType = map["mimeType"] as? String
-            ?: throw IllegalArgumentException("Missing required field: mimeType")
+  private fun Map<String, Any?>.number(key: String): Number =
+    this[key] as? Number ?: throw IllegalArgumentException("Missing required field: $key")
 
-        return FileContent(url, name, mimeType)
-    }
+  private fun Map<String, Any?>.url(key: String): URL = parseUrl(key, string(key))
 
-    private fun parseAnimationContent(map: Map<String, Any?>): AnimationContent {
-        val url = map["url"] as? String
-            ?: throw IllegalArgumentException("Missing required field: url")
-        val mimeType = map["mimeType"] as? String
-            ?: throw IllegalArgumentException("Missing required field: mimeType")
+  @Suppress("UNCHECKED_CAST")
+  private fun Map<String, Any?>.list(key: String): List<Map<String, Any?>> =
+    (this[key] as? List<*>)?.filterIsInstance<Map<String, Any?>>()
+      ?: throw IllegalArgumentException("Missing required field: $key")
 
-        return AnimationContent(url, mimeType)
-    }
-
-    private fun parseAudioContent(map: Map<String, Any?>): AudioContent {
-        val url = map["url"] as? String
-            ?: throw IllegalArgumentException("Missing required field: url")
-        val mimeType = map["mimeType"] as? String
-            ?: throw IllegalArgumentException("Missing required field: mimeType")
-        val duration = (map["duration"] as? Number)?.toInt()
-            ?: throw IllegalArgumentException("Missing required field: duration")
-
-        return AudioContent(url, mimeType, duration)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun parsePickerContent(map: Map<String, Any?>): PickerContent {
-        val id = map["id"] as? String
-            ?: throw IllegalArgumentException("Missing required field: id")
-        val text = map["text"] as? String
-            ?: throw IllegalArgumentException("Missing required field: text")
-        val choicesArray = map["choices"] as? List<Map<String, Any?>>
-            ?: throw IllegalArgumentException("Missing required field: choices")
-
-        val choices = choicesArray.mapNotNull { choiceMap ->
-            val value = choiceMap["value"] as? String ?: return@mapNotNull null
-            val label = choiceMap["label"] as? String ?: return@mapNotNull null
-            val selected = choiceMap["selected"] as? Boolean ?: false
-            PickerContent.Choice.Builder(value, label)
-                .setSelected(selected)
-                .build()
-        }
-
-        return PickerContent.Builder(id, text, choices).build()
-    }
-
-    private fun parseFieldContent(map: Map<String, Any?>): FieldContent {
-        val id = map["id"] as? String
-            ?: throw IllegalArgumentException("Missing required field: id")
-        val text = map["text"] as? String
-            ?: throw IllegalArgumentException("Missing required field: text")
-        val explain = map["explain"] as? String ?: ""
-        val required = map["required"] as? Boolean ?: false
-
-        return FieldContent.Builder(id, text, explain)
-            .setRequired(required)
-            .build()
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun parseCarouselContent(map: Map<String, Any?>): CarouselContent {
-        val text = map["text"] as? String
-            ?: throw IllegalArgumentException("Missing required field: text")
-        val targetsArray = map["targets"] as? List<Map<String, Any?>>
-            ?: throw IllegalArgumentException("Missing required field: targets")
-
-        val targets = targetsArray.mapNotNull { targetMap ->
-            val title = targetMap["title"] as? String ?: return@mapNotNull null
-            val description = targetMap["description"] as? String ?: ""
-            val imageUrl = targetMap["imageUrl"] as? String
-            val actionUrl = targetMap["actionUrl"] as? String
-
-            // Build actions list from actionUrl if provided
-            val actions = if (actionUrl != null) {
-                listOf(CarouselContent.Target.Action("Open", actionUrl))
-            } else {
-                emptyList()
-            }
-
-            CarouselContent.Target.Builder(title, description, actions)
-                .apply { imageUrl?.let { setImage(it) } }
-                .build()
-        }
-
-        return CarouselContent(text, targets)
-    }
+  private fun parseUrl(key: String, value: String): URL = try {
+    URL(value)
+  } catch (e: MalformedURLException) {
+    throw IllegalArgumentException("Invalid URL in field $key: $value", e)
+  }
 }

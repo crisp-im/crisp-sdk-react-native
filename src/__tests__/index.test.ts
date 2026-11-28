@@ -1,39 +1,46 @@
-const mockModule = {
-  configure: jest.fn(),
-  setTokenId: jest.fn(),
-  setLogLevel: jest.fn(),
-  setUserEmail: jest.fn(),
-  setUserNickname: jest.fn(),
-  setUserPhone: jest.fn(),
-  setUserCompany: jest.fn(),
-  setUserAvatar: jest.fn(),
-  setSessionString: jest.fn(),
-  setSessionBool: jest.fn(),
-  setSessionInt: jest.fn(),
-  setSessionSegment: jest.fn(),
-  setSessionSegments: jest.fn(),
-  getSessionIdentifier: jest.fn(),
-  pushSessionEvent: jest.fn(),
-  pushSessionEvents: jest.fn(),
-  resetSession: jest.fn(),
-  show: jest.fn(),
-  openChat: jest.fn(),
-  searchHelpdesk: jest.fn(),
-  openHelpdeskArticle: jest.fn(),
-  runBotScenario: jest.fn(),
-  registerPushToken: jest.fn(),
-  isCrispPushNotification: jest.fn(),
-  setShouldPromptForNotificationPermission: jest.fn(),
-  showMessage: jest.fn(),
-};
+import { render } from "@testing-library/react";
+import { createElement } from "react";
+import { version } from "../../package.json";
+import type { MessageContent } from "../ExpoCrispSdk.types";
+import * as sdk from "../index";
+import migration from "./fixtures/native-migration.json";
 
 jest.mock("../ExpoCrispSdkModule", () => ({
   __esModule: true,
-  default: mockModule,
+  default: {
+    configure: jest.fn(),
+    setTokenId: jest.fn(),
+    setLogLevel: jest.fn(),
+    setUserEmail: jest.fn(),
+    setUserNickname: jest.fn(),
+    setUserPhone: jest.fn(),
+    setUserCompany: jest.fn(),
+    setUserAvatar: jest.fn(),
+    setSessionString: jest.fn(),
+    setSessionBool: jest.fn(),
+    setSessionInt: jest.fn(),
+    setSessionSegment: jest.fn(),
+    setSessionSegments: jest.fn(),
+    getSessionIdentifier: jest.fn(),
+    pushSessionEvent: jest.fn(),
+    pushSessionEvents: jest.fn(),
+    resetSession: jest.fn(),
+    show: jest.fn(),
+    openChat: jest.fn(),
+    searchHelpdesk: jest.fn(),
+    openHelpdeskArticle: jest.fn(),
+    runBotScenario: jest.fn(),
+    registerPushToken: jest.fn(),
+    isCrispPushNotification: jest.fn(),
+    setShouldPromptForNotificationPermission: jest.fn(),
+    showMessage: jest.fn(),
+  },
 }));
 
+const mockModule = jest.requireMock("../ExpoCrispSdkModule").default;
+
 jest.mock("react-native", () => ({
-  View: "View",
+  View: "div",
 }));
 
 import {
@@ -283,5 +290,174 @@ describe("module encapsulation", () => {
     const indexExports = require("../index");
     expect(indexExports.default).not.toBe(mockModule);
     expect(typeof indexExports.default).toBe("function");
+  });
+});
+
+describe("native migration compatibility", () => {
+  it("keeps the existing flat public exports", () => {
+    expect(Object.keys(sdk).sort()).toEqual(
+      [
+        "CrispLogLevel",
+        "CrispSessionEventColors",
+        "configure",
+        "default",
+        "getSDKVersion",
+        "getSessionIdentifier",
+        "isCrispPushNotification",
+        "openChat",
+        "openHelpdeskArticle",
+        "pushSessionEvent",
+        "pushSessionEvents",
+        "registerPushToken",
+        "resetSession",
+        "runBotScenario",
+        "searchHelpdesk",
+        "setLogLevel",
+        "setSessionBool",
+        "setSessionInt",
+        "setSessionSegment",
+        "setSessionSegments",
+        "setSessionString",
+        "setShouldPromptForNotificationPermission",
+        "setTokenId",
+        "setUserAvatar",
+        "setUserCompany",
+        "setUserEmail",
+        "setUserNickname",
+        "setUserPhone",
+        "show",
+        "showMessage",
+        "useCrispEvents",
+      ].sort(),
+    );
+  });
+
+  it("keeps numeric log levels and session event colors", () => {
+    expect(
+      Object.fromEntries(
+        Object.entries(sdk.CrispLogLevel).filter(([key]) => Number.isNaN(Number(key))),
+      ),
+    ).toEqual({
+      VERBOSE: 0,
+      DEBUG: 1,
+      INFO: 2,
+      WARN: 3,
+      ERROR: 4,
+      ASSERT: 5,
+    });
+    expect(
+      Object.fromEntries(
+        Object.entries(sdk.CrispSessionEventColors).filter(([key]) => Number.isNaN(Number(key))),
+      ),
+    ).toEqual({
+      RED: 0,
+      ORANGE: 1,
+      YELLOW: 2,
+      GREEN: 3,
+      BLUE: 4,
+      PURPLE: 5,
+      PINK: 6,
+      BROWN: 7,
+      GREY: 8,
+      BLACK: 9,
+    });
+  });
+
+  it("reports the wrapper version rather than a native SDK version", () => {
+    expect(sdk.getSDKVersion()).toBe(version);
+  });
+
+  it("opens the chat once when the legacy component mounts", () => {
+    const { rerender, unmount } = render(createElement(sdk.default));
+    rerender(createElement(sdk.default));
+    expect(mockModule.show).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it("preserves the common configuration sequence and void results", () => {
+    const calls: string[] = [];
+    mockModule.configure.mockImplementationOnce(() => calls.push("configure"));
+    mockModule.setUserEmail.mockImplementationOnce(() => calls.push("email"));
+    mockModule.setSessionString.mockImplementationOnce(() => calls.push("data"));
+    mockModule.show.mockImplementationOnce(() => calls.push("show"));
+    expect(configure("synthetic-site")).toBeUndefined();
+    expect(setUserEmail("user@example.com")).toBeUndefined();
+    expect(setSessionString("plan", "test")).toBeUndefined();
+    expect(show()).toBeUndefined();
+    expect(calls).toEqual(["configure", "email", "data", "show"]);
+  });
+
+  it("does not silently reset when setting or clearing a token", () => {
+    setTokenId("synthetic-token");
+    setTokenId(null);
+    expect(mockModule.resetSession).not.toHaveBeenCalled();
+    resetSession();
+    expect(mockModule.resetSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves an explicit null email signature", () => {
+    setUserEmail("user@example.com", null);
+    expect(mockModule.setUserEmail).toHaveBeenCalledWith("user@example.com", null);
+  });
+
+  it("preserves positional helpdesk arguments and explicit null options", () => {
+    openHelpdeskArticle("article", "fr", null, null);
+    expect(mockModule.openHelpdeskArticle).toHaveBeenLastCalledWith("article", "fr", null, null);
+    openHelpdeskArticle("article", "en");
+    expect(mockModule.openHelpdeskArticle).toHaveBeenLastCalledWith(
+      "article",
+      "en",
+      undefined,
+      undefined,
+    );
+    openHelpdeskArticle({ id: "article", locale: "fr", title: null, category: null });
+    expect(mockModule.openHelpdeskArticle).toHaveBeenLastCalledWith("article", "fr", null, null);
+    expect(mockModule.show).not.toHaveBeenCalled();
+  });
+
+  it("passes empty segments and overwrite without losing their meaning", () => {
+    setSessionSegments([]);
+    expect(mockModule.setSessionSegments).toHaveBeenLastCalledWith([], false);
+    setSessionSegments([], true);
+    expect(mockModule.setSessionSegments).toHaveBeenLastCalledWith([], true);
+  });
+
+  it("returns the native identifier promise and propagates its rejection", async () => {
+    const failure = new Error("Synthetic native failure");
+    const pending = Promise.reject(failure);
+    mockModule.getSessionIdentifier.mockReturnValueOnce(pending);
+    const result = getSessionIdentifier();
+    expect(result).toBe(pending);
+    await expect(result).rejects.toBe(failure);
+  });
+
+  it.each(migration.messageContents)("forwards $type content unchanged to native", (content) => {
+    showMessage(content as MessageContent);
+    expect(mockModule.showMessage).toHaveBeenCalledWith(content);
+    expect(mockModule.showMessage.mock.calls[0][0]).toBe(content);
+    expect(mockModule.show).not.toHaveBeenCalled();
+  });
+
+  it.each(
+    migration.companies,
+  )("forwards $name without fabricating an employment role", (company) => {
+    const original = JSON.stringify(company);
+    setUserCompany(company);
+    expect(mockModule.setUserCompany.mock.calls[0][0]).toBe(company);
+    expect(JSON.stringify(company)).toBe(original);
+  });
+
+  it("delegates push classification to native without interpreting platform keys in JS", () => {
+    mockModule.isCrispPushNotification.mockReturnValueOnce(true);
+    expect(isCrispPushNotification(migration.iosPush)).toBe(true);
+    expect(mockModule.isCrispPushNotification).toHaveBeenCalledWith(migration.iosPush);
+  });
+
+  it("propagates native errors instead of turning unsupported content into success", () => {
+    const failure = new Error("Unsupported content");
+    mockModule.showMessage.mockImplementationOnce(() => {
+      throw failure;
+    });
+    expect(() => showMessage({ type: "text", text: "Synthetic" })).toThrow(failure);
   });
 });
